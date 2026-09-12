@@ -31,6 +31,7 @@ from .admin_cache import AdminNoStoreMiddleware, attach_admin_no_store
 from .admin_routes import router as admin_router
 from .code_sessions_routes import router as code_router
 from .ports import ApiServices
+from .rate_limit import RateLimitMiddleware
 from .request_errors import ordinary_application_error_response
 from .request_ids import (
     RequestCorrelationMiddleware,
@@ -39,20 +40,32 @@ from .request_ids import (
 )
 from .request_lifetime import ClientRequestLifetimeMiddleware
 from .routes import router
+from .security_headers import SecurityHeadersMiddleware
 from .validation_log import summarize_request_validation_body
 
 
 def create_app(services: ApiServices) -> FastAPI:
     """Create the HTTP adapter around explicitly supplied runtime services."""
-    app = FastAPI(title="Claude Code Proxy", version=package_version())
+    app = FastAPI(
+        title="Claude Code Proxy",
+        version=package_version(),
+        docs_url=None,  # Disable docs in production for security
+        redoc_url=None,
+        openapi_url="/openapi.json" if _is_docs_enabled() else None,
+    )
     app.state.services = services
-    # Enable CORS for remote admin access
+    # Security headers first
+    app.add_middleware(SecurityHeadersMiddleware)
+    # Rate limiting
+    app.add_middleware(RateLimitMiddleware)
+    # Enable CORS for remote admin access - more secure config
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=["*"],  # Allow all for remote admin, but credentials only when needed
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
         allow_headers=["*"],
+        expose_headers=["request-id", "x-request-id"],
     )
     app.add_middleware(AdminNoStoreMiddleware)
     app.add_middleware(ClientRequestLifetimeMiddleware)
@@ -156,3 +169,10 @@ def create_app(services: ApiServices) -> FastAPI:
         return response
 
     return app
+
+
+def _is_docs_enabled() -> bool:
+    """Check if API docs should be enabled (for dev only)."""
+    import os
+
+    return os.getenv("FCC_ENABLE_DOCS", "").lower() in {"1", "true", "yes"}

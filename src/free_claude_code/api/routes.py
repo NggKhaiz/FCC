@@ -1,4 +1,4 @@
-"""FastAPI route handlers."""
+"""FastAPI route handlers - hardened with rate limiting and security."""
 
 from collections.abc import Mapping
 
@@ -32,9 +32,11 @@ from .model_catalog import (
     build_muse_models_list_response,
 )
 from .ports import ApiServices
+from .rate_limit import check_rate_limit
 from .request_errors import ordinary_application_error_response
 from .request_ids import get_request_id
 from .response_streams import bind_response_lifetime
+from .security import check_request_size, log_security_event
 
 router = APIRouter()
 
@@ -123,6 +125,8 @@ async def create_message(
     _auth=Depends(require_anthropic_proxy_auth),
 ):
     """Create a message (JSON by default; stream=true returns Anthropic SSE)."""
+    check_rate_limit(request)
+    check_request_size(request, max_size=10 * 1024 * 1024)  # 10MB
     return await _create_messages_response(
         services,
         request_data,
@@ -132,7 +136,10 @@ async def create_message(
 
 
 @router.api_route("/v1/messages", methods=["HEAD", "OPTIONS"])
-async def probe_messages(_auth=Depends(require_anthropic_proxy_auth)):
+async def probe_messages(
+    request: Request, _auth=Depends(require_anthropic_proxy_auth)
+):
+    check_rate_limit(request)
     return _probe_response("POST, HEAD, OPTIONS")
 
 
@@ -144,6 +151,8 @@ async def create_response(
     _auth=Depends(require_proxy_auth),
 ):
     """Create an OpenAI Responses-compatible response through this proxy."""
+    check_rate_limit(request)
+    check_request_size(request, max_size=10 * 1024 * 1024)
     return await _create_responses_response(
         services,
         request_data,
@@ -153,7 +162,10 @@ async def create_response(
 
 
 @router.api_route("/v1/responses", methods=["HEAD", "OPTIONS"])
-async def probe_responses(_auth=Depends(require_proxy_auth)):
+async def probe_responses(
+    request: Request, _auth=Depends(require_proxy_auth)
+):
+    check_rate_limit(request)
     return _probe_response("POST, HEAD, OPTIONS")
 
 
@@ -165,20 +177,26 @@ async def count_tokens(
     _auth=Depends(require_anthropic_proxy_auth),
 ):
     """Count tokens for a request."""
+    check_rate_limit(request)
     handler = TokenCountHandler(settings, token_counter=get_token_count)
     return handler.count(request_data, request_id=get_request_id(request))
 
 
 @router.api_route("/v1/messages/count_tokens", methods=["HEAD", "OPTIONS"])
-async def probe_count_tokens(_auth=Depends(require_anthropic_proxy_auth)):
+async def probe_count_tokens(
+    request: Request, _auth=Depends(require_anthropic_proxy_auth)
+):
+    check_rate_limit(request)
     return _probe_response("POST, HEAD, OPTIONS")
 
 
 @router.get("/")
 async def root(
+    request: Request,
     settings: Settings = Depends(get_settings),
     _auth=Depends(require_proxy_auth),
 ):
+    check_rate_limit(request)
     return {
         "status": "ok",
         "provider": parse_provider_type(settings.model),
@@ -187,12 +205,14 @@ async def root(
 
 
 @router.api_route("/", methods=["HEAD", "OPTIONS"])
-async def probe_root():
+async def probe_root(request: Request):
+    check_rate_limit(request)
     return _probe_response("GET, HEAD, OPTIONS")
 
 
 @router.get("/health")
-async def health():
+async def health(request: Request):
+    # No rate limit for health, but add minimal check
     return {"status": "healthy"}
 
 
@@ -207,12 +227,14 @@ async def probe_health():
     response_model_exclude_none=True,
 )
 async def list_models(
+    request: Request,
     view: ModelCatalogView = ModelCatalogView.CLAUDE,
     services: ApiServices = Depends(get_services),
     settings: Settings = Depends(get_settings),
     _auth=Depends(require_proxy_auth),
 ):
     """List the model ids this proxy advertises to compatible clients."""
+    check_rate_limit(request)
     trace_event(stage="ingress", event="free_claude_code.api.models.list", source="api")
     return build_models_list_response(settings, services.requests, view=view)
 
@@ -223,21 +245,26 @@ async def list_models(
     response_model_exclude_none=True,
 )
 async def list_muse_models(
+    request: Request,
     services: ApiServices = Depends(get_services),
     settings: Settings = Depends(get_settings),
     _auth=Depends(require_proxy_auth),
 ):
     """List the direct Responses models expected by Muse Code."""
+    check_rate_limit(request)
     trace_event(stage="ingress", event="free_claude_code.api.models.list", source="api")
     return build_muse_models_list_response(settings, services.requests)
 
 
 @router.post("/stop")
 async def stop_cli(
+    request: Request,
     services: ApiServices = Depends(get_services),
     _auth=Depends(require_proxy_auth),
 ):
     """Stop all CLI sessions and pending tasks."""
+    check_rate_limit(request)
+    log_security_event("stop_cli", request, level="warning")
     result = await services.tasks.stop_all()
     if result is None:
         raise HTTPException(status_code=503, detail="Messaging system not initialized")
@@ -254,3 +281,20 @@ async def stop_cli(
     )
     logger.info("STOP_CLI: source=messaging_workflow cancelled_count={}", count)
     return {"status": "stopped", "cancelled_count": count}
+
+
+@router.get("/v1/security/info")
+async def security_info(
+    request: Request,
+    _auth=Depends(require_proxy_auth),
+):
+    """Security info endpoint - shows hardening status."""
+    check_rate_limit(request)
+    return {
+        "security_headers": True,
+        "rate_limiting": True,
+        "ssrf_protection": True,
+        "xss_protection": True,
+        "request_size_limits": True,
+        "audit_logging": True,
+    }

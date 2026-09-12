@@ -1,6 +1,8 @@
-"""FastAPI dependencies for the explicit runtime service boundary."""
+"""FastAPI dependencies for the explicit runtime service boundary - hardened."""
 
 import secrets
+import time
+from collections import defaultdict
 
 from fastapi import Depends, HTTPException, Request
 from loguru import logger
@@ -11,6 +13,48 @@ from free_claude_code.config.provider_catalog import PROVIDER_CATALOG
 from free_claude_code.config.settings import Settings
 
 from .ports import ApiServices
+from .security import log_security_event
+
+# Track failed auth attempts for brute force protection
+_failed_auth_attempts: dict[str, list[float]] = defaultdict(list)
+_MAX_FAILED_ATTEMPTS = 10
+_FAILED_WINDOW = 300  # 5 minutes
+_BLOCK_DURATION = 600  # 10 minutes
+_blocked_ips: dict[str, float] = {}
+
+
+def _get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _is_ip_blocked(client_ip: str) -> bool:
+    blocked_until = _blocked_ips.get(client_ip, 0)
+    if time.monotonic() < blocked_until:
+        return True
+    # Cleanup expired blocks
+    if client_ip in _blocked_ips:
+        del _blocked_ips[client_ip]
+    return False
+
+
+def _record_failed_auth(client_ip: str) -> None:
+    now = time.monotonic()
+    # Clean old attempts
+    _failed_auth_attempts[client_ip] = [
+        t for t in _failed_auth_attempts[client_ip] if now - t < _FAILED_WINDOW
+    ]
+    _failed_auth_attempts[client_ip].append(now)
+    
+    if len(_failed_auth_attempts[client_ip]) >= _MAX_FAILED_ATTEMPTS:
+        _blocked_ips[client_ip] = now + _BLOCK_DURATION
+        logger.warning(
+            "IP blocked due to brute force: ip={} attempts={}",
+            client_ip,
+            len(_failed_auth_attempts[client_ip]),
+        )
 
 
 def get_services(request: Request) -> ApiServices:
@@ -49,11 +93,22 @@ def require_proxy_auth(
     settings: Settings = Depends(get_settings),
 ) -> None:
     """Require the configured proxy token as HTTP bearer authorization."""
+    client_ip = _get_client_ip(request)
+    
+    if _is_ip_blocked(client_ip):
+        log_security_event("blocked_ip_auth_attempt", request, level="warning")
+        raise HTTPException(
+            status_code=429,
+            detail="Too many failed authentication attempts. Try again later.",
+        )
+    
     if not settings.proxy_auth_enabled:
         return
 
     authorization = request.headers.get("authorization")
     if not authorization:
+        _record_failed_auth(client_ip)
+        log_security_event("missing_auth_token", request, level="warning")
         raise HTTPException(
             status_code=401,
             detail="Missing proxy authentication token",
@@ -64,6 +119,8 @@ def require_proxy_auth(
         settings.proxy_auth_token,
         require_bearer=True,
     ):
+        _record_failed_auth(client_ip)
+        log_security_event("invalid_auth_token", request, level="warning")
         raise HTTPException(
             status_code=401,
             detail="Invalid proxy authentication token",
@@ -75,6 +132,15 @@ def require_anthropic_proxy_auth(
     settings: Settings = Depends(get_settings),
 ) -> None:
     """Require Bearer or Anthropic ``x-api-key`` proxy authentication."""
+    client_ip = _get_client_ip(request)
+    
+    if _is_ip_blocked(client_ip):
+        log_security_event("blocked_ip_auth_attempt", request, level="warning")
+        raise HTTPException(
+            status_code=429,
+            detail="Too many failed authentication attempts. Try again later.",
+        )
+    
     if not settings.proxy_auth_enabled:
         return
 
@@ -86,6 +152,8 @@ def require_anthropic_proxy_auth(
             require_bearer=True,
         ):
             return
+        _record_failed_auth(client_ip)
+        log_security_event("invalid_auth_token_bearer", request, level="warning")
         raise HTTPException(
             status_code=401,
             detail="Invalid proxy authentication token",
@@ -93,6 +161,8 @@ def require_anthropic_proxy_auth(
 
     x_api_key = request.headers.get("x-api-key")
     if x_api_key is None:
+        _record_failed_auth(client_ip)
+        log_security_event("missing_auth_token", request, level="warning")
         raise HTTPException(
             status_code=401,
             detail="Missing proxy authentication token",
@@ -103,6 +173,8 @@ def require_anthropic_proxy_auth(
         settings.proxy_auth_token,
         require_bearer=False,
     ):
+        _record_failed_auth(client_ip)
+        log_security_event("invalid_auth_token_apikey", request, level="warning")
         raise HTTPException(
             status_code=401,
             detail="Invalid proxy authentication token",

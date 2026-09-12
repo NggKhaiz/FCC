@@ -12,6 +12,15 @@
         onClose = null,
       },
     ) {
+      // Validate inputs
+      if (!input || !listboxId || typeof values !== "function") {
+        throw new Error("Invalid combobox config");
+      }
+      // Sanitize listboxId to prevent XSS
+      if (!/^[a-zA-Z0-9_\-]+$/.test(listboxId)) {
+        throw new Error("Invalid listbox ID");
+      }
+      
       this.input = input;
       this.getValues = values;
       this.getEmptyMessage = emptyMessage;
@@ -101,20 +110,32 @@
     }
 
     render(query) {
-      this.query = query;
-      const normalizedQuery = query.trim().toLocaleLowerCase();
-      const allValues = this.getValues();
+      this.query = String(query || "").slice(0, 512);
+      const normalizedQuery = this.query.trim().toLocaleLowerCase();
+      let allValues = [];
+      try {
+        allValues = this.getValues();
+        if (!Array.isArray(allValues)) allValues = [];
+        // Limit and sanitize values
+        allValues = allValues.slice(0, 1000).filter(v => typeof v === "string" && v.length <= 512);
+      } catch {
+        allValues = [];
+      }
       const values = normalizedQuery
         ? allValues.filter((value) =>
             value.toLocaleLowerCase().includes(normalizedQuery),
-          )
-        : allValues;
+          ).slice(0, 100)
+        : allValues.slice(0, 100);
       this.listbox.replaceChildren();
 
       if (values.length === 0) {
         const empty = document.createElement("div");
         empty.className = "model-combobox-empty";
-        empty.textContent = this.getEmptyMessage();
+        try {
+          empty.textContent = this.getEmptyMessage();
+        } catch {
+          empty.textContent = "No options";
+        }
         this.listbox.appendChild(empty);
         this.activeIndex = -1;
         this.input.removeAttribute("aria-activedescendant");
@@ -125,7 +146,7 @@
         const optionEl = document.createElement("div");
         optionEl.className = "model-combobox-option";
         optionEl.id = `${this.listbox.id}-option-${index}`;
-        optionEl.dataset.value = value;
+        optionEl.dataset.value = value.slice(0, 512);
         optionEl.setAttribute("role", "option");
         optionEl.textContent = value;
         this.listbox.appendChild(optionEl);

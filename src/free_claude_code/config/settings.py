@@ -684,6 +684,14 @@ class Settings(BaseModel):
         default=False,
         validation_alias="FCC_ADMIN_LOCAL_ONLY",
     )
+    admin_ip_allowlist: str | None = Field(
+        default=None,
+        validation_alias="FCC_ADMIN_IP_ALLOWLIST",
+    )
+    enable_docs: bool = Field(
+        default=False,
+        validation_alias="FCC_ENABLE_DOCS",
+    )
     proxy_auth_enabled: bool = Field(
         default=False,
         validation_alias="PROXY_AUTH_ENABLED",

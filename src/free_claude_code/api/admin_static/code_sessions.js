@@ -1240,8 +1240,15 @@
     const content = node.querySelector(".code-prose"),
       value = item.html ?? item.text;
     if (node.codeText !== value) {
-      if (item.html != null) content.innerHTML = item.html;
-      else content.textContent = item.text;
+      if (item.html != null) {
+        // item.html is sanitized backend markdown (html=False), but extra safety
+        // Only allow if it looks like safe markdown output (no script tags)
+        if (typeof item.html === 'string' && !/<script|javascript:|on\w+=/i.test(item.html)) {
+          content.innerHTML = item.html;
+        } else {
+          content.textContent = item.text;
+        }
+      } else content.textContent = item.text;
       node.codeText = value;
     }
     const detail = node.querySelector(".code-item-detail");

@@ -1,4 +1,4 @@
-"""Security boundary for Admin product surfaces - now remote-friendly."""
+"""Security boundary for Admin product surfaces - hardened, remote-friendly."""
 
 import ipaddress
 import os
@@ -65,48 +65,97 @@ def _is_remote_admin_allowed() -> bool:
     2. FCC_ALLOW_REMOTE_ADMIN env var (if set to 1/true, allow remote)
     3. Default: allow remote (modern deployment friendly)
     """
-    # Legacy enforcement flag - if explicitly set to true, enforce local-only
     local_only = os.getenv("FCC_ADMIN_LOCAL_ONLY", "").lower()
     if local_only in {"1", "true", "yes", "on"}:
         return False
 
-    # Explicit allow flag
     allow_remote = os.getenv("FCC_ALLOW_REMOTE_ADMIN", "").lower()
     if allow_remote in {"0", "false", "no", "off"}:
         return False
     if allow_remote in {"1", "true", "yes", "on"}:
         return True
 
-    # Default: allow remote access for better UX
-    # Security is handled via PROXY_AUTH_ENABLED + token
+    # Default: allow remote access - security via PROXY_AUTH_ENABLED + token
     return True
 
 
+def _is_ip_allowed(client_host: str | None) -> bool:
+    """Check IP allowlist if configured."""
+    allowlist = os.getenv("FCC_ADMIN_IP_ALLOWLIST", "").strip()
+    if not allowlist:
+        return True  # No allowlist = allow all
+    
+    if not client_host:
+        return False
+    
+    allowed_ips = [ip.strip() for ip in allowlist.split(",") if ip.strip()]
+    for allowed in allowed_ips:
+        try:
+            # Support CIDR notation
+            if "/" in allowed:
+                network = ipaddress.ip_network(allowed, strict=False)
+                if ipaddress.ip_address(client_host) in network:
+                    return True
+            else:
+                # Exact match or loopback check
+                if allowed.lower() == "localhost" and _is_loopback_host(client_host):
+                    return True
+                if client_host == allowed:
+                    return True
+                # Try as IP
+                if ipaddress.ip_address(client_host) == ipaddress.ip_address(allowed):
+                    return True
+        except ValueError:
+            # Invalid allowlist entry, skip
+            continue
+    return False
+
+
 def require_loopback_admin(request: Request) -> None:
-    """Allow Admin access from anywhere by default, with optional local-only enforcement.
+    """Allow Admin access from anywhere by default, with optional restrictions.
 
     Security model:
-    - Remote access is allowed by default (FCC_ALLOW_REMOTE_ADMIN=true)
-    - Set FCC_ADMIN_LOCAL_ONLY=1 to re-enable strict local-only mode
-    - When PROXY_AUTH_ENABLED is true, bearer token is still required for API
-    - Admin UI itself is protected by origin checks only when local-only mode is active
+    - Remote access allowed by default (FCC_ALLOW_REMOTE_ADMIN=true)
+    - Set FCC_ADMIN_LOCAL_ONLY=1 to re-enable strict local-only
+    - Set FCC_ADMIN_IP_ALLOWLIST to restrict by IP (CIDR supported)
+    - When PROXY_AUTH_ENABLED, bearer token required for sensitive operations
+    - Audit logging for remote access
     """
 
-    # If remote admin is allowed, skip all loopback checks
+    client_host = request.client.host if request.client else None
+    forwarded = request.headers.get("x-forwarded-for")
+    real_ip = forwarded.split(",")[0].strip() if forwarded else client_host
+
+    # IP allowlist check (strongest)
+    if not _is_ip_allowed(real_ip or client_host):
+        logger.warning(
+            "Admin access denied by IP allowlist: ip={} path={}",
+            real_ip or client_host,
+            request.url.path,
+        )
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access denied by IP allowlist",
+        )
+
+    # If remote admin is allowed, skip loopback checks but log
     if _is_remote_admin_allowed():
-        # Still log remote access for audit
-        client_host = request.client.host if request.client else "unknown"
-        if not _is_loopback_host(client_host):
-            logger.debug(
-                "Admin accessed remotely from {} path={}",
-                client_host,
+        if client_host and not _is_loopback_host(client_host):
+            logger.info(
+                "Admin remote access: ip={} path={} method={}",
+                real_ip or client_host,
                 request.url.path,
+                request.method,
             )
         return
 
     # Strict local-only mode (when FCC_ADMIN_LOCAL_ONLY=1)
-    client_host = request.client.host if request.client else None
     if not _is_loopback_host(client_host):
+        logger.warning(
+            "Admin local-only violation: ip={} path={}",
+            client_host,
+            request.url.path,
+        )
         raise HTTPException(
             status_code=403,
             detail="Admin UI is local-only (set FCC_ALLOW_REMOTE_ADMIN=1 to allow remote)",
@@ -120,3 +169,4 @@ def require_loopback_admin(request: Request) -> None:
 def require_admin_access(request: Request) -> None:
     """Alias for require_loopback_admin - now remote-friendly."""
     return require_loopback_admin(request)
+
