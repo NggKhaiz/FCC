@@ -58,6 +58,12 @@ is_safe_asset_name = _pick("is_safe_asset_name")
 json_dumps_compact = _pick("json_dumps_compact")
 json_loads_object = _pick("json_loads_object")
 json_loads_any = _pick("json_loads_any")
+sha256_hex = _pick("sha256_hex")
+hmac_sha256_hex = _pick("hmac_sha256_hex")
+key_id16 = _pick("key_id16")
+peer_url_ok = _pick("peer_url_ok")
+content_digest_hex = _pick("content_digest_hex")
+fccom1_encode_basic = _pick("fccom1_encode_basic")
 
 __all__ = [
     "BloomFilter",
@@ -78,4 +84,10 @@ __all__ = [
     "json_dumps_compact",
     "json_loads_object",
     "json_loads_any",
+    "sha256_hex",
+    "hmac_sha256_hex",
+    "key_id16",
+    "peer_url_ok",
+    "content_digest_hex",
+    "fccom1_encode_basic",
 ]

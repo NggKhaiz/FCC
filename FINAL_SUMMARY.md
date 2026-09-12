@@ -184,5 +184,13 @@ Truy cập: `http://YOUR_IP:8082/admin`
 - Tests: `tests/api/test_phase11_scrape_sign.py`
 - Chi tiết: `PHASE11_COMPLETE.md`
 
+### 20. Phase 12 — Rust hotpath v0.2 · Ed25519 · mTLS · Hub mesh
+✅ **Max performance path + asymmetric sign + multi-hub**
+- `fcc_core` 0.2: SHA-256/HMAC/peer gate/FCCOM1 (Rust source + Python twin)
+- Ed25519 audit signatures (pure Python RFC 8032)
+- mTLS peer scrape env; hub mesh registry APIs
+- Bench RESULTS.md; tests `test_phase12_rust_mesh.py`
+- Chi tiết: `PHASE12_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 11)*
+*2026-09-12 - arena/01a095da-fcc (Phase 12)*

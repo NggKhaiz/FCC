@@ -61,6 +61,12 @@ def normalize_peer_url(raw: str, *, allowlist: set[str] | None = None) -> str:
     url = raw.strip()[:MAX_URL_LEN]
     if not url:
         raise ValueError("empty url")
+    try:
+        from free_claude_code.native import peer_url_ok as _peer_ok
+        if not _peer_ok(url):
+            raise ValueError("peer URL rejected by native gate")
+    except ImportError:
+        pass
     parsed = urlparse(url)
     if parsed.scheme not in {"http", "https"}:
         raise ValueError("only http/https allowed")
@@ -125,3 +131,26 @@ def scrape_result(
         "event_count": int(event_count or 0),
         "ingested": bool(ingested),
     }
+
+
+
+def mtls_client_kwargs_from_env() -> dict:
+    """Optional mTLS client certs for peer scrape (httpx).
+
+    Env:
+      FCC_FANIN_MTLS_CERT — path to client cert PEM
+      FCC_FANIN_MTLS_KEY — path to client key PEM
+      FCC_FANIN_MTLS_CA — path to CA bundle (verify)
+    """
+    import os
+    from pathlib import Path as _P
+
+    cert = (os.getenv("FCC_FANIN_MTLS_CERT") or "").strip()
+    key = (os.getenv("FCC_FANIN_MTLS_KEY") or "").strip()
+    ca = (os.getenv("FCC_FANIN_MTLS_CA") or "").strip()
+    kwargs: dict = {}
+    if cert and key and _P(cert).is_file() and _P(key).is_file():
+        kwargs["cert"] = (cert, key)
+    if ca and _P(ca).is_file():
+        kwargs["verify"] = ca
+    return kwargs

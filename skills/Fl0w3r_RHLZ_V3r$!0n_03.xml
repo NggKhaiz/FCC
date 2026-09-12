@@ -105,9 +105,13 @@
       Active peer scrape for fan-in; OpenMetrics protobuf-lite;
       signed audit bundles (HMAC).
     </phase>
-    <phase id="16" name="Next">
-      mTLS peer scrape; Ed25519 audit signatures; console
-      multi-hub federation mesh.
+    <phase id="16" name="Phase12">
+      Rust fcc_core 0.2 hotpath (SHA-256/HMAC/peer/FCCOM1);
+      Ed25519 audit signatures; mTLS peer scrape; multi-hub mesh.
+    </phase>
+    <phase id="17" name="Next">
+      Publish fcc_core wheels on CI; active mesh pull between hubs;
+      optional cryptography crate fast-path for Ed25519.
     </phase>
   </execution_plan>
 

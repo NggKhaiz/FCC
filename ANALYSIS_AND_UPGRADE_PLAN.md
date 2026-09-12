@@ -249,8 +249,19 @@ src/free_claude_code/
 - [x] fan-in scrape + SSRF allowlist
 - [x] openmetrics.pb binary
 - [x] audit bundle sign/verify
-- [ ] mTLS peer scrape — future
-- [ ] Asymmetric (Ed25519) bundle signatures — future
+- [x] mTLS peer scrape (client cert env)
+- [x] Asymmetric (Ed25519) bundle signatures
+- [x] Multi-hub federation mesh registry
+- [x] fcc_core 0.2 hotpath (SHA-256/HMAC/peer/FCCOM1)
+
+### Phase 12: Rust v0.2 + Ed25519 + mTLS + Mesh ✅ DONE
+- [x] Expand fcc_core pure-Rust crypto hot paths
+- [x] Python ultra twin always-on
+- [x] Ed25519 sign/verify audit ZIP
+- [x] mTLS scrape kwargs
+- [x] Hub mesh register/snapshot
+- [ ] Publish fcc_core wheels on CI runners with rustc — when available
+- [ ] Active mesh pull between hubs — future
 
 ---
 

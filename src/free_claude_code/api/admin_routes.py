@@ -293,8 +293,12 @@ async def security_audit(request: Request):
         "admin_console_ws": True,
         "audit_bundle_export": True,
         "audit_bundle_signed": bool(os.getenv("FCC_AUDIT_SIGNING_KEY", "").strip()),
+        "audit_bundle_ed25519": bool(os.getenv("FCC_AUDIT_ED25519_SEED", "").strip()),
         "console_fanin": True,
         "console_fanin_scrape": True,
+        "console_fanin_mtls": bool(os.getenv("FCC_FANIN_MTLS_CERT", "").strip()),
+        "hub_mesh": True,
+        "native_hotpath_v2": True,
         "native_backend": __import__("free_claude_code.native", fromlist=["backend"]).backend(),
         "version": package_version(),
     }
@@ -696,7 +700,12 @@ async def console_fanin_scrape(request: Request):
         headers["X-FCC-Admin-Token"] = token
 
     results = []
-    async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
+    from .peer_scrape import mtls_client_kwargs_from_env
+
+    _mtls = mtls_client_kwargs_from_env()
+    async with httpx.AsyncClient(
+        timeout=3.0, follow_redirects=False, **_mtls
+    ) as client:
         for url in peers:
             try:
                 resp = await client.get(url, headers=headers)
@@ -798,17 +807,12 @@ async def audit_bundle_verify(request: Request):
     """
     import os
 
-    from .audit_sign import signing_key_from_env, verify_signed_zip
+    from .audit_sign import signing_key_from_env, verify_any_signed_zip
 
     check_rate_limit(request)
     require_loopback_admin(request)
     _enforce_admin_api_token(request)
     key = signing_key_from_env()
-    if not key:
-        raise HTTPException(
-            status_code=503,
-            detail="FCC_AUDIT_SIGNING_KEY not configured on this node",
-        )
     form = await request.form()
     upload = form.get("bundle")
     if upload is None:
@@ -823,7 +827,7 @@ async def audit_bundle_verify(request: Request):
         raise HTTPException(status_code=400, detail="invalid upload")
     if len(data) > 8 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="bundle too large (max 8MB)")
-    result = verify_signed_zip(bytes(data), key=key)
+    result = verify_any_signed_zip(bytes(data), hmac_key=key)
     log_security_event(
         "audit_bundle_verify",
         request,
@@ -831,6 +835,38 @@ async def audit_bundle_verify(request: Request):
         level="info" if result.get("ok") else "warning",
     )
     return _no_store(result)
+
+
+
+@router.post("/admin/api/console/mesh/register")
+async def console_mesh_register(request: Request):
+    """Register or refresh a peer hub in the multi-hub federation mesh."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    check_request_size(request, max_size=64 * 1024)
+    body = await request.json()
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="JSON object required")
+    from .hub_mesh import hub_mesh
+
+    try:
+        result = hub_mesh.register(body)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)[:200]) from exc
+    log_security_event("hub_mesh_register", request, {"hub_id": result.get("hub_id")})
+    return _no_store(result)
+
+
+@router.get("/admin/api/console/mesh")
+async def console_mesh_snapshot(request: Request):
+    """Snapshot of registered peer hubs."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    from .hub_mesh import hub_mesh
+
+    return _no_store(hub_mesh.snapshot())
 
 
 @router.get("/admin/api/audit/bundle")
@@ -873,8 +909,12 @@ async def audit_bundle_export(
         "admin_console_ws": True,
         "audit_bundle_export": True,
         "audit_bundle_signed": bool(os.getenv("FCC_AUDIT_SIGNING_KEY", "").strip()),
+        "audit_bundle_ed25519": bool(os.getenv("FCC_AUDIT_ED25519_SEED", "").strip()),
         "console_fanin": True,
         "console_fanin_scrape": True,
+        "console_fanin_mtls": bool(os.getenv("FCC_FANIN_MTLS_CERT", "").strip()),
+        "hub_mesh": True,
+        "native_hotpath_v2": True,
         "version": ver,
     }
     events = ring.snapshot(after_seq=0, limit=200)
@@ -904,18 +944,31 @@ async def audit_bundle_export(
         extra_files={"metrics.openmetrics.pb": pb},
     )
     signed = False
-    from .audit_sign import sign_and_attach, signing_key_from_env
+    signed_ed = False
+    from .audit_sign import (
+        ed25519_seed_from_env,
+        sign_and_attach,
+        sign_and_attach_ed25519,
+        signing_key_from_env,
+    )
 
     key = signing_key_from_env()
     if key:
         blob, _sig = sign_and_attach(blob, key=key, node_id=node_id, version=ver)
         signed = True
+    seed = ed25519_seed_from_env()
+    if seed:
+        blob, _esig = sign_and_attach_ed25519(
+            blob, seed=seed, node_id=node_id, version=ver
+        )
+        signed_ed = True
     stamp = _time.strftime("%Y%m%d-%H%M%S", _time.gmtime())
     filename = f"fcc-audit-{node_id}-{stamp}.zip"
     headers = {
         "Cache-Control": "no-store",
         "Content-Disposition": f'attachment; filename="{filename}"',
         "X-FCC-Audit-Signed": "1" if signed else "0",
+        "X-FCC-Audit-Ed25519": "1" if signed_ed else "0",
     }
     return FastResponse(
         content=blob,

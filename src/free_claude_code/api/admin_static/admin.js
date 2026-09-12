@@ -1035,6 +1035,7 @@ function commandPaletteItems() {
     { id: "export-audit-bundle", label: "Download audit bundle", hint: "ZIP signed if key set", run: () => downloadAuditBundle() },
     { id: "export-openmetrics-pb", label: "Open OpenMetrics protobuf", hint: "FCCOM1 binary", run: () => window.open("/admin/api/metrics/openmetrics.pb", "_blank", "noopener") },
     { id: "fanin-scrape", label: "Scrape fan-in peers", hint: "FCC_FANIN_PEER_ALLOWLIST", run: () => promptFaninScrape() },
+    { id: "hub-mesh", label: "Hub mesh snapshot", hint: "multi-hub federation", run: () => showHubMesh() },
     { id: "console", label: "Open console", hint: "WebSocket live tail", run: () => navigateToView("console") },
   ];
 }
@@ -1061,6 +1062,21 @@ function promptAdminApiToken() {
 }
 
 
+
+
+async function showHubMesh() {
+  try {
+    const payload = await api("/admin/api/console/mesh");
+    const n = payload.hubs_tracked || 0;
+    const ids = (payload.hubs || []).map((h) => h.hub_id).filter(Boolean).slice(0, 8).join(", ");
+    showToast("Hub mesh", `${n} hubs${ids ? ": " + ids : ""}`, "ok");
+    if (state.activeView === "console") {
+      consoleAppend("system", `mesh hubs=${n} ${ids}`);
+    }
+  } catch (error) {
+    showToast("Mesh failed", error.message || String(error), "error");
+  }
+}
 
 async function promptFaninScrape() {
   const raw = window.prompt(

@@ -15,7 +15,10 @@ from free_claude_code.native import (  # noqa: E402
     backend,
     estimate_tokens_fast,
     fnv1a64,
+    hmac_sha256_hex,
     normalize_path_key,
+    peer_url_ok,
+    sha256_hex,
     validate_model_ref_fast,
     validate_provider_id_fast,
 )
@@ -63,6 +66,9 @@ def main() -> int:
                 "bench", max_requests=10_000_000, window_seconds=60, block_seconds=0
             ),
         ),
+        ("sha256_hex_64", lambda: sha256_hex(b"x" * 64)),
+        ("hmac_sha256_hex", lambda: hmac_sha256_hex(b"k" * 16, b"m" * 32)),
+        ("peer_url_ok", lambda: peer_url_ok("http://h/admin/api/x")),
     ]
 
     print(f"backend={backend()}")

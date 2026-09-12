@@ -1,28 +1,39 @@
-# fcc_core (Rust)
+# fcc_core (Rust) v0.2
 
-Native acceleration for Free Claude Code hot paths.
+Optional PyO3 acceleration for FCC hot paths. Pure-Rust logic always compiles;
+Python bindings require the `python` feature + maturin.
 
-## Build (when Rust toolchain is available)
+## Build
 
 ```bash
-# from repo root
-pip install maturin
+# requires rustc + maturin
+./scripts/build_native.sh
+# or
 maturin develop --release -m crates/fcc_core/Cargo.toml
-# or wheel:
-maturin build --release -m crates/fcc_core/Cargo.toml
+python -c "from free_claude_code.native import backend; print(backend())"  # rust
 ```
 
-## API surface (mirrors `free_claude_code.native.ultra`)
+Without rustc, `free_claude_code.native.ultra` remains the production path.
 
-- `fnv1a64(data) -> int`
-- `validate_provider_id_fast(s) -> bool`
-- `validate_model_ref_fast(s) -> bool`
-- `validate_session_id_fast(s) -> bool`
-- `is_safe_asset_name(s) -> bool`
-- `normalize_path_key(s) -> str`
-- `estimate_tokens_fast(s) -> int`
-- `sanitize_log_fast(s, max_length=200) -> str`
-- `BloomFilter(capacity, error_rate)`
-- `SlidingWindow`
+## API surface (mirrors `free_claude_code.native`)
 
-Python always falls back to `free_claude_code.native.ultra` if this module is absent.
+| Symbol | Notes |
+|--------|-------|
+| `fnv1a64` | 64-bit FNV-1a |
+| `validate_*_fast` | provider / model / session / asset |
+| `normalize_path_key` | metrics path collapse |
+| `estimate_tokens_fast` | CJK-aware approx |
+| `sanitize_log_fast` | log redaction helper |
+| `BloomFilter` / `SlidingWindow` | rate / set membership |
+| `sha256_hex` / `hmac_sha256_hex` | **Phase 12** crypto hot path (std-only) |
+| `key_id16` | key fingerprint |
+| `peer_url_ok` | SSRF peer URL gate |
+| `content_digest_hex` | audit bundle canonical digest |
+| `fccom1_encode_basic` | OpenMetrics protobuf-lite |
+
+## Design
+
+- **No third-party Rust crypto crates** — SHA-256/HMAC implemented in-tree for
+  minimal supply-chain surface and maximum portability.
+- Release profile: LTO + `codegen-units=1` + strip.
+- Python always falls back if the wheel is absent.

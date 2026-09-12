@@ -516,3 +516,116 @@ class SecurityEventRing:
 
 # Process-wide security ring for admin live tail
 security_events = SecurityEventRing(maxlen=500)
+
+
+
+# ---------------------------------------------------------------------------
+# Phase 12 hot paths (behavioral twins of crates/fcc_core 0.2)
+# ---------------------------------------------------------------------------
+
+import hashlib
+import hmac as _hmac
+
+
+def sha256_hex(data: str | bytes) -> str:
+    if isinstance(data, str):
+        data = data.encode("utf-8")
+    return hashlib.sha256(data).hexdigest()
+
+
+def hmac_sha256_hex(key: str | bytes, message: str | bytes) -> str:
+    if isinstance(key, str):
+        key = key.encode("utf-8")
+    if isinstance(message, str):
+        message = message.encode("utf-8")
+    return _hmac.new(key, message, hashlib.sha256).hexdigest()
+
+
+def key_id16(key: str | bytes) -> str:
+    if isinstance(key, str):
+        key = key.encode("utf-8")
+    return hashlib.sha256(key).hexdigest()[:16]
+
+
+def peer_url_ok(url: str) -> bool:
+    """Fast SSRF-oriented peer URL gate (mirrors Rust peer_url_ok)."""
+    if not isinstance(url, str):
+        return False
+    u = url.strip()
+    if not u or len(u) > 512:
+        return False
+    lower = u.lower()
+    if not (lower.startswith("http://") or lower.startswith("https://")):
+        return False
+    if "@" in u or "#" in u:
+        return False
+    if "169.254.169.254" in lower or "[fd00:ec2::254]" in lower:
+        return False
+    try:
+        scheme_sep = u.index("://")
+    except ValueError:
+        return False
+    rest = u[scheme_sep + 3 :]
+    slash = rest.find("/")
+    path = rest[slash:] if slash >= 0 else "/"
+    path = path.split("?", 1)[0]
+    if path == "/":
+        return True
+    return path.startswith("/admin/api/") and ".." not in path
+
+
+def content_digest_hex(pairs: list[tuple[str, bytes]]) -> str:
+    """Canonical content digest matching Rust/Python audit_sign."""
+    items: list[tuple[str, str]] = []
+    for name, body in pairs:
+        if name in {"signature.hmac.json", "signature.ed25519.json"} or name.endswith("/"):
+            continue
+        if not isinstance(body, (bytes, bytearray)):
+            body = bytes(body)
+        items.append((str(name), hashlib.sha256(body).hexdigest()))
+    items.sort(key=lambda x: x[0])
+    blob = "\n".join(f"{n}\0{d}" for n, d in items).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()
+
+
+def fccom1_encode_basic(
+    node_id: str,
+    version: str,
+    total_requests: float,
+    total_errors: float,
+    uptime: float,
+) -> bytes:
+    """Minimal FCCOM1 encoder (mirrors Rust fccom1_encode_basic)."""
+    import struct
+
+    out = bytearray(b"FCCOM1\x00\x00")
+    out += struct.pack("<I", 1)
+    count_pos = len(out)
+    out += struct.pack("<I", 0)
+    count = 0
+    node = (node_id or "local")[:64]
+    ver = (version or "")[:64]
+
+    def push(name: str, mtype: int, value: float, labels: list[tuple[str, str]]) -> None:
+        nonlocal count
+        nb = name.encode("utf-8")[:64]
+        out.extend(struct.pack("<H", len(nb)))
+        out.extend(nb)
+        out.append(mtype & 0xFF)
+        out.extend(struct.pack("<d", float(value)))
+        out.extend(struct.pack("<H", len(labels)))
+        for k, v in labels:
+            kb = k.encode("utf-8")[:32]
+            vb = v.encode("utf-8")[:128]
+            out.extend(struct.pack("<H", len(kb)))
+            out.extend(kb)
+            out.extend(struct.pack("<H", len(vb)))
+            out.extend(vb)
+        count += 1
+
+    push("fcc_info", 2, 1.0, [("node_id", node), ("version", ver)])
+    push("fcc_uptime_seconds", 0, float(uptime), [("node_id", node)])
+    push("fcc_requests_total", 1, float(total_requests), [("node_id", node)])
+    push("fcc_errors_total", 1, float(total_errors), [("node_id", node)])
+    struct.pack_into("<I", out, count_pos, count)
+    return bytes(out)
