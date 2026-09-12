@@ -472,6 +472,12 @@ function renderSecurityView(info) {
     { label: "Fan-in scrape", ok: info.console_fanin_scrape !== false, desc: "Active peer pull" },
     { label: "OM protobuf", ok: info.openmetrics_protobuf !== false, desc: "FCCOM1 binary scrape" },
     { label: "Signed bundles", ok: info.audit_bundle_signed === true, desc: "FCC_AUDIT_SIGNING_KEY" },
+    { label: "Ed25519 bundles", ok: info.audit_bundle_ed25519 === true, desc: "FCC_AUDIT_ED25519_SEED" },
+    { label: "Hub mesh", ok: info.hub_mesh !== false, desc: "multi-hub registry" },
+    { label: "Mesh pull", ok: info.hub_mesh_pull !== false, desc: "active pull peers" },
+    { label: "mTLS scrape", ok: info.console_fanin_mtls === true, desc: "FCC_FANIN_MTLS_*" },
+    { label: "Ed25519 backend", ok: true, desc: String(info.ed25519_backend || "pure") },
+    { label: "fcc_core packaging", ok: info.fcc_core_packaging !== false, desc: "scripts/package_fcc_core.sh" },
     { label: "CORS", ok: info.cors_enabled, desc: "Remote access enabled" },
     { label: "SSRF Protection", ok: true, desc: "Egress filtering active" },
     { label: "XSS Protection", ok: true, desc: "Safe rendering" },
@@ -1036,6 +1042,8 @@ function commandPaletteItems() {
     { id: "export-openmetrics-pb", label: "Open OpenMetrics protobuf", hint: "FCCOM1 binary", run: () => window.open("/admin/api/metrics/openmetrics.pb", "_blank", "noopener") },
     { id: "fanin-scrape", label: "Scrape fan-in peers", hint: "FCC_FANIN_PEER_ALLOWLIST", run: () => promptFaninScrape() },
     { id: "hub-mesh", label: "Hub mesh snapshot", hint: "multi-hub federation", run: () => showHubMesh() },
+    { id: "mesh-pull", label: "Pull mesh hubs", hint: "active fan-in from peers", run: () => promptMeshPull() },
+    { id: "native-status", label: "Native backend status", hint: "rust/python + ed25519", run: () => showNativeStatus() },
     { id: "console", label: "Open console", hint: "WebSocket live tail", run: () => navigateToView("console") },
   ];
 }
@@ -1063,6 +1071,45 @@ function promptAdminApiToken() {
 
 
 
+
+
+async function promptMeshPull() {
+  const raw = window.prompt(
+    "Optional extra hub base URLs (comma-separated). Leave empty to pull registered mesh hubs only.",
+    "",
+  );
+  if (raw === null) return;
+  const hubs = String(raw)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 16);
+  try {
+    const payload = await api("/admin/api/console/mesh/pull", {
+      method: "POST",
+      body: JSON.stringify(hubs.length ? { hubs } : {}),
+    });
+    const ok = (payload.results || []).filter((r) => r.ok).length;
+    const total = (payload.results || []).length;
+    showToast("Mesh pull", `${ok}/${total} hubs`, ok ? "ok" : "error");
+    if (state.activeView === "console") {
+      consoleAppend("fanin", `mesh pull ${ok}/${total} mesh_hubs=${(payload.mesh && payload.mesh.hubs_tracked) || 0}`);
+    }
+  } catch (error) {
+    showToast("Mesh pull failed", error.message || String(error), "error");
+  }
+}
+
+async function showNativeStatus() {
+  try {
+    const payload = await api("/admin/api/native/status");
+    const msg = `fcc_core=${payload.fcc_core_backend} ed25519=${payload.ed25519_backend}`;
+    showToast("Native status", msg, "ok");
+    if (state.activeView === "console") consoleAppend("system", msg);
+  } catch (error) {
+    showToast("Native status failed", error.message || String(error), "error");
+  }
+}
 
 async function showHubMesh() {
   try {

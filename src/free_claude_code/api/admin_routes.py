@@ -298,7 +298,10 @@ async def security_audit(request: Request):
         "console_fanin_scrape": True,
         "console_fanin_mtls": bool(os.getenv("FCC_FANIN_MTLS_CERT", "").strip()),
         "hub_mesh": True,
+        "hub_mesh_pull": True,
         "native_hotpath_v2": True,
+        "ed25519_backend": __import__("free_claude_code.api.audit_sign", fromlist=["ed25519_backend"]).ed25519_backend(),
+        "fcc_core_packaging": True,
         "native_backend": __import__("free_claude_code.native", fromlist=["backend"]).backend(),
         "version": package_version(),
     }
@@ -838,6 +841,31 @@ async def audit_bundle_verify(request: Request):
 
 
 
+
+@router.get("/admin/api/native/status")
+async def native_status(request: Request):
+    """Report native acceleration backends (rust/python, ed25519, packaging)."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    from free_claude_code.native import backend, ed25519_backend, is_native
+
+    return _no_store(
+        {
+            "fcc_core_backend": backend(),
+            "fcc_core_native": is_native(),
+            "ed25519_backend": ed25519_backend(),
+            "packaging": {
+                "crate": "crates/fcc_core",
+                "version": "0.2.0",
+                "ci_recipe": "scripts/native-core.ci.yml",
+                "build_script": "scripts/build_native.sh",
+                "package_script": "scripts/package_fcc_core.sh",
+            },
+        }
+    )
+
+
 @router.post("/admin/api/console/mesh/register")
 async def console_mesh_register(request: Request):
     """Register or refresh a peer hub in the multi-hub federation mesh."""
@@ -867,6 +895,235 @@ async def console_mesh_snapshot(request: Request):
     from .hub_mesh import hub_mesh
 
     return _no_store(hub_mesh.snapshot())
+
+
+
+@router.post("/admin/api/console/mesh/pull")
+async def console_mesh_pull(request: Request):
+    """Actively pull fan-in / security exports from registered peer hubs.
+
+    Body (optional):
+      {
+        "hubs": ["http://hub-b:8082", ...],   # extra/override targets
+        "token": "...",                       # admin token for peers
+        "path": "/admin/api/security/events/export",
+        "ingest_fanin": true,                 # also ingest into local fan-in hub
+        "register_remote": true               # refresh mesh entry from response
+      }
+    When ``hubs`` is empty, uses base_url of registered mesh hubs.
+    """
+    import os
+
+    import httpx
+
+    from .console_fanin import fanin_hub
+    from .hub_mesh import hub_mesh
+    from .peer_scrape import (
+        mtls_client_kwargs_from_env,
+        normalize_peer_url,
+        scrape_result,
+    )
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    check_request_size(request, max_size=64 * 1024)
+    body: dict = {}
+    try:
+        raw_body = await request.body()
+        if raw_body.strip():
+            import json as _json
+            parsed = _json.loads(raw_body)
+            if isinstance(parsed, dict):
+                body = parsed
+    except Exception:
+        body = {}
+
+    path = str(body.get("path") or "/admin/api/security/events/export").strip()
+    if not path.startswith("/admin/api/"):
+        raise HTTPException(status_code=400, detail="path must be under /admin/api/")
+    ingest_fanin = body.get("ingest_fanin", True) is not False
+    register_remote = body.get("register_remote", True) is not False
+
+    targets: list[str] = []
+    raw_hubs = body.get("hubs")
+    if isinstance(raw_hubs, list) and raw_hubs:
+        for item in raw_hubs[:16]:
+            try:
+                # allow bare base or full URL
+                u = str(item).strip()
+                if "://" in u and "/admin/api/" not in u:
+                    u = u.rstrip("/") + path
+                targets.append(normalize_peer_url(u))
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)[:200]) from exc
+    else:
+        for h in hub_mesh.pull_targets(limit=16):
+            base = h["base_url"].rstrip("/")
+            try:
+                if "/admin/api/" in base:
+                    targets.append(normalize_peer_url(base))
+                else:
+                    targets.append(normalize_peer_url(base + path))
+            except ValueError:
+                continue
+
+    # de-dupe
+    seen: set[str] = set()
+    uniq: list[str] = []
+    for u in targets:
+        if u not in seen:
+            seen.add(u)
+            uniq.append(u)
+    targets = uniq
+    if not targets:
+        raise HTTPException(
+            status_code=400,
+            detail="no pull targets — register hubs with base_url or pass hubs[]",
+        )
+
+    token = str(body.get("token") or "").strip()[:512]
+    if not token:
+        token = os.getenv("FCC_ADMIN_API_TOKEN", "").strip()
+    headers = {}
+    if token:
+        headers["X-FCC-Admin-Token"] = token
+
+    results = []
+    _mtls = mtls_client_kwargs_from_env()
+    async with httpx.AsyncClient(timeout=3.0, follow_redirects=False, **_mtls) as client:
+        for url in targets:
+            try:
+                resp = await client.get(url, headers=headers)
+                if resp.status_code != 200:
+                    results.append(
+                        scrape_result(
+                            url=url,
+                            ok=False,
+                            status_code=resp.status_code,
+                            error=f"HTTP {resp.status_code}",
+                        )
+                    )
+                    continue
+                try:
+                    payload = resp.json()
+                except Exception:
+                    results.append(
+                        scrape_result(
+                            url=url, ok=False, status_code=resp.status_code, error="invalid JSON"
+                        )
+                    )
+                    continue
+                if not isinstance(payload, dict):
+                    results.append(
+                        scrape_result(
+                            url=url, ok=False, status_code=resp.status_code, error="JSON object required"
+                        )
+                    )
+                    continue
+                node_id = str(payload.get("node_id") or payload.get("hub_id") or "").strip()
+                if not node_id:
+                    from urllib.parse import urlparse
+
+                    host = urlparse(url).hostname or "peer"
+                    node_id = f"hub-{host}"[:64]
+                    payload["node_id"] = node_id
+
+                ingested = False
+                event_count = 0
+                if ingest_fanin:
+                    # Accept security-events export or fan-in snapshot shape
+                    try:
+                        if "events" in payload:
+                            ing = fanin_hub.ingest(payload)
+                            event_count = int(ing.get("event_count") or 0)
+                            ingested = True
+                        elif isinstance(payload.get("nodes"), list):
+                            # fan-in snapshot — re-ingest per-node if present is heavy;
+                            # store as single synthetic node with merged events
+                            events = payload.get("events") or []
+                            ing = fanin_hub.ingest(
+                                {
+                                    "node_id": node_id,
+                                    "version": payload.get("version"),
+                                    "latest_seq": payload.get("latest_seq") or 0,
+                                    "events": events if isinstance(events, list) else [],
+                                }
+                            )
+                            event_count = int(ing.get("event_count") or 0)
+                            ingested = True
+                    except ValueError as exc:
+                        results.append(
+                            scrape_result(
+                                url=url,
+                                ok=False,
+                                status_code=resp.status_code,
+                                error=str(exc)[:200],
+                            )
+                        )
+                        continue
+
+                if register_remote:
+                    try:
+                        from urllib.parse import urlparse
+
+                        parsed = urlparse(url)
+                        base = f"{parsed.scheme}://{parsed.netloc}"
+                        hub_mesh.register(
+                            {
+                                "hub_id": node_id,
+                                "base_url": base,
+                                "version": payload.get("version"),
+                                "nodes_tracked": int(
+                                    payload.get("nodes_tracked")
+                                    or payload.get("event_count")
+                                    or event_count
+                                    or 0
+                                ),
+                                "summary": {
+                                    "source": "mesh_pull",
+                                    "path": parsed.path,
+                                },
+                            }
+                        )
+                    except ValueError:
+                        pass
+
+                results.append(
+                    scrape_result(
+                        url=url,
+                        ok=True,
+                        status_code=resp.status_code,
+                        node_id=node_id,
+                        event_count=event_count,
+                        ingested=ingested,
+                    )
+                )
+            except httpx.TimeoutException:
+                results.append(scrape_result(url=url, ok=False, error="timeout"))
+            except httpx.HTTPError as exc:
+                results.append(scrape_result(url=url, ok=False, error=type(exc).__name__))
+            except Exception as exc:
+                results.append(scrape_result(url=url, ok=False, error=type(exc).__name__))
+
+    log_security_event(
+        "hub_mesh_pull",
+        request,
+        {
+            "targets": len(targets),
+            "ok": sum(1 for r in results if r.get("ok")),
+        },
+        level="info",
+    )
+    return _no_store(
+        {
+            "format": "fcc-hub-mesh-pull",
+            "format_version": 1,
+            "results": results,
+            "mesh": hub_mesh.snapshot(),
+            "fanin": fanin_hub.summary() if ingest_fanin else None,
+        }
+    )
 
 
 @router.get("/admin/api/audit/bundle")
@@ -914,7 +1171,10 @@ async def audit_bundle_export(
         "console_fanin_scrape": True,
         "console_fanin_mtls": bool(os.getenv("FCC_FANIN_MTLS_CERT", "").strip()),
         "hub_mesh": True,
+        "hub_mesh_pull": True,
         "native_hotpath_v2": True,
+        "ed25519_backend": __import__("free_claude_code.api.audit_sign", fromlist=["ed25519_backend"]).ed25519_backend(),
+        "fcc_core_packaging": True,
         "version": ver,
     }
     events = ring.snapshot(after_seq=0, limit=200)

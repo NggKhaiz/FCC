@@ -65,6 +65,12 @@ peer_url_ok = _pick("peer_url_ok")
 content_digest_hex = _pick("content_digest_hex")
 fccom1_encode_basic = _pick("fccom1_encode_basic")
 
+try:
+    from free_claude_code.native.ed25519_fast import backend as ed25519_backend
+except Exception:  # pragma: no cover
+    def ed25519_backend() -> str:  # type: ignore[misc]
+        return "pure"
+
 __all__ = [
     "BloomFilter",
     "TtlLruCache",
@@ -90,4 +96,5 @@ __all__ = [
     "peer_url_ok",
     "content_digest_hex",
     "fccom1_encode_basic",
+    "ed25519_backend",
 ]

@@ -78,5 +78,20 @@ class HubMeshRegistry:
         with self._lock:
             self._hubs.clear()
 
+    def pull_targets(self, *, limit: int = 16) -> list[dict[str, str]]:
+        """Return hubs that have a scrapeable base_url."""
+        limit = max(1, min(int(limit or 16), MAX_HUBS))
+        snap = self.snapshot()
+        out: list[dict[str, str]] = []
+        for h in snap.get("hubs") or []:
+            base = h.get("base_url")
+            hub_id = h.get("hub_id")
+            if not base or not hub_id:
+                continue
+            out.append({"hub_id": str(hub_id)[:64], "base_url": str(base)[:512]})
+            if len(out) >= limit:
+                break
+        return out
+
 
 hub_mesh = HubMeshRegistry()

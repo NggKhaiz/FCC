@@ -207,7 +207,7 @@ def sign_bundle_ed25519(
     node_id: str = "",
     version: str = "",
 ) -> dict[str, Any]:
-    from free_claude_code.native.ed25519_pure import public_key_from_seed, sign
+    from free_claude_code.native.ed25519_fast import public_key_from_seed, sign
 
     digest = canonical_content_digest(zip_bytes)
     msg = f"fcc-audit-ed25519-v1|{digest}".encode("utf-8")
@@ -254,7 +254,7 @@ def sign_and_attach_ed25519(
 
 def verify_ed25519_zip(zip_bytes: bytes, *, public_key: bytes | None = None) -> dict[str, Any]:
     """Verify Ed25519 signature; public key from file or argument."""
-    from free_claude_code.native.ed25519_pure import verify
+    from free_claude_code.native.ed25519_fast import verify
 
     try:
         with zipfile.ZipFile(io.BytesIO(zip_bytes), "r") as zf:
@@ -302,3 +302,13 @@ def verify_any_signed_zip(zip_bytes: bytes, *, hmac_key: bytes | None = None) ->
     if ed.get("reason") != "missing signature.ed25519.json":
         return ed
     return {"ok": False, "reason": "no verifiable signature present"}
+
+
+def ed25519_backend() -> str:
+    """Return active Ed25519 implementation: cryptography | pure."""
+    try:
+        from free_claude_code.native.ed25519_fast import backend
+
+        return backend()
+    except Exception:
+        return "pure"

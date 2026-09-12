@@ -24,3 +24,4 @@ crates/*/Cargo.lock
 *.dylib
 *.dll
 .maturin/
+dist/

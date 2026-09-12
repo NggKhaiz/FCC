@@ -192,5 +192,13 @@ Truy cập: `http://YOUR_IP:8082/admin`
 - Bench RESULTS.md; tests `test_phase12_rust_mesh.py`
 - Chi tiết: `PHASE12_COMPLETE.md`
 
+### 21. Phase 13 — Mesh pull · Ed25519 fast · fcc_core packaging
+✅ **Active multi-hub pull + crypto/packaging polish**
+- `POST /admin/api/console/mesh/pull` + native status API
+- `ed25519_fast` (cryptography optional) + package_fcc_core.sh
+- CI recipe matrix py3.11/3.12; optional dep `fcc-crypto`
+- Tests: `tests/api/test_phase13_mesh_pull.py`
+- Chi tiết: `PHASE13_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 12)*
+*2026-09-12 - arena/01a095da-fcc (Phase 13)*

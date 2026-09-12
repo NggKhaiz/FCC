@@ -109,9 +109,13 @@
       Rust fcc_core 0.2 hotpath (SHA-256/HMAC/peer/FCCOM1);
       Ed25519 audit signatures; mTLS peer scrape; multi-hub mesh.
     </phase>
-    <phase id="17" name="Next">
-      Publish fcc_core wheels on CI; active mesh pull between hubs;
-      optional cryptography crate fast-path for Ed25519.
+    <phase id="17" name="Phase13">
+      Active mesh pull between hubs; cryptography Ed25519 fast-path;
+      fcc_core packaging scripts + CI matrix.
+    </phase>
+    <phase id="18" name="Next">
+      PyPI optional fcc-core package; mesh auth tokens per-hub;
+      continuous mesh sync scheduler.
     </phase>
   </execution_plan>
 

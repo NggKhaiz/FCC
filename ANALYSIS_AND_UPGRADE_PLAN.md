@@ -260,8 +260,16 @@ src/free_claude_code/
 - [x] Ed25519 sign/verify audit ZIP
 - [x] mTLS scrape kwargs
 - [x] Hub mesh register/snapshot
-- [ ] Publish fcc_core wheels on CI runners with rustc — when available
-- [ ] Active mesh pull between hubs — future
+- [x] Publish fcc_core wheels packaging scripts + CI recipe matrix
+- [x] Active mesh pull between hubs
+- [x] cryptography optional Ed25519 fast-path
+
+### Phase 13: Mesh pull + Packaging + Ed25519 fast ✅ DONE
+- [x] mesh/pull API + UI
+- [x] package_fcc_core.sh + native-core.ci.yml matrix
+- [x] ed25519_fast backend switch
+- [ ] Push workflow file under .github/workflows (needs App permission)
+- [ ] PyPI publish fcc-core optional package — future
 
 ---
 

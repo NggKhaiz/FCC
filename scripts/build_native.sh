@@ -15,4 +15,8 @@ fi
 
 echo "==> building fcc_core (release)"
 maturin build --release -m crates/fcc_core/Cargo.toml
+if [[ "${FCC_CORE_PACKAGE:-0}" == "1" ]]; then
+  ./scripts/package_fcc_core.sh
+fi
 echo "==> done. Install wheel from target/wheels/ or: maturin develop --release -m crates/fcc_core/Cargo.toml"
+echo "    Package for dist/: FCC_CORE_PACKAGE=1 ./scripts/build_native.sh"
