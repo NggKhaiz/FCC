@@ -164,30 +164,33 @@ src/free_claude_code/
 - [x] Rewrite `session_layout.css`
 - [x] Rewrite `code_sessions.css`
 
-### Phase 3: Future Improvements (Đề xuất)
+### Phase 3: Observe + UX + Deploy ✅ DONE (arena/01a095da-fcc)
 
 #### Backend
-- [ ] Thêm rate limiting cho admin API khi remote enabled
-- [ ] Thêm audit log cho admin changes
-- [ ] Thêm API key riêng cho admin (khác proxy token)
-- [ ] Thêm health metrics endpoint (`/admin/api/metrics`)
-- [ ] Thêm provider latency stats
-- [ ] WebSocket cho real-time logs
+- [x] Rate limiting cho admin API khi remote enabled (Phase 2)
+- [x] Audit log cho admin changes (Phase 2)
+- [x] Health metrics endpoint (`/admin/api/metrics`)
+- [x] Provider latency stats (via Test / Test All → metrics)
+- [x] Detailed health includes RPS / error rate / uptime
+- [x] Config export (non-secret) + import dry-run/apply
+- [ ] API key riêng cho admin (khác proxy token) — still optional
+- [ ] WebSocket cho real-time logs — future
 
 #### Frontend
-- [ ] Light/dark theme toggle (lưu localStorage)
-- [ ] Provider usage graphs (Chart.js)
-- [ ] Real-time request logs viewer
-- [ ] Model comparison tool
-- [ ] Import/export config
-- [ ] Keyboard shortcuts (Cmd+K search)
-- [ ] PWA support
+- [x] Light/dark theme toggle (localStorage + `theme_boot.js`)
+- [x] Real-time request logs viewer (Metrics view, 5s poll)
+- [x] Import/export config (topbar + ⌘K)
+- [x] Keyboard shortcuts (⌘K palette, T theme, R refresh, 1–7 views, / search)
+- [ ] Provider usage graphs (Chart.js) — future
+- [ ] Model comparison tool — future
+- [ ] PWA support — future
 
 #### DevOps
-- [ ] Dockerfile tối ưu cho remote deployment
-- [ ] Helm chart cho Kubernetes
-- [ ] Caddy/Nginx example config
-- [ ] Documentation cho remote deployment
+- [x] Dockerfile tối ưu cho remote deployment (`deploy/Dockerfile`)
+- [x] Caddy/Nginx example config (`deploy/Caddyfile.example`, `deploy/REMOTE.md`)
+- [x] docker-compose (`deploy/docker-compose.yml`)
+- [x] Documentation cho remote deployment (`deploy/REMOTE.md`)
+- [ ] Helm chart cho Kubernetes — future
 
 ---
 

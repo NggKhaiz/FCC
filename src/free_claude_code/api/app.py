@@ -30,6 +30,7 @@ from free_claude_code.core.version import package_version
 from .admin_cache import AdminNoStoreMiddleware, attach_admin_no_store
 from .admin_routes import router as admin_router
 from .code_sessions_routes import router as code_router
+from .metrics_middleware import MetricsMiddleware
 from .ports import ApiServices
 from .rate_limit import RateLimitMiddleware
 from .request_errors import ordinary_application_error_response
@@ -54,9 +55,10 @@ def create_app(services: ApiServices) -> FastAPI:
         openapi_url="/openapi.json" if _is_docs_enabled() else None,
     )
     app.state.services = services
-    # Security headers first
+    # NOTE: FastAPI/Starlette runs the *last* added middleware outermost.
+    # Security headers
     app.add_middleware(SecurityHeadersMiddleware)
-    # Rate limiting
+    # Rate limiting (dependency-enforced; middleware is a passthrough hook)
     app.add_middleware(RateLimitMiddleware)
     # Enable CORS for remote admin access - more secure config
     app.add_middleware(
@@ -65,11 +67,13 @@ def create_app(services: ApiServices) -> FastAPI:
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
         allow_headers=["*"],
-        expose_headers=["request-id", "x-request-id"],
+        expose_headers=["request-id", "x-request-id", "retry-after"],
     )
     app.add_middleware(AdminNoStoreMiddleware)
     app.add_middleware(ClientRequestLifetimeMiddleware)
     app.add_middleware(RequestCorrelationMiddleware)
+    # Outermost: record final status + full duration for every request
+    app.add_middleware(MetricsMiddleware)
 
     app.include_router(admin_router)
     app.include_router(code_router)

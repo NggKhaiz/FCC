@@ -55,6 +55,7 @@ _ADMIN_ASSET_FILENAMES = frozenset(
         "session_layout.css",
         "session_ui.js",
         "model_combobox.js",
+        "theme_boot.js",
     }
 )
 LOCAL_PROVIDER_PATHS = {
@@ -119,6 +120,8 @@ def admin_page_response() -> HTMLResponse:
 @router.get("/admin", include_in_schema=False)
 @router.get("/admin/model_config", include_in_schema=False)
 @router.get("/admin/messaging", include_in_schema=False)
+@router.get("/admin/security", include_in_schema=False)
+@router.get("/admin/metrics", include_in_schema=False)
 @router.get("/admin/integrations", include_in_schema=False)
 def admin_page(request: Request):
     check_rate_limit(request)
@@ -210,11 +213,32 @@ async def test_provider(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    import time as _time
+
     check_rate_limit(request)
     require_loopback_admin(request)
     validate_provider_id(provider_id)
     log_security_event("provider_test", request, {"provider_id": provider_id})
-    return await services.admin.test_provider(provider_id)
+    started = _time.perf_counter()
+    result = await services.admin.test_provider(provider_id)
+    latency_ms = (_time.perf_counter() - started) * 1000.0
+    try:
+        from .metrics import metrics as runtime_metrics
+
+        ok = False
+        message = ""
+        if isinstance(result, dict):
+            status = str(result.get("status") or result.get("ok") or "")
+            ok = status.lower() in {"ok", "true", "configured", "reachable", "connected", "1"}
+            if result.get("ok") is True:
+                ok = True
+            message = str(result.get("message") or result.get("detail") or status)[:300]
+        runtime_metrics.record_provider_test(
+            provider_id, ok=ok, message=message, latency_ms=latency_ms
+        )
+    except Exception:
+        pass
+    return result
 
 
 @router.get("/admin/api/security/audit")
@@ -228,9 +252,11 @@ async def security_audit(request: Request):
     return {
         "remote_admin_allowed": _is_remote_admin_allowed(),
         "local_only_enforced": os.getenv("FCC_ADMIN_LOCAL_ONLY", "").lower() in {"1", "true", "yes"},
+        "ip_allowlist_configured": bool(os.getenv("FCC_ADMIN_IP_ALLOWLIST", "").strip()),
         "cors_enabled": True,
         "security_headers": True,
         "rate_limiting": True,
+        "metrics_enabled": True,
         "version": package_version(),
     }
 
@@ -243,6 +269,9 @@ async def detailed_health(
     check_rate_limit(request)
     require_loopback_admin(request)
     status = await services.admin.admin_status()
+    from .metrics import metrics as runtime_metrics
+
+    snap = runtime_metrics.snapshot()
     return {
         "status": "healthy",
         "version": package_version(),
@@ -251,7 +280,155 @@ async def detailed_health(
             [p for p in (await services.admin.admin_values()).values() if p.value]
         ),
         "model_count": len(services.requests.cached_prefixed_model_infos()),
+        "uptime_seconds": snap["uptime_seconds"],
+        "total_requests": snap["total_requests"],
+        "error_rate": snap["error_rate"],
+        "requests_per_second": snap["requests_per_second"],
     }
+
+
+@router.get("/admin/api/metrics")
+async def admin_metrics(request: Request):
+    """Runtime metrics for the admin dashboard (latency, RPS, recent traffic)."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    from .metrics import metrics as runtime_metrics
+
+    return _no_store(runtime_metrics.snapshot())
+
+
+@router.get("/admin/api/config/export")
+async def export_admin_config(
+    request: Request, services: ApiServices = Depends(get_services)
+):
+    """Export non-secret admin config as a portable JSON backup.
+
+    Secret fields are omitted (never exported). Safe to download and share
+    structure without leaking API keys.
+    """
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    log_security_event("admin_config_export", request, {})
+    config = await services.admin.admin_config()
+    fields = config.get("fields") or []
+    exported: dict[str, object] = {}
+    skipped_secrets: list[str] = []
+    for field in fields:
+        if not isinstance(field, dict):
+            continue
+        key = field.get("key")
+        if not isinstance(key, str) or not key:
+            continue
+        if field.get("secret"):
+            skipped_secrets.append(key)
+            continue
+        if field.get("locked"):
+            continue
+        value = field.get("value")
+        # Skip empty / unset values to keep export small
+        if value is None or value == "":
+            continue
+        exported[key] = value
+    return _no_store(
+        {
+            "format": "fcc-admin-config",
+            "format_version": 1,
+            "exported_at": __import__("time").time(),
+            "version": package_version(),
+            "values": exported,
+            "skipped_secrets": skipped_secrets,
+            "note": "Secret fields are never exported. Re-enter API keys after import.",
+        }
+    )
+
+
+class AdminConfigImportPayload(BaseModel):
+    """Import payload for portable admin config backups."""
+
+    values: JsonObject = Field(default_factory=dict)
+    apply: bool = False
+
+    @field_validator("values")
+    @classmethod
+    def validate_import_values(cls, v: JsonObject) -> JsonObject:
+        if len(v) > 200:
+            raise ValueError("Too many config values")
+        for key, value in v.items():
+            if not isinstance(key, str) or len(key) > 128:
+                raise ValueError("Invalid config key")
+            if isinstance(value, str) and len(value) > 10_000:
+                raise ValueError(f"Value too long for key {key[:20]}")
+        return v
+
+
+@router.post("/admin/api/config/import")
+async def import_admin_config(
+    payload: AdminConfigImportPayload,
+    request: Request,
+    services: ApiServices = Depends(get_services),
+):
+    """Preview or apply an imported non-secret config backup.
+
+    When ``apply`` is false (default), returns a dry-run summary.
+    Secrets in the payload are rejected. Known secret field keys from the
+    live config are stripped even if the client sends them.
+    """
+    check_rate_limit(request)
+    check_request_size(request, max_size=1024 * 1024)
+    require_loopback_admin(request)
+    log_security_event(
+        "admin_config_import",
+        request,
+        {"keys": list(payload.values.keys())[:20], "apply": payload.apply},
+    )
+
+    live = await services.admin.admin_config()
+    secret_keys = {
+        field["key"]
+        for field in (live.get("fields") or [])
+        if isinstance(field, dict) and field.get("secret") and isinstance(field.get("key"), str)
+    }
+    known_keys = {
+        field["key"]
+        for field in (live.get("fields") or [])
+        if isinstance(field, dict) and isinstance(field.get("key"), str)
+    }
+
+    cleaned: dict[str, object] = {}
+    rejected_secrets: list[str] = []
+    unknown_keys: list[str] = []
+    for key, value in payload.values.items():
+        if key in secret_keys or "KEY" in key.upper() or "TOKEN" in key.upper() or "SECRET" in key.upper():
+            rejected_secrets.append(key)
+            continue
+        if key not in known_keys:
+            unknown_keys.append(key)
+            continue
+        cleaned[key] = value
+
+    preview = {
+        "would_apply": sorted(cleaned.keys()),
+        "rejected_secrets": rejected_secrets,
+        "unknown_keys": unknown_keys[:50],
+        "count": len(cleaned),
+    }
+    if not payload.apply:
+        return _no_store({"applied": False, "dry_run": True, **preview})
+
+    if not cleaned:
+        return _no_store(
+            {
+                "applied": False,
+                "dry_run": False,
+                "errors": ["No importable non-secret values"],
+                **preview,
+            }
+        )
+
+    result = await services.admin.apply_admin_config(_filtered_values(cleaned))
+    if isinstance(result, dict):
+        result = {**result, **preview}
+    return result
 
 
 @router.get("/admin/api/providers/{provider_id}/auth")

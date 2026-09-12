@@ -19,6 +19,9 @@ const state = {
   activeView: viewFromLocation(),
   searchQuery: "",
   securityInfo: null,
+  metrics: null,
+  metricsTimer: null,
+  theme: "dark",
 };
 
 const MASKED_SECRET = "********";
@@ -77,6 +80,15 @@ const VIEW_GROUPS = [
     icon: `<svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>`,
     sections: [],
     containerId: "view-security",
+  },
+  {
+    id: "metrics",
+    label: "Metrics",
+    title: "Metrics",
+    subtitle: "Runtime latency, RPS and recent traffic",
+    icon: `<svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>`,
+    sections: [],
+    containerId: "view-metrics",
   },
   {
     id: "integrations",
@@ -275,12 +287,12 @@ async function loadSecurityInfo() {
 function renderSecurityView(info) {
   const container = byId("view-security");
   if (!container) return;
-  
+
   container.innerHTML = "";
-  
+
   const section = document.createElement("section");
   section.className = "settings-section";
-  
+
   const heading = document.createElement("div");
   heading.className = "section-heading";
   const h3 = document.createElement("h3");
@@ -290,23 +302,25 @@ function renderSecurityView(info) {
   const headingDiv = document.createElement("div");
   headingDiv.append(h3, p);
   heading.appendChild(headingDiv);
-  
+
   const grid = document.createElement("div");
   grid.className = "provider-grid";
-  
+
   const checks = [
     { label: "Remote Admin", ok: info.remote_admin_allowed, desc: info.remote_admin_allowed ? "Enabled (controlled)" : "Disabled" },
+    { label: "IP Allowlist", ok: !!info.ip_allowlist_configured, desc: info.ip_allowlist_configured ? "Configured" : "Open (set FCC_ADMIN_IP_ALLOWLIST)" },
     { label: "Security Headers", ok: info.security_headers, desc: "HSTS, CSP, X-Frame, etc" },
     { label: "Rate Limiting", ok: info.rate_limiting, desc: "Brute force protection" },
+    { label: "Metrics", ok: info.metrics_enabled !== false, desc: "Runtime latency + RPS" },
     { label: "CORS", ok: info.cors_enabled, desc: "Remote access enabled" },
     { label: "SSRF Protection", ok: true, desc: "Egress filtering active" },
     { label: "XSS Protection", ok: true, desc: "Safe rendering" },
   ];
-  
-  checks.forEach(check => {
+
+  checks.forEach((check) => {
     const card = document.createElement("div");
     card.className = "provider-card";
-    
+
     const title = document.createElement("div");
     title.className = "provider-title";
     const strong = document.createElement("strong");
@@ -315,38 +329,560 @@ function renderSecurityView(info) {
     pill.className = `status-pill ${check.ok ? "ok" : "warn"}`;
     pill.textContent = check.ok ? "Active" : "Check";
     title.append(strong, pill);
-    
+
     const meta = document.createElement("div");
     meta.className = "provider-meta";
     meta.textContent = check.desc;
-    
+
     card.append(title, meta);
     grid.appendChild(card);
   });
-  
+
   const infoSection = document.createElement("div");
-  infoSection.className = "field-description";
-  infoSection.style.marginTop = "20px";
-  infoSection.style.padding = "16px";
-  infoSection.style.background = "var(--panel)";
-  infoSection.style.borderRadius = "var(--radius-md)";
-  infoSection.style.border = "1px solid var(--line)";
-  
+  infoSection.className = "field-description security-tips";
+
   const versionP = document.createElement("p");
+  versionP.className = "mono-note";
   versionP.textContent = `Version: ${info.version || "unknown"} | Remote: ${info.remote_admin_allowed ? "Allowed" : "Local only"} | Local-only enforced: ${info.local_only_enforced ? "Yes" : "No"}`;
-  versionP.style.margin = "0";
-  versionP.style.fontFamily = "var(--font-mono)";
-  versionP.style.fontSize = "12px";
-  
+
   const tipsP = document.createElement("p");
-  tipsP.style.marginTop = "12px";
-  tipsP.style.fontSize = "12px";
-  tipsP.textContent = "Tips: Use FCC_ADMIN_LOCAL_ONLY=1 to enforce local-only. Set FCC_ENABLE_DOCS=1 for API docs. Rate limiting protects against brute force.";
-  
+  tipsP.className = "tips-note";
+  tipsP.textContent = "Tips: Use FCC_ADMIN_LOCAL_ONLY=1 to enforce local-only. Set FCC_ADMIN_IP_ALLOWLIST for CIDR allowlist. PROXY_AUTH_ENABLED=1 + strong token for production. See deploy/REMOTE.md.";
+
   infoSection.append(versionP, tipsP);
-  
+
   section.append(heading, grid, infoSection);
   container.appendChild(section);
+}
+
+function formatUptime(seconds) {
+  const s = Math.max(0, Math.floor(Number(seconds) || 0));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const r = s % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${r}s`;
+  return `${r}s`;
+}
+
+function formatTs(ts) {
+  try {
+    return new Date((Number(ts) || 0) * 1000).toLocaleTimeString();
+  } catch {
+    return "—";
+  }
+}
+
+async function loadMetrics() {
+  try {
+    const snap = await api("/admin/api/metrics");
+    state.metrics = snap;
+    renderMetricsView(snap);
+  } catch (error) {
+    const root = byId("metricsRoot");
+    if (root && !state.metrics) {
+      root.textContent = "";
+      const p = document.createElement("p");
+      p.className = "muted-center";
+      p.textContent = `Metrics unavailable: ${String(error.message || error).slice(0, 200)}`;
+      root.appendChild(p);
+    }
+  }
+}
+
+function startMetricsPolling() {
+  loadMetrics();
+  if (state.metricsTimer) return;
+  state.metricsTimer = window.setInterval(() => {
+    if (state.activeView === "metrics") loadMetrics();
+  }, 5000);
+}
+
+function stopMetricsPolling() {
+  if (state.metricsTimer) {
+    window.clearInterval(state.metricsTimer);
+    state.metricsTimer = null;
+  }
+}
+
+function renderMetricsView(snap) {
+  const root = byId("metricsRoot");
+  if (!root || !snap) return;
+  root.textContent = "";
+
+  const summary = document.createElement("div");
+  summary.className = "stats-grid metrics-summary";
+  summary.append(
+    createStatCard("Uptime", formatUptime(snap.uptime_seconds), "Process lifetime", "neutral"),
+    createStatCard("Total requests", snap.total_requests, `${snap.requests_per_second} rps`, "positive"),
+    createStatCard("Errors", snap.total_errors, `${Math.round((snap.error_rate || 0) * 1000) / 10}% rate`, snap.total_errors ? "neutral" : "positive", snap.total_errors ? "var(--warn)" : "var(--ok)"),
+    createStatCard("Rate limits", snap.rate_limit_hits, "429 hits", snap.rate_limit_hits ? "neutral" : "positive", snap.rate_limit_hits ? "var(--warn)" : undefined),
+  );
+  root.appendChild(summary);
+
+  const routesSection = document.createElement("section");
+  routesSection.className = "settings-section";
+  const routesHeading = document.createElement("div");
+  routesHeading.className = "section-heading";
+  const rh = document.createElement("div");
+  const rh3 = document.createElement("h3");
+  rh3.textContent = "Top routes";
+  const rp = document.createElement("p");
+  rp.textContent = "Latency averages for the busiest endpoints";
+  rh.append(rh3, rp);
+  routesHeading.appendChild(rh);
+  routesSection.appendChild(routesHeading);
+
+  const table = document.createElement("div");
+  table.className = "metrics-table";
+  const header = document.createElement("div");
+  header.className = "metrics-row metrics-header";
+  ["Route", "Count", "Errors", "Avg ms", "Max ms"].forEach((label) => {
+    const cell = document.createElement("div");
+    cell.textContent = label;
+    header.appendChild(cell);
+  });
+  table.appendChild(header);
+
+  (snap.top_routes || []).slice(0, 15).forEach((row) => {
+    const el = document.createElement("div");
+    el.className = "metrics-row";
+    const cells = [
+      row.route,
+      String(row.count),
+      String(row.errors),
+      String(row.avg_ms),
+      String(row.max_ms),
+    ];
+    cells.forEach((text, idx) => {
+      const cell = document.createElement("div");
+      cell.textContent = text;
+      if (idx === 0) cell.className = "mono-cell";
+      el.appendChild(cell);
+    });
+    table.appendChild(el);
+  });
+  if (!(snap.top_routes || []).length) {
+    const empty = document.createElement("p");
+    empty.className = "muted-center";
+    empty.textContent = "No traffic recorded yet. Hit /health or use a coding agent.";
+    routesSection.appendChild(empty);
+  } else {
+    routesSection.appendChild(table);
+  }
+  root.appendChild(routesSection);
+
+  const recentSection = document.createElement("section");
+  recentSection.className = "settings-section";
+  const recentHeading = document.createElement("div");
+  recentHeading.className = "section-heading";
+  const rhd = document.createElement("div");
+  const rh3b = document.createElement("h3");
+  rh3b.textContent = "Recent requests";
+  const rpb = document.createElement("p");
+  rpb.textContent = "Last 50 requests (path IDs collapsed)";
+  rhd.append(rh3b, rpb);
+  recentHeading.appendChild(rhd);
+  recentSection.appendChild(recentHeading);
+
+  const recentTable = document.createElement("div");
+  recentTable.className = "metrics-table";
+  const recentHeader = document.createElement("div");
+  recentHeader.className = "metrics-row metrics-header metrics-row-recent";
+  ["Time", "Method", "Path", "Status", "ms"].forEach((label) => {
+    const cell = document.createElement("div");
+    cell.textContent = label;
+    recentHeader.appendChild(cell);
+  });
+  recentTable.appendChild(recentHeader);
+
+  (snap.recent || []).slice(0, 30).forEach((row) => {
+    const el = document.createElement("div");
+    el.className = "metrics-row metrics-row-recent";
+    const statusClass = row.status >= 500 ? "error" : row.status >= 400 ? "warn" : "ok";
+    [
+      formatTs(row.ts),
+      row.method,
+      row.path,
+      String(row.status),
+      String(row.duration_ms),
+    ].forEach((text, idx) => {
+      const cell = document.createElement("div");
+      cell.textContent = text;
+      if (idx === 2) cell.className = "mono-cell";
+      if (idx === 3) cell.className = `status-cell ${statusClass}`;
+      el.appendChild(cell);
+    });
+    recentTable.appendChild(el);
+  });
+  recentSection.appendChild(recentTable);
+  root.appendChild(recentSection);
+
+  const tests = snap.provider_tests || {};
+  const testKeys = Object.keys(tests);
+  if (testKeys.length) {
+    const testSection = document.createElement("section");
+    testSection.className = "settings-section";
+    const th = document.createElement("div");
+    th.className = "section-heading";
+    const thd = document.createElement("div");
+    const th3 = document.createElement("h3");
+    th3.textContent = "Provider test latency";
+    const tp = document.createElement("p");
+    tp.textContent = "Last Test / Test All results";
+    thd.append(th3, tp);
+    th.appendChild(thd);
+    testSection.appendChild(th);
+
+    const grid = document.createElement("div");
+    grid.className = "provider-grid";
+    testKeys.forEach((id) => {
+      const info = tests[id];
+      const card = document.createElement("div");
+      card.className = "provider-card";
+      const title = document.createElement("div");
+      title.className = "provider-title";
+      const strong = document.createElement("strong");
+      strong.textContent = id;
+      const pill = document.createElement("span");
+      pill.className = `status-pill ${info.ok ? "ok" : "error"}`;
+      pill.textContent = info.ok ? "OK" : "Fail";
+      title.append(strong, pill);
+      const meta = document.createElement("div");
+      meta.className = "provider-meta";
+      meta.textContent = `${info.latency_ms} ms · ${formatTs(info.ts)} · ${(info.message || "").slice(0, 80)}`;
+      card.append(title, meta);
+      grid.appendChild(card);
+    });
+    testSection.appendChild(grid);
+    root.appendChild(testSection);
+  }
+}
+
+function initTheme() {
+  let theme = "dark";
+  try {
+    const stored = localStorage.getItem("fcc.theme");
+    if (stored === "light" || stored === "dark") theme = stored;
+    else if (document.documentElement.getAttribute("data-theme") === "light") theme = "light";
+  } catch {
+    /* ignore */
+  }
+  applyTheme(theme, false);
+}
+
+function applyTheme(theme, persist = true) {
+  const next = theme === "light" ? "light" : "dark";
+  state.theme = next;
+  document.documentElement.setAttribute("data-theme", next);
+  document.documentElement.style.colorScheme = next;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", next === "light" ? "#f4f6fb" : "#080a12");
+  if (persist) {
+    try {
+      localStorage.setItem("fcc.theme", next);
+    } catch {
+      /* ignore */
+    }
+  }
+  const btn = byId("themeToggle");
+  if (btn) btn.setAttribute("aria-label", next === "light" ? "Switch to dark theme" : "Switch to light theme");
+}
+
+function toggleTheme() {
+  applyTheme(state.theme === "light" ? "dark" : "light");
+  showToast("Theme", state.theme === "light" ? "Light mode" : "Dark mode", "neutral", 1500);
+}
+
+async function exportConfig() {
+  try {
+    const payload = await api("/admin/api/config/export");
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    a.href = url;
+    a.download = `fcc-config-${stamp}.json`;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    const skipped = (payload.skipped_secrets || []).length;
+    showToast(
+      "Exported",
+      skipped
+        ? `${Object.keys(payload.values || {}).length} values (secrets omitted)`
+        : `${Object.keys(payload.values || {}).length} values downloaded`,
+      "ok",
+    );
+  } catch (error) {
+    showToast("Export failed", error.message, "error");
+  }
+}
+
+async function importConfigFromFile(file) {
+  if (!file) return;
+  if (file.size > 1024 * 1024) {
+    showToast("Too large", "Config file must be under 1MB", "error");
+    return;
+  }
+  let parsed;
+  try {
+    const text = await file.text();
+    parsed = JSON.parse(text);
+  } catch {
+    showToast("Invalid JSON", "Could not parse config file", "error");
+    return;
+  }
+  const values =
+    parsed && typeof parsed === "object"
+      ? parsed.values && typeof parsed.values === "object"
+        ? parsed.values
+        : parsed
+      : null;
+  if (!values || typeof values !== "object" || Array.isArray(values)) {
+    showToast("Invalid format", "Expected { values: { KEY: value } }", "error");
+    return;
+  }
+  // Strip anything that looks like a secret before sending
+  const cleaned = {};
+  Object.keys(values).slice(0, 200).forEach((key) => {
+    if (typeof key !== "string") return;
+    const upper = key.toUpperCase();
+    if (upper.includes("KEY") || upper.includes("TOKEN") || upper.includes("SECRET") || upper.includes("PASSWORD")) {
+      return;
+    }
+    const value = values[key];
+    if (value === null || ["string", "number", "boolean"].includes(typeof value)) {
+      cleaned[key] = value;
+    }
+  });
+  try {
+    const preview = await api("/admin/api/config/import", {
+      method: "POST",
+      body: JSON.stringify({ values: cleaned, apply: false }),
+    });
+    const count = preview.count || 0;
+    if (!count) {
+      showToast("Nothing to import", "No non-secret known keys found", "warn");
+      return;
+    }
+    const rejected = (preview.rejected_secrets || []).length;
+    const unknown = (preview.unknown_keys || []).length;
+    const ok = window.confirm(
+      `Import ${count} setting(s)?\nSecrets stripped: ${rejected}\nUnknown keys skipped: ${unknown}\n\nThis will write managed config and may restart the server.`,
+    );
+    if (!ok) return;
+    const result = await api("/admin/api/config/import", {
+      method: "POST",
+      body: JSON.stringify({ values: cleaned, apply: true }),
+    });
+    if (result.applied) {
+      showToast("Imported", `${count} settings applied`, "ok");
+      await load();
+    } else {
+      const err = (result.errors || []).join("; ") || "Import rejected";
+      showToast("Import failed", err, "error");
+    }
+  } catch (error) {
+    showToast("Import failed", error.message, "error");
+  }
+}
+
+function openCommandPalette() {
+  const dialog = byId("commandPalette");
+  const input = byId("commandPaletteInput");
+  const list = byId("commandPaletteList");
+  if (!dialog || !input || !list) return;
+  input.value = "";
+  renderCommandPalette("");
+  if (typeof dialog.showModal === "function") dialog.showModal();
+  else dialog.setAttribute("open", "true");
+  input.focus();
+}
+
+function closeCommandPalette() {
+  const dialog = byId("commandPalette");
+  if (!dialog) return;
+  if (typeof dialog.close === "function") dialog.close();
+  else dialog.removeAttribute("open");
+}
+
+function commandPaletteItems() {
+  return [
+    ...VIEW_GROUPS.map((view) => ({
+      id: `view:${view.id}`,
+      label: `Go to ${view.label}`,
+      hint: view.subtitle || "",
+      run: () => navigateToView(view.id),
+    })),
+    { id: "refresh", label: "Refresh config", hint: "R", run: () => load() },
+    { id: "theme", label: "Toggle theme", hint: "T", run: () => toggleTheme() },
+    { id: "export", label: "Export config", hint: "Non-secret JSON", run: () => exportConfig() },
+    { id: "import", label: "Import config", hint: "From JSON file", run: () => byId("importConfigFile")?.click() },
+    { id: "test-all", label: "Test all providers", hint: "Providers view", run: () => testAllProviders() },
+    { id: "metrics", label: "Open metrics", hint: "Latency + RPS", run: () => navigateToView("metrics") },
+  ];
+}
+
+function renderCommandPalette(query) {
+  const list = byId("commandPaletteList");
+  if (!list) return;
+  list.textContent = "";
+  const q = String(query || "").trim().toLowerCase().slice(0, 80);
+  const items = commandPaletteItems().filter((item) => {
+    if (!q) return true;
+    return item.label.toLowerCase().includes(q) || (item.hint || "").toLowerCase().includes(q);
+  }).slice(0, 12);
+
+  items.forEach((item, index) => {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    li.dataset.id = item.id;
+    if (index === 0) li.setAttribute("aria-selected", "true");
+    const label = document.createElement("span");
+    label.className = "cmd-label";
+    label.textContent = item.label;
+    const hint = document.createElement("span");
+    hint.className = "cmd-hint";
+    hint.textContent = item.hint || "";
+    li.append(label, hint);
+    li.addEventListener("click", () => {
+      closeCommandPalette();
+      item.run();
+    });
+    list.appendChild(li);
+  });
+
+  if (!items.length) {
+    const li = document.createElement("li");
+    li.className = "cmd-empty";
+    li.textContent = "No matches";
+    list.appendChild(li);
+  }
+}
+
+function runSelectedCommand() {
+  const list = byId("commandPaletteList");
+  if (!list) return;
+  const selected = list.querySelector('[aria-selected="true"]') || list.querySelector("li[data-id]");
+  if (!selected) return;
+  const id = selected.dataset.id;
+  const item = commandPaletteItems().find((entry) => entry.id === id);
+  if (!item) return;
+  closeCommandPalette();
+  item.run();
+}
+
+function moveCommandSelection(delta) {
+  const list = byId("commandPaletteList");
+  if (!list) return;
+  const options = Array.from(list.querySelectorAll("li[data-id]"));
+  if (!options.length) return;
+  let idx = options.findIndex((el) => el.getAttribute("aria-selected") === "true");
+  if (idx < 0) idx = 0;
+  options.forEach((el) => el.removeAttribute("aria-selected"));
+  idx = (idx + delta + options.length) % options.length;
+  options[idx].setAttribute("aria-selected", "true");
+  options[idx].scrollIntoView({ block: "nearest" });
+}
+
+function isTypingTarget(target) {
+  if (!target || !(target instanceof Element)) return false;
+  const tag = target.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  return target.isContentEditable;
+}
+
+function setupKeyboardShortcuts() {
+  document.addEventListener("keydown", (event) => {
+    const meta = event.metaKey || event.ctrlKey;
+    const dialog = byId("commandPalette");
+    const paletteOpen = dialog && (dialog.open || dialog.hasAttribute("open"));
+
+    if (meta && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      if (paletteOpen) closeCommandPalette();
+      else openCommandPalette();
+      return;
+    }
+
+    if (paletteOpen) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeCommandPalette();
+        return;
+      }
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        moveCommandSelection(1);
+        return;
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        moveCommandSelection(-1);
+        return;
+      }
+      if (event.key === "Enter") {
+        event.preventDefault();
+        runSelectedCommand();
+        return;
+      }
+      return;
+    }
+
+    if (isTypingTarget(event.target) || meta || event.altKey) return;
+
+    if (event.key === "Escape") {
+      const search = byId("globalSearch");
+      if (search && document.activeElement === search) {
+        search.blur();
+        return;
+      }
+    }
+    if (event.key === "/" || (event.key === "s" && !event.shiftKey)) {
+      const search = byId("globalSearch");
+      const box = byId("globalSearchBox");
+      if (search && box && !box.hidden) {
+        event.preventDefault();
+        search.focus();
+        search.select();
+      }
+      return;
+    }
+    if (event.key.toLowerCase() === "t") {
+      event.preventDefault();
+      toggleTheme();
+      return;
+    }
+    if (event.key.toLowerCase() === "r" && !event.shiftKey) {
+      event.preventDefault();
+      load();
+      showToast("Refreshing", "Reloading configuration...", "neutral");
+      return;
+    }
+    if (event.key >= "1" && event.key <= "7") {
+      const idx = Number(event.key) - 1;
+      if (VIEW_GROUPS[idx]) {
+        event.preventDefault();
+        navigateToView(VIEW_GROUPS[idx].id);
+      }
+    }
+  });
+
+  const input = byId("commandPaletteInput");
+  if (input) {
+    input.addEventListener("input", (e) => {
+      renderCommandPalette(e.target.value);
+    });
+  }
+  const dialog = byId("commandPalette");
+  if (dialog) {
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) closeCommandPalette();
+    });
+  }
 }
 
 async function load() {
@@ -380,10 +916,11 @@ async function load() {
 function renderNav() {
   const nav = byId("sectionNav");
   nav.innerHTML = "";
+  const byIdMap = Object.fromEntries(VIEW_GROUPS.map((v) => [v.id, v]));
   const groups = [
-    { label: "Main", views: VIEW_GROUPS.slice(0, 3) },
-    { label: "Security", views: [VIEW_GROUPS[3]] },
-    { label: "Tools", views: VIEW_GROUPS.slice(4) },
+    { label: "Main", views: ["providers", "model_config", "messaging"].map((id) => byIdMap[id]).filter(Boolean) },
+    { label: "Observe", views: ["security", "metrics"].map((id) => byIdMap[id]).filter(Boolean) },
+    { label: "Tools", views: ["integrations", "code"].map((id) => byIdMap[id]).filter(Boolean) },
   ];
   groups.forEach(group => {
     const label = document.createElement("div");
@@ -424,7 +961,7 @@ function setActiveView(viewId, { scroll = false } = {}) {
   const topbar = document.querySelector(".topbar");
   if (topbar) topbar.hidden = sessionActive;
   const actionBar = document.querySelector(".action-bar");
-  if (actionBar) actionBar.hidden = sessionActive || ["integrations", "security"].includes(activeView.id);
+  if (actionBar) actionBar.hidden = sessionActive || ["integrations", "security", "metrics"].includes(activeView.id);
   const statsGrid = byId("statsGrid");
   if (statsGrid) statsGrid.hidden = sessionActive || activeView.id !== "providers";
   const searchBox = byId("globalSearchBox");
@@ -457,6 +994,11 @@ function setActiveView(viewId, { scroll = false } = {}) {
   }
   if (activeView.id === "security" && state.securityInfo) {
     renderSecurityView(state.securityInfo);
+  }
+  if (activeView.id === "metrics") {
+    startMetricsPolling();
+  } else {
+    stopMetricsPolling();
   }
 }
 
@@ -1650,6 +2192,23 @@ if (refreshButton) refreshButton.addEventListener("click", () => {
 const testAllButton = byId("testAllButton");
 if (testAllButton) testAllButton.addEventListener("click", testAllProviders);
 
+const themeToggle = byId("themeToggle");
+if (themeToggle) themeToggle.addEventListener("click", toggleTheme);
+
+const exportConfigButton = byId("exportConfigButton");
+if (exportConfigButton) exportConfigButton.addEventListener("click", exportConfig);
+
+const importConfigButton = byId("importConfigButton");
+const importConfigFile = byId("importConfigFile");
+if (importConfigButton && importConfigFile) {
+  importConfigButton.addEventListener("click", () => importConfigFile.click());
+  importConfigFile.addEventListener("change", () => {
+    const file = importConfigFile.files && importConfigFile.files[0];
+    importConfigFile.value = "";
+    if (file) importConfigFromFile(file);
+  });
+}
+
 const globalSearch = byId("globalSearch");
 if (globalSearch) {
   globalSearch.addEventListener("input", (e) => {
@@ -1661,6 +2220,9 @@ if (globalSearch) {
     if (e.key === "Enter") e.preventDefault();
   });
 }
+
+initTheme();
+setupKeyboardShortcuts();
 
 document.addEventListener("pointerdown", (event) => {
   state.modelComboboxes.forEach((combobox) => {
@@ -1940,4 +2502,10 @@ if (closeJetBrainsBtn && jetBrainsIntegrationDialog) {
 load().then(showRestartNotice).catch((error) => {
   showMessage(error.message, "error");
   showToast("Load failed", error.message, "error");
+});
+
+// Stop metrics polling when tab is hidden
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopMetricsPolling();
+  else if (state.activeView === "metrics") startMetricsPolling();
 });

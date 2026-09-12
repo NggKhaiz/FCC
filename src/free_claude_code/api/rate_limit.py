@@ -119,6 +119,12 @@ def check_rate_limit(request: Request) -> None:
     
     allowed, retry_after = _limiter.is_allowed(key, config)
     if not allowed:
+        try:
+            from .metrics import metrics as _metrics
+
+            _metrics.record_rate_limit_hit()
+        except Exception:
+            pass
         raise HTTPException(
             status_code=429,
             detail=f"Too many requests. Retry after {retry_after}s",

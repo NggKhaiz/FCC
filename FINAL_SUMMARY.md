@@ -99,13 +99,22 @@ PORT=8082
 
 Truy cập: `http://YOUR_IP:8082/admin`
 
-### 10. Kết luận
-✅ **Hoàn thành toàn bộ yêu cầu**
+### 10. Kết luận (Phase 1–2)
+✅ **Hoàn thành toàn bộ yêu cầu gốc**
 - Bỏ localhost-only: xong
 - Giao diện premium: xong
 - Frontend to Backend improvements: xong
 - Pentest + bảo mật: xong, no critical/high
 - Sẵn sàng production remote deployment
 
+### 11. Phase 3 (arena/01a095da-fcc)
+✅ **Observe + UX + Deploy**
+- Metrics API + Metrics admin view (RPS, latency, recent traffic)
+- Config export/import (secrets never leave the server)
+- Light/dark theme + ⌘K command palette + shortcuts
+- `deploy/` pack: Dockerfile, compose, Caddy, REMOTE.md
+- Tests: `tests/api/test_metrics_and_config_io.py`
+- Chi tiết: `PHASE3_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a09560-fcc*
+*2026-09-12 - arena/01a095da-fcc (Phase 3 on top of merged PR #1)*
