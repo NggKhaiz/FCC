@@ -152,5 +152,13 @@ Truy cập: `http://YOUR_IP:8082/admin`
 - Tests: `tests/api/test_phase7_live.py`
 - Chi tiết: `PHASE7_COMPLETE.md`
 
+### 16. Phase 8 — Cookie bridge · Metrics SSE · Federation
+✅ **EventSource auth + multi-node metrics**
+- HttpOnly `fcc_admin_token` cookie bridge for SSE
+- Live metrics stream + export/merge federation APIs
+- UI: cookie sync, metrics EventSource, ⌘K export metrics
+- Tests: `tests/api/test_phase8_federation.py`
+- Chi tiết: `PHASE8_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 7 A→Z)*
+*2026-09-12 - arena/01a095da-fcc (Phase 8)*

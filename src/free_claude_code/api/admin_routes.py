@@ -317,6 +317,166 @@ async def detailed_health(
 
 
 
+
+class AdminSessionTokenPayload(BaseModel):
+    """Set/clear the HttpOnly admin token cookie for EventSource."""
+
+    token: str = Field(default="", max_length=512)
+
+
+@router.post("/admin/api/session/token")
+async def set_admin_session_token(
+    payload: AdminSessionTokenPayload,
+    request: Request,
+    response: Response,
+    services: ApiServices = Depends(get_services),
+):
+    """Store admin API token in an HttpOnly cookie (EventSource bridge).
+
+    Does not replace header auth. Cookie is SameSite=Strict, path=/admin.
+    Empty token clears the cookie.
+    """
+    import os
+    import secrets as _secrets
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    try:
+        settings = services.requests.current_settings()
+        configured = (getattr(settings, "admin_api_token", None) or "").strip()
+    except Exception:
+        configured = ""
+    if not configured:
+        configured = os.getenv("FCC_ADMIN_API_TOKEN", "").strip()
+    value = (payload.token or "").strip()[:512]
+    # If server requires a token, validate before setting cookie
+    if configured:
+        if not value or not _secrets.compare_digest(
+            value.encode("utf-8"), configured.encode("utf-8")
+        ):
+            log_security_event("admin_session_token_rejected", request, level="warning")
+            raise HTTPException(status_code=401, detail="Invalid admin authentication token")
+
+    secure = request.url.scheme == "https"
+    if value:
+        response.set_cookie(
+            key="fcc_admin_token",
+            value=value,
+            httponly=True,
+            secure=secure,
+            samesite="strict",
+            path="/admin",
+            max_age=60 * 60 * 12,
+        )
+        log_security_event("admin_session_token_set", request, level="info")
+        return _no_store({"ok": True, "set": True})
+    response.delete_cookie("fcc_admin_token", path="/admin")
+    log_security_event("admin_session_token_cleared", request, level="info")
+    return _no_store({"ok": True, "set": False})
+
+
+@router.delete("/admin/api/session/token")
+async def clear_admin_session_token(request: Request, response: Response):
+    """Clear the admin token cookie."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    response.delete_cookie("fcc_admin_token", path="/admin")
+    log_security_event("admin_session_token_cleared", request, level="info")
+    return _no_store({"ok": True, "set": False})
+
+
+@router.get("/admin/api/metrics/stream")
+async def metrics_live_stream(request: Request, services: ApiServices = Depends(get_services)):
+    """SSE live metrics snapshots for the Metrics view."""
+    import asyncio
+    import json
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request, services)
+    from .metrics import metrics as runtime_metrics
+    from fastapi.responses import StreamingResponse
+
+    async def gen():
+        while True:
+            if await request.is_disconnected():
+                break
+            snap = runtime_metrics.snapshot()
+            # Trim heavy fields for wire
+            slim = {
+                "uptime_seconds": snap.get("uptime_seconds"),
+                "total_requests": snap.get("total_requests"),
+                "total_errors": snap.get("total_errors"),
+                "error_rate": snap.get("error_rate"),
+                "requests_per_second": snap.get("requests_per_second"),
+                "rate_limit_hits": snap.get("rate_limit_hits"),
+                "latency_histogram_ms": snap.get("latency_histogram_ms"),
+                "latency_overflow": snap.get("latency_overflow"),
+                "provider_latency": (snap.get("provider_latency") or [])[:15],
+                "top_routes": (snap.get("top_routes") or [])[:10],
+                "status_codes": snap.get("status_codes"),
+            }
+            body = json.dumps(slim, separators=(",", ":"), default=str)
+            yield f"event: metrics\ndata: {body}\n\n"
+            await asyncio.sleep(2.0)
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-store",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
+
+
+@router.get("/admin/api/metrics/export")
+async def metrics_export(request: Request, services: ApiServices = Depends(get_services)):
+    """Export metrics snapshot for multi-node federation / scraping."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request, services)
+    from .metrics import metrics as runtime_metrics
+    import time as _time
+    import os
+
+    snap = runtime_metrics.snapshot()
+    return _no_store(
+        {
+            "format": "fcc-metrics-federation",
+            "format_version": 1,
+            "exported_at": _time.time(),
+            "node_id": os.getenv("FCC_NODE_ID")
+            or (f"node-{int(snap['started_at'])}" if snap.get("started_at") else "node-local"),
+            "version": package_version(),
+            "snapshot": snap,
+        }
+    )
+
+
+@router.post("/admin/api/metrics/merge")
+async def metrics_merge(
+    request: Request,
+    services: ApiServices = Depends(get_services),
+):
+    """Merge multiple federation export payloads into one aggregate view.
+
+    Body: { "nodes": [ <export>, ... ] } — pure function, does not mutate local metrics.
+    """
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request, services)
+    check_request_size(request, max_size=2 * 1024 * 1024)
+    body = await request.json()
+    nodes = body.get("nodes") if isinstance(body, dict) else None
+    if not isinstance(nodes, list) or len(nodes) > 64:
+        raise HTTPException(status_code=400, detail="nodes must be a list (max 64)")
+    from .metrics_federation import merge_metric_exports
+
+    return _no_store(merge_metric_exports(nodes))
+
+
 @router.get("/admin/api/security/events/stream")
 async def security_events_stream(request: Request):
     """SSE live tail of security/audit events (admin-only)."""

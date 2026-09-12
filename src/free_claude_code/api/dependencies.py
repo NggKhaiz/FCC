@@ -203,6 +203,9 @@ def require_admin_token(
             parts = authorization.strip().split(maxsplit=1)
             if len(parts) == 2 and parts[0].casefold() == "bearer":
                 provided = parts[1].strip()
+    if not provided:
+        # Cookie bridge for EventSource (cannot set custom headers)
+        provided = (request.cookies.get("fcc_admin_token") or "").strip() or None
 
     if not provided or not secrets.compare_digest(
         provided.encode("utf-8"),

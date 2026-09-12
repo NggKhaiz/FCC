@@ -222,8 +222,15 @@ src/free_claude_code/
 - [x] Live provider latency recording
 - [x] SSE audit tail
 - [x] PWA admin shell
+- [x] EventSource admin-token cookie bridge
+- [x] Multi-node metrics export/merge federation
+- [x] Live metrics SSE stream
 - [ ] WebSocket bidirectional logs — future
-- [ ] Multi-node metrics aggregator — future
+
+### Phase 8: Cookie + Federation ✅ DONE
+- [x] session token cookie for SSE
+- [x] metrics stream / export / merge
+- [ ] Bidirectional WebSocket admin console — future
 
 ---
 

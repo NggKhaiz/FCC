@@ -21,6 +21,7 @@ const state = {
   securityInfo: null,
   metrics: null,
   metricsTimer: null,
+  metricsSource: null,
   theme: "dark",
   adminApiToken: "",
   securityEvents: null,
@@ -322,10 +323,7 @@ function startSecurityEventsStream() {
   if (typeof EventSource === "undefined") return;
   if (state.securityEventsSource) return;
   try {
-    // EventSource cannot set custom headers; token via query is avoided (leak risk).
-    // When FCC_ADMIN_API_TOKEN is set, SSE requires same-origin cookie-less header —
-    // fall back to poll-only if token is configured in session.
-    if (state.adminApiToken) return;
+    // EventSource cannot set custom headers; cookie bridge (fcc_admin_token) carries auth.
     const src = new EventSource("/admin/api/security/events/stream");
     state.securityEventsSource = src;
     const onPayload = (ev) => {
@@ -534,16 +532,59 @@ async function loadMetrics() {
 
 function startMetricsPolling() {
   loadMetrics();
+  startMetricsStream();
   if (state.metricsTimer) return;
   state.metricsTimer = window.setInterval(() => {
-    if (state.activeView === "metrics") loadMetrics();
-  }, 5000);
+    if (state.activeView === "metrics" && !state.metricsSource) loadMetrics();
+  }, 8000);
 }
 
 function stopMetricsPolling() {
   if (state.metricsTimer) {
     window.clearInterval(state.metricsTimer);
     state.metricsTimer = null;
+  }
+  stopMetricsStream();
+}
+
+function stopMetricsStream() {
+  if (state.metricsSource) {
+    try { state.metricsSource.close(); } catch {}
+    state.metricsSource = null;
+  }
+}
+
+function startMetricsStream() {
+  if (state.activeView !== "metrics") return;
+  if (typeof EventSource === "undefined") return;
+  if (state.metricsSource) return;
+  try {
+    const src = new EventSource("/admin/api/metrics/stream");
+    state.metricsSource = src;
+    src.addEventListener("metrics", (ev) => {
+      try {
+        const slim = JSON.parse(ev.data);
+        // Merge slim live snapshot onto last full snapshot fields when present
+        const base = state.metrics || {};
+        state.metrics = {
+          ...base,
+          ...slim,
+          recent: base.recent || [],
+          provider_tests: base.provider_tests || {},
+          top_routes: slim.top_routes || base.top_routes || [],
+          provider_latency: slim.provider_latency || base.provider_latency || [],
+        };
+        renderMetricsView(state.metrics);
+      } catch {}
+    });
+    src.onerror = () => {
+      stopMetricsStream();
+      window.setTimeout(() => {
+        if (state.activeView === "metrics") startMetricsStream();
+      }, 5000);
+    };
+  } catch (e) {
+    console.warn("Metrics SSE unavailable", e);
   }
 }
 
@@ -967,14 +1008,15 @@ function commandPaletteItems() {
     { id: "import", label: "Import config", hint: "From JSON file", run: () => byId("importConfigFile")?.click() },
     { id: "test-all", label: "Test all providers", hint: "Providers view", run: () => testAllProviders() },
     { id: "metrics", label: "Open metrics", hint: "Latency + RPS", run: () => navigateToView("metrics") },
-    { id: "admin-token", label: "Set admin API token", hint: "session only", run: () => promptAdminApiToken() },
+    { id: "admin-token", label: "Set admin API token", hint: "session + cookie", run: () => promptAdminApiToken() },
+    { id: "export-metrics", label: "Export metrics federation", hint: "JSON snapshot", run: () => exportMetricsFederation() },
   ];
 }
 
 function promptAdminApiToken() {
   const current = state.adminApiToken || "";
   const next = window.prompt(
-    "Admin API token (FCC_ADMIN_API_TOKEN). Stored in sessionStorage only. Leave empty to clear.",
+    "Admin API token (FCC_ADMIN_API_TOKEN). sessionStorage + HttpOnly cookie for SSE. Leave empty to clear.",
     current,
   );
   if (next === null) return;
@@ -983,12 +1025,49 @@ function promptAdminApiToken() {
     if (state.adminApiToken) sessionStorage.setItem("fcc.adminApiToken", state.adminApiToken);
     else sessionStorage.removeItem("fcc.adminApiToken");
   } catch {}
+  void syncAdminSessionCookie(state.adminApiToken);
   showToast(
     state.adminApiToken ? "Admin token set" : "Admin token cleared",
-    "Applies to this browser tab only",
+    "Header + cookie bridge for live SSE",
     "ok",
   );
   void load();
+}
+
+async function exportMetricsFederation() {
+  try {
+    const payload = await api("/admin/api/metrics/export");
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    a.href = url;
+    a.download = `fcc-metrics-${stamp}.json`;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast("Metrics exported", "Federation snapshot downloaded", "ok");
+  } catch (error) {
+    showToast("Export failed", error.message, "error");
+  }
+}
+
+async function syncAdminSessionCookie(token) {
+  try {
+    const value = String(token || "").slice(0, 512);
+    if (value) {
+      await api("/admin/api/session/token", {
+        method: "POST",
+        body: JSON.stringify({ token: value }),
+      });
+    } else {
+      await api("/admin/api/session/token", { method: "DELETE" });
+    }
+  } catch (e) {
+    console.warn("Admin session cookie sync failed", e);
+  }
 }
 
 function renderCommandPalette(query) {
@@ -2491,6 +2570,13 @@ if (globalSearch) {
 
 initTheme();
 setupKeyboardShortcuts();
+try {
+  if (!state.adminApiToken) {
+    state.adminApiToken = sessionStorage.getItem("fcc.adminApiToken") || "";
+  }
+  if (state.adminApiToken) void syncAdminSessionCookie(state.adminApiToken);
+} catch {}
+
 
 document.addEventListener("pointerdown", (event) => {
   state.modelComboboxes.forEach((combobox) => {

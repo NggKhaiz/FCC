@@ -89,9 +89,13 @@
       Live provider_latency on proxy turns; SSE security events stream;
       PWA admin shell (manifest + asset SW); full A→Z ship.
     </phase>
-    <phase id="12" name="Next">
-      WebSocket bidirectional logs; multi-node metrics; optional admin token
-      for EventSource via cookie bridge.
+    <phase id="12" name="Phase8">
+      EventSource admin-token cookie bridge; metrics live SSE;
+      multi-node metrics export/merge federation.
+    </phase>
+    <phase id="13" name="Next">
+      WebSocket bidirectional admin console; scrape-compatible Prometheus
+      text exposition optional.
     </phase>
   </execution_plan>
 
