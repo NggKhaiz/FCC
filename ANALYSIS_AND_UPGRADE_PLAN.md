@@ -236,8 +236,14 @@ src/free_claude_code/
 ### Phase 9: Console + Prometheus ✅ DONE
 - [x] WS `/admin/api/console/ws` protocol + UI
 - [x] `GET /admin/api/metrics/prometheus`
-- [ ] Multi-replica fan-in console hub — future
+
+### Phase 10: Fan-in + OpenMetrics + Bundles ✅ DONE
+- [x] Multi-replica console fan-in hub (ingest/merge/snapshot + WS channel)
+- [x] OpenMetrics 1.0.0 text exposition
+- [x] Admin audit export bundles (ZIP, no secrets)
 - [ ] OpenMetrics protobuf optional — future
+- [ ] Active peer scrape (hub pulls replicas) — future
+- [ ] Signed audit bundles — future
 
 ---
 
