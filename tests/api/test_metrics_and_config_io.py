@@ -1,7 +1,5 @@
 """Phase 3: metrics collector + admin export/import endpoints."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest

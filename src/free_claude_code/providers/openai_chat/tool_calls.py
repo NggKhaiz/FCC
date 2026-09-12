@@ -1,6 +1,8 @@
 """OpenAI-chat tool-call assembly helpers."""
 
 import json
+
+from free_claude_code.native import json_dumps_compact
 import uuid
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
@@ -142,7 +144,7 @@ def iter_heuristic_tool_use_events(
         str(tool_use["id"]),
         str(tool_use["name"]),
     )
-    yield output.emit_tool_delta(tool_index, json.dumps(tool_use["input"]))
+    yield output.emit_tool_delta(tool_index, json_dumps_compact(tool_use["input"]))
     yield from output.stop_tool_block(tool_index)
 
 
@@ -369,7 +371,7 @@ class OpenAIToolCallAssembler:
         if state.name == "Task":
             parsed = output.buffer_task_args(tc_index, args)
             if parsed is not None:
-                yield output.emit_tool_delta(tc_index, json.dumps(parsed))
+                yield output.emit_tool_delta(tc_index, json_dumps_compact(parsed))
             return
         aliases = (
             tool_argument_aliases.get(state.name, {}) if tool_argument_aliases else {}
@@ -414,7 +416,7 @@ def restore_tool_argument_aliases(
         return None
     if not isinstance(parsed, dict):
         return argument_json
-    return json.dumps(_restore_tool_argument_alias_value(parsed, aliases))
+    return json_dumps_compact(_restore_tool_argument_alias_value(parsed, aliases))
 
 
 def _restore_tool_argument_alias_value(

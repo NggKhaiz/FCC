@@ -1,0 +1,54 @@
+# Copy to .github/workflows/native-core.yml when the GitHub App has workflows permission.
+
+# Optional native fcc_core wheel build. Does not fail the main CI quality gate
+# when Rust/maturin is unavailable on a runner — reports status only.
+name: Native core
+
+on:
+  pull_request:
+  push:
+    paths:
+      - "crates/fcc_core/**"
+      - "src/free_claude_code/native/**"
+      - "scripts/build_native.sh"
+      - ".github/workflows/native-core.yml"
+
+concurrency:
+  group: native-core-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fcc-core:
+    name: fcc_core wheel
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 1
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install maturin
+        run: pip install "maturin>=1.7,<2"
+
+      - name: Build release wheel
+        run: maturin build --release -m crates/fcc_core/Cargo.toml
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fcc-core-wheel
+          path: target/wheels/*.whl
+          if-no-files-found: warn
+
+      - name: Cargo test (lib)
+        run: cargo test --manifest-path crates/fcc_core/Cargo.toml --lib

@@ -1,7 +1,5 @@
 """In-memory runtime metrics for admin dashboard and health."""
 
-from __future__ import annotations
-
 import threading
 import time
 from collections import defaultdict, deque
@@ -39,6 +37,9 @@ class RuntimeMetrics:
         self._by_status: dict[int, int] = defaultdict(int)
         self._recent: deque[dict[str, Any]] = deque(maxlen=recent_limit)
         self._provider_tests: dict[str, dict[str, Any]] = {}
+        self._provider_latency: dict[str, _PathStats] = defaultdict(_PathStats)
+        self._global_buckets: dict[int, int] = {b: 0 for b in _LATENCY_BUCKETS_MS}
+        self._global_overflow = 0
 
     def record_request(
         self,
@@ -72,6 +73,15 @@ class RuntimeMetrics:
                     break
             if not placed:
                 stats.overflow += 1
+            # Global latency histogram (all routes)
+            g_placed = False
+            for bucket in _LATENCY_BUCKETS_MS:
+                if duration_ms <= bucket:
+                    self._global_buckets[bucket] += 1
+                    g_placed = True
+                    break
+            if not g_placed:
+                self._global_overflow += 1
             self._recent.appendleft(
                 {
                     "ts": time.time(),
@@ -90,13 +100,44 @@ class RuntimeMetrics:
     def record_provider_test(
         self, provider_id: str, *, ok: bool, message: str, latency_ms: float
     ) -> None:
+        pid = provider_id[:64]
         with self._lock:
-            self._provider_tests[provider_id[:64]] = {
+            self._provider_tests[pid] = {
                 "ok": ok,
                 "message": message[:300],
                 "latency_ms": round(latency_ms, 2),
                 "ts": time.time(),
             }
+            # Rolling latency aggregate per provider (test path)
+            stats = self._provider_latency[pid]
+            stats.count += 1
+            if not ok:
+                stats.errors += 1
+            stats.total_ms += latency_ms
+            stats.max_ms = max(stats.max_ms, latency_ms)
+            stats.min_ms = min(stats.min_ms, latency_ms)
+            placed = False
+            for bucket in _LATENCY_BUCKETS_MS:
+                if latency_ms <= bucket:
+                    stats.buckets[bucket] += 1
+                    placed = True
+                    break
+            if not placed:
+                stats.overflow += 1
+
+    def record_provider_latency(
+        self, provider_id: str, *, latency_ms: float, ok: bool = True
+    ) -> None:
+        """Record a provider-bound operation latency (proxy turn / test)."""
+        pid = (provider_id or "unknown")[:64]
+        with self._lock:
+            stats = self._provider_latency[pid]
+            stats.count += 1
+            if not ok:
+                stats.errors += 1
+            stats.total_ms += latency_ms
+            stats.max_ms = max(stats.max_ms, latency_ms)
+            stats.min_ms = min(stats.min_ms, latency_ms)
 
     def snapshot(self) -> dict[str, Any]:
         """Return a JSON-serializable metrics snapshot."""
@@ -124,6 +165,26 @@ class RuntimeMetrics:
                     }
                 )
             rps = (self._total_requests / uptime) if uptime > 0 else 0.0
+            providers: list[dict[str, Any]] = []
+            for pid, stats in sorted(
+                self._provider_latency.items(),
+                key=lambda item: item[1].total_ms / item[1].count if item[1].count else 0,
+                reverse=True,
+            ):
+                avg = (stats.total_ms / stats.count) if stats.count else 0.0
+                providers.append(
+                    {
+                        "provider_id": pid,
+                        "count": stats.count,
+                        "errors": stats.errors,
+                        "avg_ms": round(avg, 2),
+                        "max_ms": round(stats.max_ms if stats.count else 0.0, 2),
+                        "min_ms": round(
+                            stats.min_ms if stats.min_ms != float("inf") else 0.0, 2
+                        ),
+                        "last_test": self._provider_tests.get(pid),
+                    }
+                )
             return {
                 "uptime_seconds": round(uptime, 1),
                 "started_at": self._started_at,
@@ -138,7 +199,12 @@ class RuntimeMetrics:
                 "requests_per_second": round(rps, 3),
                 "rate_limit_hits": self._rate_limit_hits,
                 "status_codes": dict(sorted(self._by_status.items())),
+                "latency_histogram_ms": {
+                    str(k): v for k, v in self._global_buckets.items() if v
+                },
+                "latency_overflow": self._global_overflow,
                 "top_routes": paths[:25],
+                "provider_latency": providers[:30],
                 "recent": list(self._recent)[:50],
                 "provider_tests": dict(self._provider_tests),
             }

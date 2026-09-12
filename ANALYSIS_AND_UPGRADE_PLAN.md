@@ -207,8 +207,15 @@ src/free_claude_code/
 - [x] Security event ring + live tail UI
 - [x] JSON compact helpers on Responses tools
 - [x] Helm chart `deploy/helm/fcc`
-- [ ] admin.js auto-attach admin token header when configured — next
-- [ ] More stream JSON transforms → native — future
+- [x] admin.js session token + ⌘K setter
+
+### Phase 6: Native CI + stream + graphs ✅ DONE
+- [x] CI recipe `scripts/native-core.ci.yml` for fcc_core wheels
+- [x] Stream/tool_calls → `json_dumps_compact`
+- [x] Latency histogram + provider_latency metrics + CSS bars
+- [x] Strip banned future/type-ignore from Phase modules
+- [ ] Wire provider_latency on live proxy turns (not only tests) — next
+- [ ] PWA / WebSocket log stream — future
 
 ---
 

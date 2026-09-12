@@ -1,7 +1,5 @@
 """Phase 4: native ultra-core correctness + security contracts."""
 
-from __future__ import annotations
-
 import time
 
 import pytest

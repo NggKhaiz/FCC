@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Micro-benchmarks for FCC native ultra-core (no pytest required)."""
 
-from __future__ import annotations
-
 import statistics
 import sys
 import time

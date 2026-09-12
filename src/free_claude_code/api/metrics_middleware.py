@@ -1,7 +1,5 @@
 """ASGI middleware that records request metrics."""
 
-from __future__ import annotations
-
 import time
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send

@@ -81,9 +81,13 @@
       Dedicated admin API token, auth SlidingWindow, security event ring + live tail,
       JSON compact helpers on Responses tools, Helm chart.
     </phase>
-    <phase id="10" name="Next">
-      CI native wheels, admin.js token header when configured, stream SSE ultra,
-      deeper provider latency graphs.
+    <phase id="10" name="Phase6">
+      CI native wheels, stream SSE JSON ultra, latency histogram + provider bars,
+      CI-safe annotations (no future/type-ignore in Phase modules).
+    </phase>
+    <phase id="11" name="Next">
+      Record provider_latency on live proxy turns; optional WebSocket log stream;
+      PWA; deeper multi-node metrics.
     </phase>
   </execution_plan>
 

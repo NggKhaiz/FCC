@@ -558,7 +558,109 @@ function renderMetricsView(snap) {
   }
   root.appendChild(routesSection);
 
-  const recentSection = document.createElement("section");
+  
+  // Global latency histogram (CSS bars — no Chart.js dep)
+  const hist = snap.latency_histogram_ms || {};
+  const histKeys = Object.keys(hist).map(Number).sort((a, b) => a - b);
+  if (histKeys.length) {
+    const histSection = document.createElement("section");
+    histSection.className = "settings-section";
+    const hh = document.createElement("div");
+    hh.className = "section-heading";
+    const hhd = document.createElement("div");
+    const hh3 = document.createElement("h3");
+    hh3.textContent = "Latency histogram";
+    const hp = document.createElement("p");
+    hp.textContent = "Request duration buckets (ms) across all routes";
+    hhd.append(hh3, hp);
+    hh.appendChild(hhd);
+    histSection.appendChild(hh);
+    const maxH = Math.max(...histKeys.map((k) => hist[String(k)] || 0), 1);
+    const chart = document.createElement("div");
+    chart.className = "latency-bars";
+    histKeys.forEach((k) => {
+      const count = hist[String(k)] || 0;
+      const row = document.createElement("div");
+      row.className = "latency-bar-row";
+      const label = document.createElement("span");
+      label.className = "latency-bar-label mono-cell";
+      label.textContent = `≤${k}ms`;
+      const track = document.createElement("div");
+      track.className = "latency-bar-track";
+      const fill = document.createElement("div");
+      fill.className = "latency-bar-fill";
+      fill.style.width = `${Math.max(2, Math.round((count / maxH) * 100))}%`;
+      track.appendChild(fill);
+      const val = document.createElement("span");
+      val.className = "latency-bar-val";
+      val.textContent = String(count);
+      row.append(label, track, val);
+      chart.appendChild(row);
+    });
+    if (snap.latency_overflow) {
+      const row = document.createElement("div");
+      row.className = "latency-bar-row";
+      const label = document.createElement("span");
+      label.className = "latency-bar-label mono-cell";
+      label.textContent = ">max";
+      const track = document.createElement("div");
+      track.className = "latency-bar-track";
+      const fill = document.createElement("div");
+      fill.className = "latency-bar-fill overflow";
+      const maxO = Math.max(maxH, snap.latency_overflow);
+      fill.style.width = `${Math.max(2, Math.round((snap.latency_overflow / maxO) * 100))}%`;
+      track.appendChild(fill);
+      const val = document.createElement("span");
+      val.className = "latency-bar-val";
+      val.textContent = String(snap.latency_overflow);
+      row.append(label, track, val);
+      chart.appendChild(row);
+    }
+    histSection.appendChild(chart);
+    root.appendChild(histSection);
+  }
+
+  // Provider latency ranking
+  const providers = snap.provider_latency || [];
+  if (providers.length) {
+    const pSection = document.createElement("section");
+    pSection.className = "settings-section";
+    const ph = document.createElement("div");
+    ph.className = "section-heading";
+    const phd = document.createElement("div");
+    const ph3 = document.createElement("h3");
+    ph3.textContent = "Provider latency";
+    const pp = document.createElement("p");
+    pp.textContent = "Avg ms from Test / recorded provider ops (higher = slower)";
+    phd.append(ph3, pp);
+    ph.appendChild(phd);
+    pSection.appendChild(ph);
+    const maxAvg = Math.max(...providers.map((p) => p.avg_ms || 0), 1);
+    const chart = document.createElement("div");
+    chart.className = "latency-bars";
+    providers.slice(0, 15).forEach((p) => {
+      const row = document.createElement("div");
+      row.className = "latency-bar-row";
+      const label = document.createElement("span");
+      label.className = "latency-bar-label mono-cell";
+      label.textContent = String(p.provider_id || "").slice(0, 24);
+      const track = document.createElement("div");
+      track.className = "latency-bar-track";
+      const fill = document.createElement("div");
+      fill.className = "latency-bar-fill provider";
+      fill.style.width = `${Math.max(2, Math.round(((p.avg_ms || 0) / maxAvg) * 100))}%`;
+      track.appendChild(fill);
+      const val = document.createElement("span");
+      val.className = "latency-bar-val";
+      val.textContent = `${p.avg_ms}ms · n=${p.count}`;
+      row.append(label, track, val);
+      chart.appendChild(row);
+    });
+    pSection.appendChild(chart);
+    root.appendChild(pSection);
+  }
+
+const recentSection = document.createElement("section");
   recentSection.className = "settings-section";
   const recentHeading = document.createElement("div");
   recentHeading.className = "section-heading";

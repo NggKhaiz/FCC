@@ -1631,3 +1631,61 @@ html[data-theme="dark"] .theme-icon-dark { display: block; }
 .mono-cell, .mono-note, .cmd-hint {
   font-display: swap;
 }
+
+/* Phase 6: latency / provider bars (no Chart.js) */
+.latency-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 4px 4px;
+}
+.latency-bar-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+.latency-bar-label {
+  color: var(--muted-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.latency-bar-track {
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--neutral-bg);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.latency-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-gradient);
+  min-width: 2px;
+  transition: width var(--transition-normal);
+}
+.latency-bar-fill.provider {
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+}
+.latency-bar-fill.overflow {
+  background: linear-gradient(90deg, var(--warn), var(--error));
+}
+.latency-bar-val {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  min-width: 72px;
+  text-align: right;
+}
+@media (max-width: 600px) {
+  .latency-bar-row {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+  .latency-bar-val {
+    grid-column: 2;
+    text-align: left;
+  }
+}

@@ -10,8 +10,6 @@ Performance notes (CPython 3.11+, typical small inputs):
 - token approx: O(n) char scan, ~4 chars/token heuristic with CJK weight
 """
 
-from __future__ import annotations
-
 import threading
 import time
 from collections import OrderedDict, deque

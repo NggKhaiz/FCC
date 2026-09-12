@@ -136,5 +136,14 @@ Truy cập: `http://YOUR_IP:8082/admin`
 - Tests: `tests/api/test_phase5_hardening.py`
 - Chi tiết: `PHASE5_COMPLETE.md`
 
+### 14. Phase 6 — Native CI · stream JSON · latency graphs
+✅ **Observe + CI + stream hot path**
+- CI workflow `scripts/native-core.ci.yml (copy into .github/workflows/ when workflows permission available)` (maturin + cargo test)
+- Stream/tool JSON → `json_dumps_compact`
+- Metrics latency histogram + provider_latency ranking
+- Admin Metrics CSS bar charts (zero Chart.js)
+- CI-safe: no `from __future__` / `type: ignore` in Phase modules
+- Chi tiết: `PHASE6_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 5 on top of Phase 4)*
+*2026-09-12 - arena/01a095da-fcc (Phase 6 loop)*

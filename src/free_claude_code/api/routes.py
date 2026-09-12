@@ -290,6 +290,8 @@ async def security_info(
 ):
     """Security info endpoint - shows hardening status."""
     check_rate_limit(request)
+    from free_claude_code.native import backend as native_backend
+
     return {
         "security_headers": True,
         "rate_limiting": True,
@@ -297,4 +299,8 @@ async def security_info(
         "xss_protection": True,
         "request_size_limits": True,
         "audit_logging": True,
+        "security_event_ring": True,
+        "admin_api_token_supported": True,
+        "native_backend": native_backend(),
+        "latency_metrics": True,
     }

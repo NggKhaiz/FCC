@@ -1,7 +1,5 @@
 """Phase 5: admin token, security ring, json helpers, auth window."""
 
-from __future__ import annotations
-
 import os
 from pathlib import Path
 
@@ -109,3 +107,17 @@ def test_security_audit_reports_admin_token_flag(monkeypatch, tmp_path: Path):
     assert body.get("admin_api_token_configured") is True
     assert body.get("security_event_ring") is True
     assert body.get("native_backend") in {"python", "rust"}
+
+
+def test_metrics_latency_histogram_and_provider():
+    from free_claude_code.api.metrics import RuntimeMetrics
+    m = RuntimeMetrics()
+    m.record_request(method="GET", path="/health", status=200, duration_ms=8.0)
+    m.record_request(method="POST", path="/v1/messages", status=200, duration_ms=120.0)
+    m.record_provider_test("groq", ok=True, message="ok", latency_ms=45.0)
+    m.record_provider_latency("openrouter", latency_ms=90.0, ok=True)
+    snap = m.snapshot()
+    assert snap["latency_histogram_ms"]
+    assert snap["provider_latency"]
+    ids = {p["provider_id"] for p in snap["provider_latency"]}
+    assert "groq" in ids and "openrouter" in ids

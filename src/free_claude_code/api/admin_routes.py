@@ -42,6 +42,23 @@ from .security import (
 
 router = APIRouter()
 
+def _enforce_admin_api_token(request: Request, services: ApiServices | None = None) -> None:
+    """Enforce FCC_ADMIN_API_TOKEN when configured (settings or env)."""
+    settings = None
+    if services is not None:
+        settings = services.requests.current_settings()
+    else:
+        import os
+        token = os.getenv("FCC_ADMIN_API_TOKEN", "").strip()
+        if not token:
+            return
+        from free_claude_code.config.settings import Settings
+        # Build minimal settings from env without full load
+        settings = Settings.model_construct(admin_api_token=token)
+    require_admin_token(request, settings)
+
+
+
 STATIC_DIR = Path(__file__).resolve().parent / "admin_static"
 PACKAGE_ASSETS_DIR = Path(__file__).resolve().parent.parent / "assets"
 _ADMIN_ASSET_VERSION_PLACEHOLDER = "__FCC_VERSION__"
@@ -150,7 +167,7 @@ async def get_admin_config(
 ):
     check_rate_limit(request)
     require_loopback_admin(request)
-    require_admin_token(request, services.requests.current_settings())
+    _enforce_admin_api_token(request, services)
     return await services.admin.admin_config()
 
 
@@ -163,7 +180,7 @@ async def apply_admin_config(
     check_rate_limit(request)
     check_request_size(request, max_size=1024 * 1024)  # 1MB max for config
     require_loopback_admin(request)
-    require_admin_token(request, services.requests.current_settings())
+    _enforce_admin_api_token(request, services)
     log_security_event(
         "admin_config_apply",
         request,
@@ -221,7 +238,7 @@ async def test_provider(
 
     check_rate_limit(request)
     require_loopback_admin(request)
-    require_admin_token(request, services.requests.current_settings())
+    _enforce_admin_api_token(request, services)
     validate_provider_id(provider_id)
     log_security_event("provider_test", request, {"provider_id": provider_id})
     started = _time.perf_counter()
@@ -251,12 +268,7 @@ async def security_audit(request: Request):
     """Security audit endpoint - shows current security config."""
     check_rate_limit(request)
     require_loopback_admin(request)
-    import os
-    _tok = os.getenv("FCC_ADMIN_API_TOKEN", "").strip()
-    if _tok:
-        class _S:
-            admin_api_token = _tok
-        require_admin_token(request, _S())  # type: ignore[arg-type]
+    _enforce_admin_api_token(request)
     from .admin_security import _is_remote_admin_allowed
     import os
 
@@ -282,7 +294,7 @@ async def detailed_health(
     """Detailed health check with security info."""
     check_rate_limit(request)
     require_loopback_admin(request)
-    require_admin_token(request, services.requests.current_settings())
+    _enforce_admin_api_token(request, services)
     status = await services.admin.admin_status()
     from .metrics import metrics as runtime_metrics
 
@@ -312,13 +324,8 @@ async def security_events_tail(
     """Recent security/audit events for the admin live tail."""
     check_rate_limit(request)
     require_loopback_admin(request)
+    _enforce_admin_api_token(request)
     from free_claude_code.native import security_events as ring
-    import os
-    token = os.getenv("FCC_ADMIN_API_TOKEN", "").strip()
-    if token:
-        class _S:
-            admin_api_token = token
-        require_admin_token(request, _S())  # type: ignore[arg-type]
     after = max(0, int(after or 0))
     limit = max(1, min(int(limit or 100), 500))
     return _no_store(
@@ -336,7 +343,7 @@ async def admin_metrics(
     """Runtime metrics for the admin dashboard (latency, RPS, recent traffic)."""
     check_rate_limit(request)
     require_loopback_admin(request)
-    require_admin_token(request, services.requests.current_settings())
+    _enforce_admin_api_token(request, services)
     from .metrics import metrics as runtime_metrics
 
     return _no_store(runtime_metrics.snapshot())
@@ -353,7 +360,7 @@ async def export_admin_config(
     """
     check_rate_limit(request)
     require_loopback_admin(request)
-    require_admin_token(request, services.requests.current_settings())
+    _enforce_admin_api_token(request, services)
     log_security_event("admin_config_export", request, {})
     config = await services.admin.admin_config()
     fields = config.get("fields") or []
@@ -422,7 +429,7 @@ async def import_admin_config(
     check_rate_limit(request)
     check_request_size(request, max_size=1024 * 1024)
     require_loopback_admin(request)
-    require_admin_token(request, services.requests.current_settings())
+    _enforce_admin_api_token(request, services)
     log_security_event(
         "admin_config_import",
         request,
