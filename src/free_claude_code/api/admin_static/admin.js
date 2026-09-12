@@ -469,6 +469,9 @@ function renderSecurityView(info) {
     { label: "WS Console", ok: info.admin_console_ws !== false, desc: "/admin/api/console/ws" },
     { label: "Audit bundle", ok: info.audit_bundle_export !== false, desc: "ZIP export no secrets" },
     { label: "Console fan-in", ok: info.console_fanin !== false, desc: "Multi-replica event hub" },
+    { label: "Fan-in scrape", ok: info.console_fanin_scrape !== false, desc: "Active peer pull" },
+    { label: "OM protobuf", ok: info.openmetrics_protobuf !== false, desc: "FCCOM1 binary scrape" },
+    { label: "Signed bundles", ok: info.audit_bundle_signed === true, desc: "FCC_AUDIT_SIGNING_KEY" },
     { label: "CORS", ok: info.cors_enabled, desc: "Remote access enabled" },
     { label: "SSRF Protection", ok: true, desc: "Egress filtering active" },
     { label: "XSS Protection", ok: true, desc: "Safe rendering" },
@@ -1029,7 +1032,9 @@ function commandPaletteItems() {
     { id: "export-metrics", label: "Export metrics federation", hint: "JSON snapshot", run: () => exportMetricsFederation() },
     { id: "export-prometheus", label: "Open Prometheus metrics", hint: "text exposition", run: () => window.open("/admin/api/metrics/prometheus", "_blank", "noopener") },
     { id: "export-openmetrics", label: "Open OpenMetrics", hint: "OM 1.0.0 text", run: () => window.open("/admin/api/metrics/openmetrics", "_blank", "noopener") },
-    { id: "export-audit-bundle", label: "Download audit bundle", hint: "ZIP no secrets", run: () => downloadAuditBundle() },
+    { id: "export-audit-bundle", label: "Download audit bundle", hint: "ZIP signed if key set", run: () => downloadAuditBundle() },
+    { id: "export-openmetrics-pb", label: "Open OpenMetrics protobuf", hint: "FCCOM1 binary", run: () => window.open("/admin/api/metrics/openmetrics.pb", "_blank", "noopener") },
+    { id: "fanin-scrape", label: "Scrape fan-in peers", hint: "FCC_FANIN_PEER_ALLOWLIST", run: () => promptFaninScrape() },
     { id: "console", label: "Open console", hint: "WebSocket live tail", run: () => navigateToView("console") },
   ];
 }
@@ -1055,6 +1060,38 @@ function promptAdminApiToken() {
   void load();
 }
 
+
+
+async function promptFaninScrape() {
+  const raw = window.prompt(
+    "Peer base URLs or export URLs (comma-separated). Hosts must match FCC_FANIN_PEER_ALLOWLIST when set.",
+    "http://127.0.0.1:8082",
+  );
+  if (raw === null) return;
+  const peers = String(raw)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+  if (!peers.length) {
+    showToast("Scrape cancelled", "No peers", "error");
+    return;
+  }
+  try {
+    const payload = await api("/admin/api/console/fanin/scrape", {
+      method: "POST",
+      body: JSON.stringify({ peers }),
+    });
+    const ok = (payload.results || []).filter((r) => r.ok).length;
+    const total = (payload.results || []).length;
+    showToast("Fan-in scrape", `${ok}/${total} peers ingested`, ok ? "ok" : "error");
+    if (state.activeView === "console") {
+      consoleAppend("fanin", `scrape ${ok}/${total} — hub nodes=${(payload.hub && payload.hub.nodes_tracked) || 0}`);
+    }
+  } catch (error) {
+    showToast("Scrape failed", error.message || String(error), "error");
+  }
+}
 
 async function downloadAuditBundle() {
   try {

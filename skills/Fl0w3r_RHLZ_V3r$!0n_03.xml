@@ -101,9 +101,13 @@
       Multi-replica console fan-in; OpenMetrics text; admin
       audit export bundles (ZIP).
     </phase>
-    <phase id="15" name="Next">
-      Active peer scrape for fan-in; OpenMetrics protobuf optional;
-      signed audit bundles.
+    <phase id="15" name="Phase11">
+      Active peer scrape for fan-in; OpenMetrics protobuf-lite;
+      signed audit bundles (HMAC).
+    </phase>
+    <phase id="16" name="Next">
+      mTLS peer scrape; Ed25519 audit signatures; console
+      multi-hub federation mesh.
     </phase>
   </execution_plan>
 

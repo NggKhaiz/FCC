@@ -241,9 +241,16 @@ src/free_claude_code/
 - [x] Multi-replica console fan-in hub (ingest/merge/snapshot + WS channel)
 - [x] OpenMetrics 1.0.0 text exposition
 - [x] Admin audit export bundles (ZIP, no secrets)
-- [ ] OpenMetrics protobuf optional — future
-- [ ] Active peer scrape (hub pulls replicas) — future
-- [ ] Signed audit bundles — future
+- [x] OpenMetrics protobuf-lite (FCCOM1)
+- [x] Active peer scrape (hub pulls replicas)
+- [x] Signed audit bundles (HMAC-SHA256)
+
+### Phase 11: Scrape + Protobuf + Sign ✅ DONE
+- [x] fan-in scrape + SSRF allowlist
+- [x] openmetrics.pb binary
+- [x] audit bundle sign/verify
+- [ ] mTLS peer scrape — future
+- [ ] Asymmetric (Ed25519) bundle signatures — future
 
 ---
 

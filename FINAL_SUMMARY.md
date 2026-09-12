@@ -176,5 +176,13 @@ Truy cập: `http://YOUR_IP:8082/admin`
 - Tests: `tests/api/test_phase10_fanin.py`
 - Chi tiết: `PHASE10_COMPLETE.md`
 
+### 19. Phase 11 — Peer scrape · OM protobuf · Signed bundles
+✅ **Active hub pull + HMAC audit ZIPs**
+- `POST /admin/api/console/fanin/scrape` (SSRF-hardened)
+- `GET /admin/api/metrics/openmetrics.pb` (FCCOM1)
+- Signed audit bundles + verify endpoint
+- Tests: `tests/api/test_phase11_scrape_sign.py`
+- Chi tiết: `PHASE11_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 10)*
+*2026-09-12 - arena/01a095da-fcc (Phase 11)*

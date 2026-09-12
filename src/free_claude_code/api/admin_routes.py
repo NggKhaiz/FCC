@@ -289,9 +289,12 @@ async def security_audit(request: Request):
         "security_event_ring": True,
         "prometheus_export": True,
         "openmetrics_export": True,
+        "openmetrics_protobuf": True,
         "admin_console_ws": True,
         "audit_bundle_export": True,
+        "audit_bundle_signed": bool(os.getenv("FCC_AUDIT_SIGNING_KEY", "").strip()),
         "console_fanin": True,
+        "console_fanin_scrape": True,
         "native_backend": __import__("free_claude_code.native", fromlist=["backend"]).backend(),
         "version": package_version(),
     }
@@ -549,6 +552,41 @@ async def metrics_openmetrics(
     )
 
 
+
+@router.get("/admin/api/metrics/openmetrics.pb")
+async def metrics_openmetrics_protobuf(
+    request: Request, services: ApiServices = Depends(get_services)
+):
+    """OpenMetrics protobuf-lite binary metrics (FCCOM1, no external deps)."""
+    import os
+
+    from fastapi.responses import Response as FastResponse
+
+    from .metrics import metrics as runtime_metrics
+    from .openmetrics_protobuf import render_openmetrics_protobuf
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request, services)
+    snap = runtime_metrics.snapshot()
+    node_id = os.getenv("FCC_NODE_ID") or (
+        f"node-{int(snap['started_at'])}" if snap.get("started_at") else "node-local"
+    )
+    body = render_openmetrics_protobuf(
+        snap,
+        node_id=node_id,
+        version=package_version(),
+    )
+    return FastResponse(
+        content=body,
+        media_type="application/octet-stream",
+        headers={
+            "Cache-Control": "no-store",
+            "X-FCC-Metrics-Format": "fccom1",
+        },
+    )
+
+
 @router.get("/admin/api/security/events/export")
 async def security_events_export(request: Request):
     """Portable security-events export for multi-replica fan-in."""
@@ -620,6 +658,181 @@ async def console_fanin_snapshot(request: Request, limit: int = 100):
     return _no_store(fanin_hub.snapshot(limit=limit))
 
 
+
+@router.post("/admin/api/console/fanin/scrape")
+async def console_fanin_scrape(request: Request):
+    """Actively scrape peer FCC nodes and ingest security-event exports.
+
+    Body: { "peers": ["http://host:8082", ...], "token": "optional override" }
+    Peers must pass SSRF checks; when FCC_FANIN_PEER_ALLOWLIST is set, hosts
+    must match. Uses FCC_ADMIN_API_TOKEN (or body token) as X-FCC-Admin-Token.
+    """
+    import os
+
+    import httpx
+
+    from .console_fanin import fanin_hub
+    from .peer_scrape import normalize_peer_list, scrape_result
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    check_request_size(request, max_size=64 * 1024)
+    body = await request.json()
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        peers = normalize_peer_list(body.get("peers") or [])
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)[:200]) from exc
+    if not peers:
+        raise HTTPException(status_code=400, detail="peers list required")
+
+    token = str(body.get("token") or "").strip()[:512]
+    if not token:
+        token = os.getenv("FCC_ADMIN_API_TOKEN", "").strip()
+    headers = {}
+    if token:
+        headers["X-FCC-Admin-Token"] = token
+
+    results = []
+    async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
+        for url in peers:
+            try:
+                resp = await client.get(url, headers=headers)
+                if resp.status_code != 200:
+                    results.append(
+                        scrape_result(
+                            url=url,
+                            ok=False,
+                            status_code=resp.status_code,
+                            error=f"HTTP {resp.status_code}",
+                        )
+                    )
+                    continue
+                try:
+                    payload = resp.json()
+                except Exception:
+                    results.append(
+                        scrape_result(
+                            url=url,
+                            ok=False,
+                            status_code=resp.status_code,
+                            error="invalid JSON",
+                        )
+                    )
+                    continue
+                if not isinstance(payload, dict):
+                    results.append(
+                        scrape_result(
+                            url=url,
+                            ok=False,
+                            status_code=resp.status_code,
+                            error="JSON object required",
+                        )
+                    )
+                    continue
+                # ensure node_id
+                if not payload.get("node_id"):
+                    from urllib.parse import urlparse
+
+                    host = urlparse(url).hostname or "peer"
+                    payload["node_id"] = f"peer-{host}"[:64]
+                try:
+                    ing = fanin_hub.ingest(payload)
+                except ValueError as exc:
+                    results.append(
+                        scrape_result(
+                            url=url,
+                            ok=False,
+                            status_code=resp.status_code,
+                            error=str(exc)[:200],
+                        )
+                    )
+                    continue
+                results.append(
+                    scrape_result(
+                        url=url,
+                        ok=True,
+                        status_code=resp.status_code,
+                        node_id=ing.get("node_id"),
+                        event_count=int(ing.get("event_count") or 0),
+                        ingested=True,
+                    )
+                )
+            except httpx.TimeoutException:
+                results.append(scrape_result(url=url, ok=False, error="timeout"))
+            except httpx.HTTPError as exc:
+                results.append(
+                    scrape_result(url=url, ok=False, error=type(exc).__name__)
+                )
+            except Exception as exc:
+                results.append(
+                    scrape_result(url=url, ok=False, error=type(exc).__name__)
+                )
+
+    log_security_event(
+        "console_fanin_scrape",
+        request,
+        {
+            "peers": len(peers),
+            "ok": sum(1 for r in results if r.get("ok")),
+        },
+        level="info",
+    )
+    return _no_store(
+        {
+            "format": "fcc-console-fanin-scrape",
+            "format_version": 1,
+            "results": results,
+            "hub": fanin_hub.summary(),
+        }
+    )
+
+
+@router.post("/admin/api/audit/bundle/verify")
+async def audit_bundle_verify(request: Request):
+    """Verify a signed audit ZIP (multipart file field ``bundle``).
+
+    Uses FCC_AUDIT_SIGNING_KEY on the server. Returns {ok, reason, ...}.
+    """
+    import os
+
+    from .audit_sign import signing_key_from_env, verify_signed_zip
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    key = signing_key_from_env()
+    if not key:
+        raise HTTPException(
+            status_code=503,
+            detail="FCC_AUDIT_SIGNING_KEY not configured on this node",
+        )
+    form = await request.form()
+    upload = form.get("bundle")
+    if upload is None:
+        raise HTTPException(status_code=400, detail="multipart field 'bundle' required")
+    if hasattr(upload, "read"):
+        data = await upload.read()
+    elif isinstance(upload, (bytes, bytearray)):
+        data = bytes(upload)
+    else:
+        raise HTTPException(status_code=400, detail="invalid upload")
+    if not isinstance(data, (bytes, bytearray)):
+        raise HTTPException(status_code=400, detail="invalid upload")
+    if len(data) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="bundle too large (max 8MB)")
+    result = verify_signed_zip(bytes(data), key=key)
+    log_security_event(
+        "audit_bundle_verify",
+        request,
+        {"ok": result.get("ok"), "reason": result.get("reason")},
+        level="info" if result.get("ok") else "warning",
+    )
+    return _no_store(result)
+
+
 @router.get("/admin/api/audit/bundle")
 async def audit_bundle_export(
     request: Request, services: ApiServices = Depends(get_services)
@@ -656,9 +869,12 @@ async def audit_bundle_export(
         "admin_api_token_configured": bool(os.getenv("FCC_ADMIN_API_TOKEN", "").strip()),
         "prometheus_export": True,
         "openmetrics_export": True,
+        "openmetrics_protobuf": True,
         "admin_console_ws": True,
         "audit_bundle_export": True,
+        "audit_bundle_signed": bool(os.getenv("FCC_AUDIT_SIGNING_KEY", "").strip()),
         "console_fanin": True,
+        "console_fanin_scrape": True,
         "version": ver,
     }
     events = ring.snapshot(after_seq=0, limit=200)
@@ -672,6 +888,10 @@ async def audit_bundle_export(
     }
     prom = render_prometheus_text(snap, node_id=node_id, version=ver)
     om = render_openmetrics_text(snap, node_id=node_id, version=ver)
+    # Optional OpenMetrics protobuf-lite attachment
+    from .openmetrics_protobuf import render_openmetrics_protobuf
+
+    pb = render_openmetrics_protobuf(snap, node_id=node_id, version=ver)
     blob = build_audit_bundle_zip(
         node_id=node_id,
         version=ver,
@@ -681,16 +901,26 @@ async def audit_bundle_export(
         prometheus_text=prom,
         openmetrics_text=om,
         fanin_summary=fanin_hub.summary(),
+        extra_files={"metrics.openmetrics.pb": pb},
     )
+    signed = False
+    from .audit_sign import sign_and_attach, signing_key_from_env
+
+    key = signing_key_from_env()
+    if key:
+        blob, _sig = sign_and_attach(blob, key=key, node_id=node_id, version=ver)
+        signed = True
     stamp = _time.strftime("%Y%m%d-%H%M%S", _time.gmtime())
     filename = f"fcc-audit-{node_id}-{stamp}.zip"
+    headers = {
+        "Cache-Control": "no-store",
+        "Content-Disposition": f'attachment; filename="{filename}"',
+        "X-FCC-Audit-Signed": "1" if signed else "0",
+    }
     return FastResponse(
         content=blob,
         media_type="application/zip",
-        headers={
-            "Cache-Control": "no-store",
-            "Content-Disposition": f'attachment; filename="{filename}"',
-        },
+        headers=headers,
     )
 
 
