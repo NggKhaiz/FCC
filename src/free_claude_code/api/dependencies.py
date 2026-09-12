@@ -2,7 +2,6 @@
 
 import secrets
 import time
-from collections import defaultdict
 
 from fastapi import Depends, HTTPException, Request
 from loguru import logger
@@ -11,16 +10,16 @@ from free_claude_code.application.errors import UnknownProviderError
 from free_claude_code.application.ports import ProviderPort, RequestRuntimeLease
 from free_claude_code.config.provider_catalog import PROVIDER_CATALOG
 from free_claude_code.config.settings import Settings
+from free_claude_code.native import SlidingWindow
 
 from .ports import ApiServices
 from .security import log_security_event
 
-# Track failed auth attempts for brute force protection
-_failed_auth_attempts: dict[str, list[float]] = defaultdict(list)
+# Brute-force protection via native sliding window (auth failures)
+_AUTH_FAIL_WINDOW = SlidingWindow()
 _MAX_FAILED_ATTEMPTS = 10
-_FAILED_WINDOW = 300  # 5 minutes
-_BLOCK_DURATION = 600  # 10 minutes
-_blocked_ips: dict[str, float] = {}
+_FAILED_WINDOW_SECONDS = 300.0  # 5 minutes
+_BLOCK_SECONDS = 600.0  # 10 minutes
 
 
 def _get_client_ip(request: Request) -> str:
@@ -31,29 +30,23 @@ def _get_client_ip(request: Request) -> str:
 
 
 def _is_ip_blocked(client_ip: str) -> bool:
-    blocked_until = _blocked_ips.get(client_ip, 0)
-    if time.monotonic() < blocked_until:
-        return True
-    # Cleanup expired blocks
-    if client_ip in _blocked_ips:
-        del _blocked_ips[client_ip]
-    return False
+    return _AUTH_FAIL_WINDOW.is_blocked(f"authfail:{client_ip}")
 
 
 def _record_failed_auth(client_ip: str) -> None:
-    now = time.monotonic()
-    # Clean old attempts
-    _failed_auth_attempts[client_ip] = [
-        t for t in _failed_auth_attempts[client_ip] if now - t < _FAILED_WINDOW
-    ]
-    _failed_auth_attempts[client_ip].append(now)
-    
-    if len(_failed_auth_attempts[client_ip]) >= _MAX_FAILED_ATTEMPTS:
-        _blocked_ips[client_ip] = now + _BLOCK_DURATION
+    key = f"authfail:{client_ip}"
+    allowed, _retry = _AUTH_FAIL_WINDOW.allow(
+        key,
+        max_requests=_MAX_FAILED_ATTEMPTS,
+        window_seconds=_FAILED_WINDOW_SECONDS,
+        block_seconds=_BLOCK_SECONDS,
+    )
+    if not allowed:
         logger.warning(
-            "IP blocked due to brute force: ip={} attempts={}",
+            "IP blocked due to brute force: ip={} window={}s block={}s",
             client_ip,
-            len(_failed_auth_attempts[client_ip]),
+            int(_FAILED_WINDOW_SECONDS),
+            int(_BLOCK_SECONDS),
         )
 
 
@@ -94,14 +87,14 @@ def require_proxy_auth(
 ) -> None:
     """Require the configured proxy token as HTTP bearer authorization."""
     client_ip = _get_client_ip(request)
-    
+
     if _is_ip_blocked(client_ip):
         log_security_event("blocked_ip_auth_attempt", request, level="warning")
         raise HTTPException(
             status_code=429,
             detail="Too many failed authentication attempts. Try again later.",
         )
-    
+
     if not settings.proxy_auth_enabled:
         return
 
@@ -133,14 +126,14 @@ def require_anthropic_proxy_auth(
 ) -> None:
     """Require Bearer or Anthropic ``x-api-key`` proxy authentication."""
     client_ip = _get_client_ip(request)
-    
+
     if _is_ip_blocked(client_ip):
         log_security_event("blocked_ip_auth_attempt", request, level="warning")
         raise HTTPException(
             status_code=429,
             detail="Too many failed authentication attempts. Try again later.",
         )
-    
+
     if not settings.proxy_auth_enabled:
         return
 
@@ -181,6 +174,48 @@ def require_anthropic_proxy_auth(
         )
 
 
+def require_admin_token(
+    request: Request,
+    settings: Settings = Depends(get_settings),
+) -> None:
+    """Optional dedicated admin API token (separate from proxy token).
+
+    When ``FCC_ADMIN_API_TOKEN`` is empty, this is a no-op (loopback/IP
+    controls remain the primary admin boundary). When set, admin JSON APIs
+    must present the token as Bearer or ``X-FCC-Admin-Token``.
+    """
+    token = (getattr(settings, "admin_api_token", None) or "").strip()
+    if not token:
+        return
+
+    client_ip = _get_client_ip(request)
+    if _is_ip_blocked(client_ip):
+        log_security_event("blocked_ip_admin_auth", request, level="warning")
+        raise HTTPException(
+            status_code=429,
+            detail="Too many failed authentication attempts. Try again later.",
+        )
+
+    provided = request.headers.get("x-fcc-admin-token")
+    if not provided:
+        authorization = request.headers.get("authorization")
+        if authorization:
+            parts = authorization.strip().split(maxsplit=1)
+            if len(parts) == 2 and parts[0].casefold() == "bearer":
+                provided = parts[1].strip()
+    if not provided:
+        # Cookie bridge for EventSource (cannot set custom headers)
+        provided = (request.cookies.get("fcc_admin_token") or "").strip() or None
+
+    if not provided or not secrets.compare_digest(
+        provided.encode("utf-8"),
+        token.encode("utf-8"),
+    ):
+        _record_failed_auth(client_ip)
+        log_security_event("invalid_admin_token", request, level="warning")
+        raise HTTPException(status_code=401, detail="Invalid admin authentication token")
+
+
 def _proxy_token_matches(
     credential: str,
     configured_token: str,
@@ -198,3 +233,7 @@ def _proxy_token_matches(
         token.encode("utf-8"),
         configured_token.encode("utf-8"),
     )
+
+
+# Silence unused import warning if time only used historically
+_ = time

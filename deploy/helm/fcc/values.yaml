@@ -1,0 +1,47 @@
+replicaCount: 1
+
+image:
+  repository: fcc
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8082
+
+env:
+  HOST: "0.0.0.0"
+  PORT: "8082"
+  PROXY_AUTH_ENABLED: "1"
+  FCC_ALLOW_REMOTE_ADMIN: "1"
+  FCC_ADMIN_LOCAL_ONLY: "0"
+  FCC_ENABLE_DOCS: "0"
+
+# Provide via --set-file or sealed secrets in real clusters
+secrets:
+  PROXY_AUTH_TOKEN: ""
+  FCC_ADMIN_API_TOKEN: ""
+  FCC_ADMIN_IP_ALLOWLIST: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "2"
+    memory: 1Gi
+
+persistence:
+  enabled: true
+  size: 1Gi
+  mountPath: /root/.fcc
+
+ingress:
+  enabled: false
+  className: ""
+  hosts:
+    - host: fcc.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []

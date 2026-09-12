@@ -1,0 +1,24 @@
+[package]
+name = "fcc_core"
+version = "0.2.0"
+edition = "2021"
+description = "FCC hot-path native core (Bloom, validators, rate limit, token approx)"
+license = "MIT"
+readme = "README.md"
+
+[lib]
+name = "fcc_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module"], optional = true }
+
+[features]
+default = ["python"]
+python = ["pyo3"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+strip = true

@@ -49,20 +49,19 @@ def parse_arguments(value: Any) -> dict[str, Any]:
     if not isinstance(value, str):
         raise ResponsesConversionError("Responses function_call arguments must be JSON")
     try:
-        parsed = json.loads(value)
-    except json.JSONDecodeError as exc:
+        from free_claude_code.native import json_loads_object
+
+        return json_loads_object(value)
+    except ValueError as exc:
         raise ResponsesConversionError(
-            f"Responses function_call arguments are invalid JSON: {exc.msg}"
+            f"Responses function_call arguments are invalid JSON: {exc}"
         ) from exc
-    if not isinstance(parsed, dict):
-        raise ResponsesConversionError(
-            "Responses function_call arguments must decode to an object"
-        )
-    return parsed
 
 
 def normalized_function_call_arguments(value: Any) -> str:
-    return json.dumps(parse_arguments(value), separators=(",", ":"))
+    from free_claude_code.native import json_dumps_compact
+
+    return json_dumps_compact(parse_arguments(value))
 
 
 def custom_tool_input_text(value: Any) -> str:
@@ -151,9 +150,16 @@ def _tool_name_part(value: str) -> str:
 
 def _json_dumps(value: Any) -> str:
     try:
-        return json.dumps(value)
+        from free_claude_code.native import json_dumps_compact
+
+        return json_dumps_compact(value)
     except TypeError:
         return str(value)
+    except Exception:
+        try:
+            return json.dumps(value, separators=(",", ":"), default=str)
+        except TypeError:
+            return str(value)
 
 
 def custom_tool_input_schema(

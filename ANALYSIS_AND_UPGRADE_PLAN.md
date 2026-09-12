@@ -164,30 +164,121 @@ src/free_claude_code/
 - [x] Rewrite `session_layout.css`
 - [x] Rewrite `code_sessions.css`
 
-### Phase 3: Future Improvements (Đề xuất)
+### Phase 3: Observe + UX + Deploy ✅ DONE (arena/01a095da-fcc)
 
 #### Backend
-- [ ] Thêm rate limiting cho admin API khi remote enabled
-- [ ] Thêm audit log cho admin changes
-- [ ] Thêm API key riêng cho admin (khác proxy token)
-- [ ] Thêm health metrics endpoint (`/admin/api/metrics`)
-- [ ] Thêm provider latency stats
-- [ ] WebSocket cho real-time logs
+- [x] Rate limiting cho admin API khi remote enabled (Phase 2)
+- [x] Audit log cho admin changes (Phase 2)
+- [x] Health metrics endpoint (`/admin/api/metrics`)
+- [x] Provider latency stats (via Test / Test All → metrics)
+- [x] Detailed health includes RPS / error rate / uptime
+- [x] Config export (non-secret) + import dry-run/apply
+- [ ] API key riêng cho admin (khác proxy token) — still optional
+- [x] WebSocket cho real-time logs (admin console)
 
 #### Frontend
-- [ ] Light/dark theme toggle (lưu localStorage)
-- [ ] Provider usage graphs (Chart.js)
-- [ ] Real-time request logs viewer
-- [ ] Model comparison tool
-- [ ] Import/export config
-- [ ] Keyboard shortcuts (Cmd+K search)
-- [ ] PWA support
+- [x] Light/dark theme toggle (localStorage + `theme_boot.js`)
+- [x] Real-time request logs viewer (Metrics view, 5s poll)
+- [x] Import/export config (topbar + ⌘K)
+- [x] Keyboard shortcuts (⌘K palette, T theme, R refresh, 1–7 views, / search)
+- [ ] Provider usage graphs (Chart.js) — future
+- [ ] Model comparison tool — future
+- [ ] PWA support — future
 
 #### DevOps
-- [ ] Dockerfile tối ưu cho remote deployment
-- [ ] Helm chart cho Kubernetes
-- [ ] Caddy/Nginx example config
-- [ ] Documentation cho remote deployment
+- [x] Dockerfile tối ưu cho remote deployment (`deploy/Dockerfile`)
+- [x] Caddy/Nginx example config (`deploy/Caddyfile.example`, `deploy/REMOTE.md`)
+- [x] docker-compose (`deploy/docker-compose.yml`)
+- [x] Documentation cho remote deployment (`deploy/REMOTE.md`)
+- [ ] Helm chart cho Kubernetes — future
+
+### Phase 4: Ultra Core (Rust-ready) ✅ DONE source + Python path
+- [x] Flower skill XML + EN restatement (`skills/`)
+- [x] Python ultra-core (`native/ultra.py`) — Bloom, cache, window, validators
+- [x] Rust crate `crates/fcc_core` (build when rustc available)
+- [x] Wire security / rate_limit / metrics / token_estimation / assets
+- [x] UI content-visibility paint
+- [x] Benchmarks + pentest delta
+- [ ] CI job to build fcc_core wheels (needs Rust runners)
+
+### Phase 5: Hardening + K8s ✅ DONE
+- [x] Dedicated admin API token (`FCC_ADMIN_API_TOKEN`)
+- [x] Auth brute-force → native SlidingWindow
+- [x] Security event ring + live tail UI
+- [x] JSON compact helpers on Responses tools
+- [x] Helm chart `deploy/helm/fcc`
+- [x] admin.js session token + ⌘K setter
+
+### Phase 6: Native CI + stream + graphs ✅ DONE
+- [x] CI recipe `scripts/native-core.ci.yml` for fcc_core wheels
+- [x] Stream/tool_calls → `json_dumps_compact`
+- [x] Latency histogram + provider_latency metrics + CSS bars
+- [x] Strip banned future/type-ignore from Phase modules
+- [x] Wire provider_latency on live proxy turns (ProviderExecutor)
+- [x] SSE security events stream (EventSource UI)
+- [x] PWA shell (manifest + SW assets-only)
+
+### Phase 7: Live + SSE + PWA ✅ DONE (A→Z)
+- [x] Live provider latency recording
+- [x] SSE audit tail
+- [x] PWA admin shell
+- [x] EventSource admin-token cookie bridge
+- [x] Multi-node metrics export/merge federation
+- [x] Live metrics SSE stream
+- [x] WebSocket bidirectional logs (admin console)
+
+### Phase 8: Cookie + Federation ✅ DONE
+- [x] session token cookie for SSE
+- [x] metrics stream / export / merge
+- [x] Bidirectional WebSocket admin console
+- [x] Prometheus text exposition
+
+### Phase 9: Console + Prometheus ✅ DONE
+- [x] WS `/admin/api/console/ws` protocol + UI
+- [x] `GET /admin/api/metrics/prometheus`
+
+### Phase 10: Fan-in + OpenMetrics + Bundles ✅ DONE
+- [x] Multi-replica console fan-in hub (ingest/merge/snapshot + WS channel)
+- [x] OpenMetrics 1.0.0 text exposition
+- [x] Admin audit export bundles (ZIP, no secrets)
+- [x] OpenMetrics protobuf-lite (FCCOM1)
+- [x] Active peer scrape (hub pulls replicas)
+- [x] Signed audit bundles (HMAC-SHA256)
+
+### Phase 11: Scrape + Protobuf + Sign ✅ DONE
+- [x] fan-in scrape + SSRF allowlist
+- [x] openmetrics.pb binary
+- [x] audit bundle sign/verify
+- [x] mTLS peer scrape (client cert env)
+- [x] Asymmetric (Ed25519) bundle signatures
+- [x] Multi-hub federation mesh registry
+- [x] fcc_core 0.2 hotpath (SHA-256/HMAC/peer/FCCOM1)
+
+### Phase 12: Rust v0.2 + Ed25519 + mTLS + Mesh ✅ DONE
+- [x] Expand fcc_core pure-Rust crypto hot paths
+- [x] Python ultra twin always-on
+- [x] Ed25519 sign/verify audit ZIP
+- [x] mTLS scrape kwargs
+- [x] Hub mesh register/snapshot
+- [x] Publish fcc_core wheels packaging scripts + CI recipe matrix
+- [x] Active mesh pull between hubs
+- [x] cryptography optional Ed25519 fast-path
+
+### Phase 13: Mesh pull + Packaging + Ed25519 fast ✅ DONE
+- [x] mesh/pull API + UI
+- [x] package_fcc_core.sh + native-core.ci.yml matrix
+- [x] ed25519_fast backend switch
+- [ ] Push workflow file under .github/workflows (needs App permission)
+- [x] PyPI packaging metadata + gated publish script for fcc-core
+- [x] Per-hub mesh auth tokens
+- [x] Continuous mesh sync scheduler
+
+### Phase 14: Tokens + Sync + PyPI gate ✅ DONE
+- [x] mesh/token + token_set in snapshot
+- [x] mesh/sync start/stop/once + FCC_MESH_SYNC_AUTO
+- [x] publish_fcc_core.sh (TestPyPI default, explicit pypi)
+- [ ] Automated PyPI OIDC publish on tag — future
+- [ ] Distributed lock for multi-process scheduler — future
 
 ---
 

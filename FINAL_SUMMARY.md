@@ -99,13 +99,114 @@ PORT=8082
 
 Truy cập: `http://YOUR_IP:8082/admin`
 
-### 10. Kết luận
-✅ **Hoàn thành toàn bộ yêu cầu**
+### 10. Kết luận (Phase 1–2)
+✅ **Hoàn thành toàn bộ yêu cầu gốc**
 - Bỏ localhost-only: xong
 - Giao diện premium: xong
 - Frontend to Backend improvements: xong
 - Pentest + bảo mật: xong, no critical/high
 - Sẵn sàng production remote deployment
 
+### 11. Phase 3 (arena/01a095da-fcc)
+✅ **Observe + UX + Deploy**
+- Metrics API + Metrics admin view (RPS, latency, recent traffic)
+- Config export/import (secrets never leave the server)
+- Light/dark theme + ⌘K command palette + shortcuts
+- `deploy/` pack: Dockerfile, compose, Caddy, REMOTE.md
+- Tests: `tests/api/test_metrics_and_config_io.py`
+- Chi tiết: `PHASE3_COMPLETE.md`
+
+### 12. Phase 4 — Ultra Core + Flower skill
+✅ **Rust-ready hot paths + always-on Python ultra**
+- Flower skill XML+EN: `skills/Fl0w3r_RHLZ_V3r$!0n_03.xml`
+- `free_claude_code.native` (Bloom, TTL-LRU, SlidingWindow, validators, token approx)
+- Rust crate `crates/fcc_core` (PyO3/maturin) — optional wheel
+- Wired into security, rate_limit, metrics, token_estimation, assets, code sessions
+- UI `content-visibility` paint wins
+- Bench: ~0.6–5µs/op on CPython ultra (see `benchmarks/RESULTS.md`)
+- Chi tiết: `PHASE4_ULTRA.md`
+
+### 13. Phase 5 — Hardening + live tail + Helm
+✅ **Production controls**
+- `FCC_ADMIN_API_TOKEN` (Bearer / X-FCC-Admin-Token) separate from proxy token
+- Auth brute-force via native SlidingWindow
+- Security event ring + `/admin/api/security/events` + Admin Security live tail
+- JSON compact helpers on Responses tool parse path
+- Helm chart: `deploy/helm/fcc`
+- Tests: `tests/api/test_phase5_hardening.py`
+- Chi tiết: `PHASE5_COMPLETE.md`
+
+### 14. Phase 6 — Native CI · stream JSON · latency graphs
+✅ **Observe + CI + stream hot path**
+- CI recipe `scripts/native-core.ci.yml`
+- Stream/tool JSON → `json_dumps_compact`
+- Metrics latency histogram + provider_latency ranking
+- Admin Metrics CSS bar charts (zero Chart.js)
+- Chi tiết: `PHASE6_COMPLETE.md`
+
+### 15. Phase 7 — Live latency · SSE · PWA (A→Z)
+✅ **Full Flower loop**
+- Live `provider_latency` on every proxy stream candidate
+- SSE `/admin/api/security/events/stream` + EventSource UI tail
+- PWA: manifest + service worker (assets only)
+- Tests: `tests/api/test_phase7_live.py`
+- Chi tiết: `PHASE7_COMPLETE.md`
+
+### 16. Phase 8 — Cookie bridge · Metrics SSE · Federation
+✅ **EventSource auth + multi-node metrics**
+- HttpOnly `fcc_admin_token` cookie bridge for SSE
+- Live metrics stream + export/merge federation APIs
+- UI: cookie sync, metrics EventSource, ⌘K export metrics
+- Tests: `tests/api/test_phase8_federation.py`
+- Chi tiết: `PHASE8_COMPLETE.md`
+
+### 17. Phase 9 — WebSocket console · Prometheus
+✅ **Bidirectional admin console + scrape metrics**
+- `WS /admin/api/console/ws` (auth, subscribe, live security/metrics)
+- `GET /admin/api/metrics/prometheus` text exposition
+- Console UI view + ⌘K shortcuts
+- Tests: `tests/api/test_phase9_console.py`
+- Chi tiết: `PHASE9_COMPLETE.md`
+
+### 18. Phase 10 — Fan-in · OpenMetrics · Audit bundles
+✅ **Multi-replica hub + incident ZIP**
+- OpenMetrics 1.0.0 exposition
+- Console fan-in ingest/merge/snapshot + WS `fanin` channel
+- `GET /admin/api/audit/bundle` ZIP (no secrets)
+- Tests: `tests/api/test_phase10_fanin.py`
+- Chi tiết: `PHASE10_COMPLETE.md`
+
+### 19. Phase 11 — Peer scrape · OM protobuf · Signed bundles
+✅ **Active hub pull + HMAC audit ZIPs**
+- `POST /admin/api/console/fanin/scrape` (SSRF-hardened)
+- `GET /admin/api/metrics/openmetrics.pb` (FCCOM1)
+- Signed audit bundles + verify endpoint
+- Tests: `tests/api/test_phase11_scrape_sign.py`
+- Chi tiết: `PHASE11_COMPLETE.md`
+
+### 20. Phase 12 — Rust hotpath v0.2 · Ed25519 · mTLS · Hub mesh
+✅ **Max performance path + asymmetric sign + multi-hub**
+- `fcc_core` 0.2: SHA-256/HMAC/peer gate/FCCOM1 (Rust source + Python twin)
+- Ed25519 audit signatures (pure Python RFC 8032)
+- mTLS peer scrape env; hub mesh registry APIs
+- Bench RESULTS.md; tests `test_phase12_rust_mesh.py`
+- Chi tiết: `PHASE12_COMPLETE.md`
+
+### 21. Phase 13 — Mesh pull · Ed25519 fast · fcc_core packaging
+✅ **Active multi-hub pull + crypto/packaging polish**
+- `POST /admin/api/console/mesh/pull` + native status API
+- `ed25519_fast` (cryptography optional) + package_fcc_core.sh
+- CI recipe matrix py3.11/3.12; optional dep `fcc-crypto`
+- Tests: `tests/api/test_phase13_mesh_pull.py`
+- Chi tiết: `PHASE13_COMPLETE.md`
+
+### 22. Phase 14 — Per-hub tokens · Mesh sync · fcc-core PyPI
+✅ **Continuous multi-hub federation + gated publish**
+- Per-hub mesh tokens (never in snapshot)
+- Continuous sync scheduler + autostart env
+- `fcc-core` PyPI metadata + publish_fcc_core.sh (gated)
+- Tests: `tests/api/test_phase14_mesh_sync.py`
+- Chi tiết: `PHASE14_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a09560-fcc*
+*2026-09-13 - arena/01a095da-fcc (Phase 14)*

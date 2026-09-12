@@ -1,0 +1,6 @@
+# Point DNS at this host, then:
+#   caddy run --config deploy/Caddyfile.example
+fcc.example.com {
+  encode zstd gzip
+  reverse_proxy 127.0.0.1:8082
+}

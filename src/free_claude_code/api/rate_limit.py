@@ -1,12 +1,13 @@
 """Rate limiting middleware for security."""
 
 import time
-from collections import defaultdict, deque
 from dataclasses import dataclass
 
 from fastapi import HTTPException, Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from loguru import logger
+
+from free_claude_code.native import SlidingWindow
 
 
 @dataclass
@@ -23,50 +24,30 @@ AUTH_RATE_LIMIT = RateLimitConfig(max_requests=20, window_seconds=60, block_seco
 
 
 class InMemoryRateLimiter:
-    """Simple in-memory rate limiter with sliding window."""
+    """In-memory rate limiter backed by native SlidingWindow ultra-core."""
 
     def __init__(self) -> None:
-        self._requests: dict[str, deque[float]] = defaultdict(deque)
-        self._blocked_until: dict[str, float] = {}
+        self._window = SlidingWindow()
 
     def is_allowed(self, key: str, config: RateLimitConfig) -> tuple[bool, int]:
-        now = time.monotonic()
-        
-        # Check if blocked
-        blocked_until = self._blocked_until.get(key, 0)
-        if now < blocked_until:
-            remaining = int(blocked_until - now)
-            return False, remaining
-        
-        # Clean old entries
-        window_start = now - config.window_seconds
-        queue = self._requests[key]
-        while queue and queue[0] < window_start:
-            queue.popleft()
-        
-        # Check limit
-        if len(queue) >= config.max_requests:
-            self._blocked_until[key] = now + config.block_seconds
+        allowed, retry_after = self._window.allow(
+            key,
+            max_requests=config.max_requests,
+            window_seconds=float(config.window_seconds),
+            block_seconds=float(config.block_seconds),
+        )
+        if not allowed:
             logger.warning(
                 "Rate limit exceeded for {} - blocking for {}s",
                 key,
-                config.block_seconds,
+                retry_after or config.block_seconds,
             )
-            return False, config.block_seconds
-        
-        queue.append(now)
+            return False, int(retry_after or config.block_seconds)
         return True, 0
 
     def cleanup(self) -> None:
         """Remove stale entries to prevent memory leak."""
-        now = time.monotonic()
-        stale_keys = [
-            key for key, queue in self._requests.items()
-            if not queue or (queue and now - queue[-1] > 3600)
-        ]
-        for key in stale_keys:
-            del self._requests[key]
-            self._blocked_until.pop(key, None)
+        self._window.cleanup(stale_after=3600.0)
 
 
 # Global limiter instance
@@ -119,6 +100,12 @@ def check_rate_limit(request: Request) -> None:
     
     allowed, retry_after = _limiter.is_allowed(key, config)
     if not allowed:
+        try:
+            from .metrics import metrics as _metrics
+
+            _metrics.record_rate_limit_hit()
+        except Exception:
+            pass
         raise HTTPException(
             status_code=429,
             detail=f"Too many requests. Retry after {retry_after}s",

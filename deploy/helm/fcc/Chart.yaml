@@ -1,0 +1,6 @@
+apiVersion: v2
+name: fcc
+description: Free Claude Code — remote-ready AI coding proxy
+type: application
+version: 0.1.0
+appVersion: "6.2.15"

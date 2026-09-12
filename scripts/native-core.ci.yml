@@ -1,0 +1,100 @@
+# Copy to .github/workflows/native-core.yml when the GitHub App has workflows permission.
+#
+# Optional native fcc_core wheel build + package. Does not fail the main CI
+# quality gate when used as a separate workflow — reports status only.
+
+name: Native core
+
+on:
+  pull_request:
+  push:
+    paths:
+      - "crates/fcc_core/**"
+      - "src/free_claude_code/native/**"
+      - "scripts/build_native.sh"
+      - "scripts/package_fcc_core.sh"
+      - "scripts/native-core.ci.yml"
+      - ".github/workflows/native-core.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: native-core-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fcc-core:
+    name: fcc_core wheel (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 1
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install maturin
+        run: pip install "maturin>=1.7,<2"
+
+      - name: Cargo test (lib, no python feature required for pure logic)
+        run: cargo test --manifest-path crates/fcc_core/Cargo.toml --lib
+
+      - name: Build release wheel
+        run: maturin build --release -m crates/fcc_core/Cargo.toml --out dist/fcc_core
+
+      - name: Smoke import wheel
+        run: |
+          pip install dist/fcc_core/fcc_core-*.whl
+          python - <<'PY'
+          import fcc_core
+          from free_claude_code.native import backend, sha256_hex, hmac_sha256_hex
+          # free_claude_code may not be installed on bare runner — test fcc_core direct
+          assert hasattr(fcc_core, "sha256_hex")
+          assert fcc_core.sha256_hex(b"") == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          print("fcc_core", getattr(fcc_core, "__version__", "?"), "ok")
+          PY
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fcc-core-wheel-py${{ matrix.python }}
+          path: dist/fcc_core/*.whl
+          if-no-files-found: warn
+
+  package-manifest:
+    name: packaging manifest
+    runs-on: ubuntu-latest
+    needs: fcc-core
+    if: always()
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Write packaging note
+        run: |
+          mkdir -p dist
+          cat > dist/fcc_core_PACKAGING.md <<'MD'
+          # fcc_core packaging
+          - Crate: crates/fcc_core 0.2.0
+          - Build: ./scripts/package_fcc_core.sh
+          - CI recipe: scripts/native-core.ci.yml
+          - Runtime fallback: free_claude_code.native.ultra (Python)
+          MD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fcc-core-packaging-note
+          path: dist/fcc_core_PACKAGING.md
+
+  # Manual publish is intentionally NOT automated.
+  # Operators: download wheel artifacts, then:
+  #   FCC_CORE_PUBLISH=1 FCC_CORE_REPOSITORY=testpypi ./scripts/publish_fcc_core.sh

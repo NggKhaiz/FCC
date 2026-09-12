@@ -33,26 +33,23 @@ from .dependencies import get_services
 from .markdown import render_markdown
 from .ports import ApiServices
 from .rate_limit import check_rate_limit
-from .security import check_request_size, log_security_event
+from .security import check_request_size, log_security_event, validate_session_id
 
 router = APIRouter()
 
-# Security patterns
+# Security patterns (kept for reference; hot path uses native ultra validators)
 SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
 OPERATION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
 PROMPT_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
 
 
 def _validate_session_id(session_id: str) -> str:
-    if not SESSION_ID_PATTERN.match(session_id):
-        raise HTTPException(status_code=400, detail="Invalid session ID format")
-    return session_id
+    return validate_session_id(session_id)
 
 
 def _validate_operation_id(op_id: str) -> str:
-    if not OPERATION_ID_PATTERN.match(op_id):
-        raise HTTPException(status_code=400, detail="Invalid operation ID format")
-    return op_id
+    # Same charset/length rules as session ids
+    return validate_session_id(op_id)
 
 
 def _validate_cwd(cwd: str) -> str:

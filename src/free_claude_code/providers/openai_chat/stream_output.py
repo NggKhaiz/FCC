@@ -2,6 +2,8 @@
 
 import hashlib
 import json
+
+from free_claude_code.native import json_dumps_compact, json_loads_any
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -125,7 +127,7 @@ class ChatStreamOutput(ABC):
         return self._emit_reasoning_delta(content)
 
     def emit_reasoning_replay(self, native: JsonObject) -> list[str]:
-        data = json.dumps(native["reasoning_details"], separators=(",", ":"))
+        data = json_dumps_compact(native["reasoning_details"])
         if self.replay_origin is not None:
             data = encode_replay(ReplayRecord(self.replay_origin, native))
             if self._reasoning_started:
@@ -287,7 +289,7 @@ class ChatStreamOutput(ABC):
                 parsed = json.loads(state.task_arg_buffer)
                 if isinstance(parsed, dict):
                     _normalize_task_args(parsed)
-                    output = json.dumps(parsed)
+                    output = json_dumps_compact(parsed)
             except (json.JSONDecodeError, TypeError, ValueError) as exc:
                 digest = hashlib.sha256(
                     state.task_arg_buffer.encode("utf-8", errors="replace")

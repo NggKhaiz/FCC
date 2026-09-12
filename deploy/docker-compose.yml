@@ -1,0 +1,35 @@
+# FCC remote-friendly compose stack
+# Usage:
+#   cp ../.env.example .env
+#   # set PROXY_AUTH_ENABLED=1 and PROXY_AUTH_TOKEN=...
+#   docker compose up -d --build
+
+services:
+  fcc:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: fcc
+    restart: unless-stopped
+    ports:
+      - "${FCC_PORT:-8082}:8082"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8082"
+      PROXY_AUTH_ENABLED: "${PROXY_AUTH_ENABLED:-1}"
+      PROXY_AUTH_TOKEN: "${PROXY_AUTH_TOKEN:-change-me}"
+      FCC_ALLOW_REMOTE_ADMIN: "${FCC_ALLOW_REMOTE_ADMIN:-1}"
+      FCC_ADMIN_LOCAL_ONLY: "${FCC_ADMIN_LOCAL_ONLY:-0}"
+      FCC_ADMIN_IP_ALLOWLIST: "${FCC_ADMIN_IP_ALLOWLIST:-}"
+      FCC_ENABLE_DOCS: "${FCC_ENABLE_DOCS:-0}"
+    volumes:
+      - fcc_data:/root/.fcc
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  fcc_data:

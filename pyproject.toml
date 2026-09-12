@@ -51,6 +51,12 @@ fcc-aider = "free_claude_code.cli.launchers.aider:launch"
 fcc-desktop = "free_claude_code.cli.desktop_entrypoint:launch"
 
 [project.optional-dependencies]
+fcc-crypto = [
+    "cryptography>=42",
+]
+fcc-native-dev = [
+    "maturin>=1.7,<2",
+]
 voice = [
     "grpcio>=1.83.0",
     "grpcio-tools>=1.81.1",

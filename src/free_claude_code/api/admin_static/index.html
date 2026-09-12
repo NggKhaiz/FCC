@@ -1,8 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#080a12" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="/admin/assets/__FCC_VERSION__/manifest.webmanifest" />
     <title>Free Claude Code Admin</title>
     <link rel="icon" href="data:," />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,6 +16,7 @@
     <link rel="stylesheet" href="/admin/assets/__FCC_VERSION__/admin.css" />
     <link rel="stylesheet" href="/admin/assets/__FCC_VERSION__/code_sessions.css" />
     <link rel="stylesheet" href="/admin/assets/__FCC_VERSION__/session_layout.css" />
+    <script src="/admin/assets/__FCC_VERSION__/theme_boot.js"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -57,9 +63,20 @@
           <div class="topbar-actions">
             <div class="search-box" id="globalSearchBox" hidden>
               <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              <input type="text" id="globalSearch" placeholder="Search providers, models..." />
+              <input type="text" id="globalSearch" placeholder="Search providers, models... (⌘K)" maxlength="100" autocomplete="off" />
             </div>
-            <button id="refreshButton" class="secondary-button" type="button" title="Refresh">
+            <button id="themeToggle" class="icon-button" type="button" title="Toggle light/dark theme (T)" aria-label="Toggle theme">
+              <svg class="theme-icon-dark" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+              <svg class="theme-icon-light" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M7.05 7.05L5.636 5.636m12.728 0l-1.414 1.414M7.05 16.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+            </button>
+            <button id="exportConfigButton" class="secondary-button" type="button" title="Export non-secret config">
+              Export
+            </button>
+            <button id="importConfigButton" class="secondary-button" type="button" title="Import config backup">
+              Import
+            </button>
+            <input id="importConfigFile" type="file" accept="application/json,.json" hidden />
+            <button id="refreshButton" class="secondary-button" type="button" title="Refresh (R)">
               <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
               Refresh
             </button>
@@ -119,7 +136,43 @@
 
           <section id="view-security" class="admin-view" data-view="security" hidden>
             <div class="form-sections">
-              <p style="color:var(--muted);text-align:center;padding:20px">Loading security status...</p>
+              <p class="muted-center">Loading security status...</p>
+            </div>
+          </section>
+
+          <section id="view-metrics" class="admin-view" data-view="metrics" hidden>
+            <div class="form-sections" id="metricsRoot">
+              <p class="muted-center">Loading runtime metrics...</p>
+            </div>
+          </section>
+
+          <section id="view-console" class="admin-view" data-view="console" hidden>
+            <div class="form-sections console-shell" id="consoleRoot">
+              <div class="console-toolbar">
+                <div class="console-status-row">
+                  <span id="consoleWsStatus" class="status-pill neutral" role="status">Disconnected</span>
+                  <span id="consoleSubLabel" class="muted-inline">channels: —</span>
+                </div>
+                <div class="console-actions">
+                  <button id="consoleConnectBtn" class="secondary-button" type="button">Connect</button>
+                  <button id="consoleClearBtn" class="secondary-button" type="button">Clear</button>
+                  <button id="consolePingBtn" class="secondary-button" type="button" disabled>Ping</button>
+                </div>
+              </div>
+              <div id="consoleLog" class="console-log" role="log" aria-live="polite" aria-label="Admin console log"></div>
+              <form id="consoleForm" class="console-form" autocomplete="off">
+                <input
+                  id="consoleInput"
+                  type="text"
+                  maxlength="500"
+                  placeholder='Command: ping | subscribe security,metrics,fanin | help'
+                  aria-label="Console command"
+                />
+                <button id="consoleSendBtn" class="primary-button" type="submit" disabled>Send</button>
+              </form>
+              <p class="muted-center console-hint">
+                WebSocket console — security, metrics, fan-in. Auth via admin token cookie or first-frame auth. ⌘K: audit bundle / OpenMetrics.
+              </p>
             </div>
           </section>
 
@@ -210,6 +263,14 @@
     </div>
 
     <div id="toastContainer" class="toast-container"></div>
+
+    <dialog id="commandPalette" class="command-palette" aria-label="Command palette">
+      <div class="command-palette-inner">
+        <input id="commandPaletteInput" type="text" placeholder="Jump to view, refresh, export…" maxlength="80" autocomplete="off" />
+        <ul id="commandPaletteList" role="listbox"></ul>
+        <p class="command-palette-hint">↑↓ navigate · Enter select · Esc close · ⌘K open</p>
+      </div>
+    </dialog>
 
     <script src="/admin/assets/__FCC_VERSION__/model_combobox.js"></script>
     <script src="/admin/assets/__FCC_VERSION__/session_ui.js"></script>
