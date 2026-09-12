@@ -23,9 +23,16 @@ def local_proxy_root_url(settings: Settings) -> str:
 
 
 def local_admin_url(settings: Settings) -> str:
-    """Return a browser-friendly URL for the localhost-only admin UI."""
+    """Return a browser-friendly URL for the admin UI (now remote-enabled)."""
 
     return f"{local_proxy_root_url(settings)}/admin"
+
+
+def remote_admin_url(settings: Settings, host: str | None = None) -> str:
+    """Return an admin URL for remote access using provided host or settings host."""
+    if host:
+        return f"http://{host}:{settings.port}/admin"
+    return local_admin_url(settings)
 
 
 def same_proxy_url(value: object, expected: str) -> bool:

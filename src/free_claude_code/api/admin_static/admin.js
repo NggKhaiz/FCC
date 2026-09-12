@@ -8,6 +8,7 @@ const state = {
   authPollers: new Map(),
   localStatusRequest: null,
   activeView: viewFromLocation(),
+  searchQuery: "",
 };
 
 const MASKED_SECRET = "********";
@@ -17,6 +18,8 @@ const VIEW_GROUPS = [
     id: "providers",
     label: "Providers",
     title: "Providers",
+    subtitle: "Manage AI providers and model routing",
+    icon: `<svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>`,
     sections: ["providers", "runtime"],
     containerId: "providersSections",
   },
@@ -24,6 +27,8 @@ const VIEW_GROUPS = [
     id: "model_config",
     label: "Model Config",
     title: "Model Config",
+    subtitle: "Configure model routing and reasoning",
+    icon: `<svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>`,
     sections: ["models", "reasoning", "web_tools"],
     containerId: "modelConfigSections",
   },
@@ -31,6 +36,8 @@ const VIEW_GROUPS = [
     id: "messaging",
     label: "Messaging",
     title: "Messaging",
+    subtitle: "Discord, Telegram and voice settings",
+    icon: `<svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>`,
     sections: ["messaging", "voice"],
     containerId: "messagingSections",
   },
@@ -38,6 +45,8 @@ const VIEW_GROUPS = [
     id: "integrations",
     label: "Integrations",
     title: "Integrations",
+    subtitle: "Connect your favorite editors and tools",
+    icon: `<svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1V9a1 1 0 011-1h3a1 1 0 001-1V4a2 2 0 114 0z"/></svg>`,
     sections: [],
     containerId: "view-integrations",
   },
@@ -45,6 +54,8 @@ const VIEW_GROUPS = [
     id: "code",
     label: "Code sessions",
     title: "Code sessions",
+    subtitle: "Browser-based Codex sessions",
+    icon: `<svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>`,
     sections: [],
     containerId: "codeRoot",
   },
@@ -84,6 +95,25 @@ function statusClass(status) {
   return "neutral";
 }
 
+function showToast(title, message, kind = "neutral", timeout = 4000) {
+  const container = byId("toastContainer");
+  if (!container) return;
+  const toast = document.createElement("div");
+  toast.className = `toast ${kind}`;
+  const icons = {
+    ok: `<svg class="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+    error: `<svg class="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+    warn: `<svg class="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>`,
+    neutral: `<svg class="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+  };
+  toast.innerHTML = `${icons[kind] || icons.neutral}<div class="toast-content"><div class="toast-title">${title}</div><div class="toast-message">${message}</div></div>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = "toastIn 0.3s reverse";
+    setTimeout(() => toast.remove(), 300);
+  }, timeout);
+}
+
 async function api(path, options = {}) {
   const response = await fetch(path, {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
@@ -95,9 +125,7 @@ async function api(path, options = {}) {
     try {
       const payload = await response.json();
       detail = typeof payload.detail === "string" ? payload.detail : "";
-    } catch {
-      // The status remains useful when an upstream proxy returns a non-JSON page.
-    }
+    } catch {}
     const error = new Error(detail || `${response.status} ${response.statusText}`);
     error.status = response.status;
     throw error;
@@ -105,42 +133,96 @@ async function api(path, options = {}) {
   return response.json();
 }
 
+function renderStats(providerStatus) {
+  const grid = byId("statsGrid");
+  if (!grid) return;
+  const total = providerStatus.length;
+  const configured = providerStatus.filter(p => ["configured", "connected", "reachable"].includes(p.status)).length;
+  const missing = providerStatus.filter(p => ["missing_key", "missing_config", "missing_url"].includes(p.status)).length;
+  const models = state.modelOptions.length;
+
+  grid.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total Providers</div>
+      <div class="stat-value">${total}</div>
+      <div class="stat-change neutral">${configured} configured</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Configured</div>
+      <div class="stat-value" style="color: var(--ok)">${configured}</div>
+      <div class="stat-change positive">● Active</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Need Setup</div>
+      <div class="stat-value" style="color: ${missing ? 'var(--warn)' : 'var(--muted)'}">${missing}</div>
+      <div class="stat-change ${missing ? 'neutral' : 'positive'}">${missing ? 'Action needed' : 'All good'}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Available Models</div>
+      <div class="stat-value">${models}</div>
+      <div class="stat-change positive">${models ? 'Ready to use' : 'Loading...'}</div>
+    </div>
+  `;
+
+  // Sidebar stats
+  const sbProviders = byId("sidebarProviders");
+  const sbModels = byId("sidebarModels");
+  if (sbProviders) sbProviders.textContent = `${configured}/${total}`;
+  if (sbModels) sbModels.textContent = models || "--";
+  const providersLabel = byId("providersCountLabel");
+  if (providersLabel) providersLabel.textContent = `${configured} of ${total} providers configured · ${models} models available`;
+}
+
 async function load() {
   state.localStatusRequest = null;
   showMessage("Loading admin config");
-  const config = await api("/admin/api/config");
-  state.config = config;
-  state.fields = new Map(config.fields.map((field) => [field.key, field]));
-  renderNav();
-  renderProviders(config.provider_status);
-  renderSections(config.sections, config.fields);
-  byId("configPath").textContent = config.paths.managed;
-  void refreshLocalStatus(config);
-  await Promise.all([
-    refreshConnectedAccounts(),
-    hydrateModelOptions(),
-    window.CodeSessions.initialize(api),
-  ]);
-  updateDirtyState();
-  showMessage("");
+  try {
+    const config = await api("/admin/api/config");
+    state.config = config;
+    state.fields = new Map(config.fields.map((field) => [field.key, field]));
+    renderNav();
+    renderProviders(config.provider_status);
+    renderSections(config.sections, config.fields);
+    renderStats(config.provider_status);
+    byId("configPath").textContent = config.paths.managed;
+    void refreshLocalStatus(config);
+    await Promise.all([
+      refreshConnectedAccounts(),
+      hydrateModelOptions(),
+      window.CodeSessions.initialize(api),
+    ]);
+    updateDirtyState();
+    showMessage("");
+    showToast("Loaded", "Admin configuration loaded successfully", "ok", 2500);
+  } catch (error) {
+    showMessage(error.message, "error");
+    showToast("Load failed", error.message, "error");
+  }
 }
 
 function renderNav() {
   const nav = byId("sectionNav");
   nav.innerHTML = "";
-  VIEW_GROUPS.forEach((view, index) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `nav-link${index === 0 ? " active" : ""}`;
-    button.dataset.view = view.id;
-    button.textContent = view.label;
-    if (index === 0) {
-      button.setAttribute("aria-current", "page");
-    }
-    button.addEventListener("click", () => {
-      navigateToView(view.id);
+  const groups = [
+    { label: "Main", views: VIEW_GROUPS.slice(0, 3) },
+    { label: "Tools", views: VIEW_GROUPS.slice(3) },
+  ];
+  groups.forEach(group => {
+    const label = document.createElement("div");
+    label.className = "nav-section-label";
+    label.textContent = group.label;
+    nav.appendChild(label);
+    group.views.forEach((view) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `nav-link`;
+      button.dataset.view = view.id;
+      button.innerHTML = `${view.icon}<span>${view.label}</span>`;
+      button.addEventListener("click", () => {
+        navigateToView(view.id);
+      });
+      nav.appendChild(button);
     });
-    nav.appendChild(button);
   });
   setActiveView(state.activeView, { scroll: false });
 }
@@ -150,11 +232,19 @@ function setActiveView(viewId, { scroll = false } = {}) {
     VIEW_GROUPS.find((view) => view.id === viewId) || VIEW_GROUPS[0];
   state.activeView = activeView.id;
   byId("pageTitle").textContent = activeView.title;
+  const subtitle = byId("pageSubtitle");
+  if (subtitle) subtitle.textContent = activeView.subtitle || "";
   const sessionActive = activeView.id === "code";
   document.querySelector(".app-shell").classList.toggle("session-active", sessionActive);
   document.querySelector(".main").classList.toggle("session-main", sessionActive);
-  document.querySelector(".topbar").hidden = sessionActive;
-  document.querySelector(".action-bar").hidden = sessionActive || activeView.id === "integrations";
+  const topbar = document.querySelector(".topbar");
+  if (topbar) topbar.hidden = sessionActive;
+  const actionBar = document.querySelector(".action-bar");
+  if (actionBar) actionBar.hidden = sessionActive || activeView.id === "integrations";
+  const statsGrid = byId("statsGrid");
+  if (statsGrid) statsGrid.hidden = sessionActive || activeView.id !== "providers";
+  const searchBox = byId("globalSearchBox");
+  if (searchBox) searchBox.hidden = sessionActive || activeView.id !== "providers";
 
   document.querySelectorAll(".nav-link").forEach((link) => {
     const selected = link.dataset.view === activeView.id;
@@ -191,6 +281,16 @@ function navigateToView(viewId) {
   setActiveView(viewId, { scroll: true });
 }
 
+function filteredProviders(providerStatus) {
+  if (!state.searchQuery) return providerStatus;
+  const q = state.searchQuery.toLowerCase();
+  return providerStatus.filter(p => 
+    (p.provider_id && p.provider_id.toLowerCase().includes(q)) ||
+    (p.display_name && p.display_name.toLowerCase().includes(q)) ||
+    (p.label && p.label.toLowerCase().includes(q))
+  );
+}
+
 function renderProviders(providerStatus) {
   const grid = byId("providerGrid");
   const connectedGrid = byId("connectedAccountGrid");
@@ -200,7 +300,8 @@ function renderProviders(providerStatus) {
     (provider) => provider.kind === "connected_account",
   );
   byId("connectedAccountsSection").hidden = connected.length === 0;
-  providerStatus.forEach((provider) => {
+  const visible = filteredProviders(providerStatus);
+  visible.forEach((provider) => {
     if (provider.kind === "connected_account") {
       connectedGrid.appendChild(renderConnectedAccountCard(provider));
       return;
@@ -229,7 +330,7 @@ function renderProviders(providerStatus) {
     )
       ? provider.missing_configuration_keys
       : [];
-    meta.textContent = configurationKeys.join(" + ");
+    meta.textContent = configurationKeys.join(" + ") || provider.provider_id;
 
     const result = document.createElement("div");
     result.className = "provider-check-result";
@@ -260,6 +361,15 @@ function renderProviders(providerStatus) {
     card.append(title, meta, result, actions);
     grid.appendChild(card);
   });
+
+  if (visible.length === 0 && state.searchQuery) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)">No providers match "${state.searchQuery}"</div>`;
+  }
+
+  // Update stats if we have model options
+  if (state.modelOptions.length) {
+    renderStats(providerStatus);
+  }
 }
 
 function providerActionButton(label, action, className = "test-button") {
@@ -542,6 +652,7 @@ async function copyDeviceCode(code) {
   try {
     await navigator.clipboard.writeText(code);
     showMessage("Device code copied.");
+    showToast("Copied", "Device code copied to clipboard", "ok");
   } catch {
     showMessage(`Copy this device code: ${code}`);
   }
@@ -810,10 +921,12 @@ class ModelListEditor {
     const value = this.addInput.value.trim();
     if (!value) {
       showMessage("Enter a full provider/model fallback.", "error");
+      showToast("Invalid", "Enter a full provider/model fallback", "error");
       return;
     }
     if (this.values.includes(value)) {
       showMessage("That fallback model is already in the list.", "error");
+      showToast("Duplicate", "That fallback model is already in the list", "warn");
       return;
     }
     this.values.push(value);
@@ -862,15 +975,15 @@ class ModelListEditor {
       model.className = "model-list-value";
       model.textContent = value;
 
-      const up = this.actionButton("Move up", `Move ${value} up`, () =>
+      const up = this.actionButton("↑", `Move ${value} up`, () =>
         this.move(index, -1),
       );
       up.disabled = this.field.locked || index === 0;
-      const down = this.actionButton("Move down", `Move ${value} down`, () =>
+      const down = this.actionButton("↓", `Move ${value} down`, () =>
         this.move(index, 1),
       );
       down.disabled = this.field.locked || index === this.values.length - 1;
-      const remove = this.actionButton("Remove", `Remove ${value}`, () =>
+      const remove = this.actionButton("✕", `Remove ${value}`, () =>
         this.remove(index),
       );
       remove.disabled = this.field.locked;
@@ -989,9 +1102,7 @@ async function waitForRestart(restart, target) {
         if (status.status === "running" && typeof status.instance_id === "string"
           && status.instance_id !== restart.instance_id) return;
       }
-    } catch {
-      // Closing listeners and unfinished startup are expected during a restart.
-    }
+    } catch {}
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   throw new Error("The server has not reconnected yet.");
@@ -1012,7 +1123,6 @@ async function reconnectAfterRestart() {
   try {
     await waitForRestart(restart, target);
     if (target.origin !== window.location.origin) {
-      // Carry only the safe warning text across an address change, never edits.
       target.hash = new URLSearchParams({ "fcc-applied": JSON.stringify(warnings) }).toString();
       window.location.replace(target.href);
       return;
@@ -1020,6 +1130,7 @@ async function reconnectAfterRestart() {
     await load();
     state.restart = null;
     showMessage(["Applied", ...warnings].join("\n"), warnings.length ? "warn" : "ok");
+    showToast("Applied", "Settings saved and server reconnected", "ok");
   } catch (error) {
     showMessage([`Settings were saved. ${error.message} Use Reconnect to try again.`, ...warnings].join("\n"), "warn");
     appendAdminLink(target);
@@ -1041,9 +1152,7 @@ function showRestartNotice() {
     if (Array.isArray(warnings) && warnings.every((warning) => typeof warning === "string")) {
       showMessage(["Applied", ...warnings].join("\n"), warnings.length ? "warn" : "ok");
     }
-  } catch {
-    // A malformed navigation notice must not prevent normal Admin use.
-  }
+  } catch {}
 }
 
 async function apply() {
@@ -1071,6 +1180,7 @@ async function apply() {
     if (!result.applied) {
       rejectedField = showCredentialErrors(checks);
       showMessage(rejectedField ? "Not applied. Check the highlighted API keys." : result.errors.join("; "), "error");
+      showToast("Failed", rejectedField ? "Check highlighted API keys" : result.errors.join("; "), "error");
       return;
     }
     applied = true;
@@ -1089,8 +1199,10 @@ async function apply() {
       ? `Applied. Restart fcc-server to use: ${pending.join(", ")}`
       : "Applied";
     showMessage([message, ...warnings].join("\n"), warnings.length ? "warn" : "ok");
+    showToast("Success", message, warnings.length ? "warn" : "ok");
   } catch (error) {
     showMessage(applied ? `Applied, but could not reload settings: ${error.message}` : `Could not apply settings: ${error.message}`, "error");
+    showToast("Error", error.message, "error");
   } finally {
     setApplying(false);
     if (rejectedField) {
@@ -1168,12 +1280,14 @@ async function testProvider(providerId, button) {
         ...state.modelOptions,
         ...result.models.map((model) => `${providerId}/${model}`),
       ]);
+      showToast("Provider OK", `${providerId}: ${result.models.length} models`, "ok");
     } else {
       updateProviderCheckResult(
         providerId,
         "error",
         `Unavailable: ${result.message || "Provider check failed."}`,
       );
+      showToast("Provider failed", result.message || "Check failed", "error");
     }
   } catch {
     updateProviderCheckResult(
@@ -1181,18 +1295,33 @@ async function testProvider(providerId, button) {
       "error",
       "Provider check could not be completed.",
     );
+    showToast("Check failed", "Could not complete provider check", "error");
   } finally {
     button.disabled = false;
     button.textContent = original;
   }
 }
 
+async function testAllProviders() {
+  const btn = byId("testAllButton");
+  if (!btn) return;
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Testing...";
+  const providers = state.config?.provider_status?.filter(p => p.kind !== "connected_account" && p.missing_configuration_keys?.length === 0) || [];
+  for (const p of providers) {
+    const cardBtn = document.querySelector(`[data-provider="${p.provider_id}"] .provider-actions button:last-child`);
+    if (cardBtn) await testProvider(p.provider_id, cardBtn);
+  }
+  btn.disabled = false;
+  btn.textContent = original;
+  showToast("Tests done", `Checked ${providers.length} providers`, "ok");
+}
+
 async function hydrateModelOptions() {
   try {
     await loadModelOptions();
-  } catch {
-    // Model fields remain editable when optional catalog hydration is unavailable.
-  }
+  } catch {}
 }
 
 async function loadModelOptions(refresh = false) {
@@ -1217,11 +1346,15 @@ async function refreshModelOptions(button) {
         `${state.modelOptions.length} models available; could not refresh ${labels}`,
         "warn",
       );
+      showToast("Partial refresh", `${state.modelOptions.length} models, ${labels} failed`, "warn");
     } else {
       showMessage(`${state.modelOptions.length} models available`, "ok");
+      showToast("Models refreshed", `${state.modelOptions.length} models available`, "ok");
     }
+    renderStats(state.config?.provider_status || []);
   } catch (error) {
     showMessage(`Could not refresh models: ${error.message}`, "error");
+    showToast("Refresh failed", error.message, "error");
   } finally {
     button.disabled = false;
     button.textContent = original;
@@ -1242,6 +1375,7 @@ function setModelOptions(models) {
   state.modelComboboxes.forEach((combobox) => {
     if (combobox.isOpen) combobox.render(combobox.query);
   });
+  if (state.config) renderStats(state.config.provider_status);
 }
 
 function showMessage(message, kind = "") {
@@ -1251,6 +1385,16 @@ function showMessage(message, kind = "") {
 }
 
 byId("applyButton").addEventListener("click", apply);
+byId("refreshButton")?.addEventListener("click", () => {
+  load();
+  showToast("Refreshing", "Reloading configuration...", "neutral");
+});
+byId("testAllButton")?.addEventListener("click", testAllProviders);
+byId("globalSearch")?.addEventListener("input", (e) => {
+  state.searchQuery = e.target.value.trim();
+  if (state.config) renderProviders(state.config.provider_status);
+});
+
 document.addEventListener("pointerdown", (event) => {
   state.modelComboboxes.forEach((combobox) => {
     if (combobox.isOpen && !combobox.element.contains(event.target)) combobox.close();
@@ -1350,9 +1494,11 @@ byId("confirmClaudeIntegration").addEventListener("click", async () => {
     integrationMessage("claudeIntegrationMessage", disconnect
       ? "Settings removed. Reload VS Code to disconnect."
       : "Settings saved. Reload VS Code to connect.");
+    showToast(disconnect ? "Disconnected" : "Connected", disconnect ? "VS Code settings removed" : "VS Code connected to FCC", "ok");
   } catch (error) {
     integrationMessage("claudeIntegrationDialogMessage", error.message, true);
     integrationMessage("claudeIntegrationMessage", error.message, true);
+    showToast("Failed", error.message, "error");
   } finally {
     claudeIntegration.busy = false;
     renderClaudeIntegration();
@@ -1441,9 +1587,11 @@ byId("confirmCodexIntegration").addEventListener("click", async () => {
     integrationMessage("codexIntegrationMessage", disconnect
       ? "Settings removed. Restart Codex to disconnect."
       : "Settings saved. Restart Codex and select an FCC model.");
+    showToast(disconnect ? "Disconnected" : "Connected", disconnect ? "Codex settings removed" : "Codex connected to FCC", "ok");
   } catch (error) {
     integrationMessage("codexIntegrationDialogMessage", error.message, true);
     integrationMessage("codexIntegrationMessage", error.message, true);
+    showToast("Failed", error.message, "error");
   } finally {
     codexIntegration.busy = false;
     renderCodexIntegration();
@@ -1471,4 +1619,5 @@ jetBrainsIntegrationDialog.addEventListener("click", (event) => {
 
 load().then(showRestartNotice).catch((error) => {
   showMessage(error.message, "error");
+  showToast("Load failed", error.message, "error");
 });

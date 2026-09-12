@@ -188,8 +188,18 @@ async def test_code_commands_reject_unplanned_fields_and_other_harnesses(code_ap
 @pytest.mark.parametrize(
     "headers", [{"host": "remote.example"}, {"origin": "https://remote.example"}]
 )
-async def test_code_routes_share_admin_access_boundary(code_api, headers):
+async def test_code_routes_share_admin_access_boundary(code_api, headers, monkeypatch):
     client, _, harness, _, _ = code_api
+    monkeypatch.delenv("FCC_ADMIN_LOCAL_ONLY", raising=False)
+    for path in (
+        "/admin/code",
+        "/admin/api/code/bootstrap",
+        "/admin/api/code/sessions",
+        "/admin/api/code/events",
+    ):
+        response = await client.get(path, headers=headers)
+        assert response.status_code != 403
+    monkeypatch.setenv("FCC_ADMIN_LOCAL_ONLY", "1")
     for path in (
         "/admin/code",
         "/admin/api/code/bootstrap",
@@ -249,6 +259,7 @@ async def test_folder_picker_only_opens_on_an_authorized_explicit_post(
         pytest.fail("Unauthorized or passive request opened a dialog")
 
     monkeypatch.setattr(app.state.services.admin, "pick_folder", unexpected)
+    monkeypatch.setenv("FCC_ADMIN_LOCAL_ONLY", "1")
     for headers in (
         {"host": "remote.example"},
         {"origin": "https://remote.example"},
@@ -267,6 +278,7 @@ async def test_folder_picker_only_opens_on_an_authorized_explicit_post(
         assert (
             await remote.post("/admin/api/code/folder-picker", json={})
         ).status_code == 403
+    monkeypatch.delenv("FCC_ADMIN_LOCAL_ONLY", raising=False)
     assert (await client.get("/admin/api/code/folder-picker")).status_code == 405
     assert (await client.get("/admin/code")).status_code == 200
     assert (await client.get("/admin/api/code/bootstrap")).status_code == 200

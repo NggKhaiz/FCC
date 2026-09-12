@@ -676,6 +676,14 @@ class Settings(BaseModel):
     host: NonEmptyString = Field(default="0.0.0.0", validation_alias="HOST")
     port: int = Field(default=8082, validation_alias="PORT")
     open_admin_browser: bool = Field(default=True, validation_alias="FCC_OPEN_BROWSER")
+    admin_allow_remote: bool = Field(
+        default=True,
+        validation_alias="FCC_ALLOW_REMOTE_ADMIN",
+    )
+    admin_local_only: bool = Field(
+        default=False,
+        validation_alias="FCC_ADMIN_LOCAL_ONLY",
+    )
     proxy_auth_enabled: bool = Field(
         default=False,
         validation_alias="PROXY_AUTH_ENABLED",
