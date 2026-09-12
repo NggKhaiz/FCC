@@ -200,7 +200,15 @@ src/free_claude_code/
 - [x] UI content-visibility paint
 - [x] Benchmarks + pentest delta
 - [ ] CI job to build fcc_core wheels (needs Rust runners)
-- [ ] Replace more stream JSON transforms with native helpers — future
+
+### Phase 5: Hardening + K8s ✅ DONE
+- [x] Dedicated admin API token (`FCC_ADMIN_API_TOKEN`)
+- [x] Auth brute-force → native SlidingWindow
+- [x] Security event ring + live tail UI
+- [x] JSON compact helpers on Responses tools
+- [x] Helm chart `deploy/helm/fcc`
+- [ ] admin.js auto-attach admin token header when configured — next
+- [ ] More stream JSON transforms → native — future
 
 ---
 

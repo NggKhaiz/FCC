@@ -110,34 +110,36 @@ def log_security_event(
     details: dict | None = None,
     level: str = "warning",
 ) -> None:
-    """Log security-relevant events for audit."""
+    """Log security-relevant events for audit + ring buffer for live tail."""
+    from free_claude_code.native import security_events
+
     client_ip = "unknown"
+    path = "unknown"
+    method = "unknown"
     if request:
         forwarded = request.headers.get("x-forwarded-for")
         if forwarded:
             client_ip = forwarded.split(",")[0].strip()
         elif request.client:
             client_ip = request.client.host
-    
-    log_data = {
-        "security_event": event,
-        "client_ip": client_ip,
-        "path": request.url.path if request else "unknown",
-        "method": request.method if request else "unknown",
-    }
+        path = request.url.path
+        method = request.method
+
+    ring_fields: dict = {"client_ip": client_ip, "path": path, "method": method, "level": level}
     if details:
-        # Sanitize details
-        sanitized = {
-            k: sanitize_log_value(str(v)) for k, v in details.items()
-        }
-        log_data.update(sanitized)
-    
+        for k, v in list(details.items())[:20]:
+            ring_fields[str(k)[:64]] = v
+    try:
+        security_events.append(event, **ring_fields)
+    except Exception:
+        pass
+
     if level == "warning":
-        logger.warning("Security: {} ip={} path={}", event, client_ip, log_data.get("path"))
+        logger.warning("Security: {} ip={} path={}", event, client_ip, path)
     elif level == "error":
-        logger.error("Security: {} ip={} path={}", event, client_ip, log_data.get("path"))
+        logger.error("Security: {} ip={} path={}", event, client_ip, path)
     else:
-        logger.info("Security: {} ip={} path={}", event, client_ip, log_data.get("path"))
+        logger.info("Security: {} ip={} path={}", event, client_ip, path)
 
 
 # Pydantic constrained types for extra validation

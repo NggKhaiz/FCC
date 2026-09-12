@@ -405,3 +405,116 @@ class SlidingWindow:
             for k in expired_blocks:
                 self._blocked.pop(k, None)
         return removed
+
+    def is_blocked(self, key: str) -> bool:
+        now = time.monotonic()
+        with self._lock:
+            until = self._blocked.get(key, 0.0)
+            return now < until
+
+    def block(self, key: str, seconds: float) -> None:
+        with self._lock:
+            self._blocked[key] = time.monotonic() + max(0.0, float(seconds))
+
+    def clear_block(self, key: str) -> None:
+        with self._lock:
+            self._blocked.pop(key, None)
+
+
+# ---------------------------------------------------------------------------
+# Compact JSON helpers (SSE / tool-call hot path)
+# ---------------------------------------------------------------------------
+
+_COMPACT_SEPARATORS = (",", ":")
+
+
+def json_dumps_compact(value: object) -> str:
+    """Fast compact JSON for wire/tool payloads (no spaces, ASCII safe default off)."""
+    import json
+
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        separators=_COMPACT_SEPARATORS,
+        allow_nan=False,
+        default=str,
+    )
+
+
+def json_loads_object(text: str) -> dict:
+    """Parse JSON object; raise ValueError if not an object."""
+    import json
+
+    if not text:
+        return {}
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid JSON: {exc.msg}") from exc
+    if not isinstance(parsed, dict):
+        raise ValueError("JSON value must be an object")
+    return parsed
+
+
+def json_loads_any(text: str) -> object:
+    """Parse JSON any; on failure return the original string (stream-tolerant)."""
+    import json
+
+    if not text:
+        return text
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return text
+
+
+# ---------------------------------------------------------------------------
+# Security event ring (for live admin tail)
+# ---------------------------------------------------------------------------
+
+
+class SecurityEventRing:
+    """Thread-safe ring buffer of recent security/audit events."""
+
+    __slots__ = ("_buf", "_lock", "_seq")
+
+    def __init__(self, maxlen: int = 500) -> None:
+        self._buf: deque[dict] = deque(maxlen=max(10, maxlen))
+        self._lock = threading.Lock()
+        self._seq = 0
+
+    def append(self, event: str, **fields: object) -> dict:
+        with self._lock:
+            self._seq += 1
+            item = {
+                "seq": self._seq,
+                "ts": time.time(),
+                "event": str(event)[:128],
+            }
+            for k, v in fields.items():
+                if v is None:
+                    continue
+                key = str(k)[:64]
+                if isinstance(v, (int, float, bool)):
+                    item[key] = v
+                else:
+                    item[key] = sanitize_log_fast(str(v), 200)
+            self._buf.appendleft(item)
+            return item
+
+    def snapshot(self, *, after_seq: int = 0, limit: int = 100) -> list[dict]:
+        limit = max(1, min(int(limit), 500))
+        with self._lock:
+            items = list(self._buf)
+        if after_seq > 0:
+            items = [i for i in items if int(i.get("seq", 0)) > after_seq]
+        # newest first already; keep limit
+        return items[:limit]
+
+    def latest_seq(self) -> int:
+        with self._lock:
+            return self._seq
+
+
+# Process-wide security ring for admin live tail
+security_events = SecurityEventRing(maxlen=500)

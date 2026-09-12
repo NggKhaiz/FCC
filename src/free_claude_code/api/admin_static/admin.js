@@ -22,6 +22,8 @@ const state = {
   metrics: null,
   metricsTimer: null,
   theme: "dark",
+  adminApiToken: "",
+  securityEvents: null,
 };
 
 const MASKED_SECRET = "********";
@@ -202,9 +204,20 @@ async function api(path, options = {}) {
   if (path.includes("..") || path.includes("//")) {
     throw new Error("Invalid path");
   }
+
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  // Optional dedicated admin API token (sessionStorage — never localStorage long-term)
+  try {
+    if (!state.adminApiToken) {
+      state.adminApiToken = sessionStorage.getItem("fcc.adminApiToken") || "";
+    }
+  } catch {}
+  if (state.adminApiToken) {
+    headers["X-FCC-Admin-Token"] = String(state.adminApiToken).slice(0, 512);
+  }
   
   const response = await fetch(path, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    headers,
     ...options,
     cache: "no-store",
   });
@@ -279,9 +292,79 @@ async function loadSecurityInfo() {
     const info = await api("/admin/api/security/audit");
     state.securityInfo = info;
     renderSecurityView(info);
+    void loadSecurityEvents();
   } catch (e) {
     console.warn("Security info failed", e);
   }
+}
+
+async function loadSecurityEvents() {
+  try {
+    const payload = await api("/admin/api/security/events?limit=30");
+    state.securityEvents = payload;
+    renderSecurityEvents(payload);
+  } catch (e) {
+    console.warn("Security events failed", e);
+  }
+}
+
+function renderSecurityEvents(payload) {
+  const container = byId("view-security");
+  if (!container || !payload) return;
+  let section = byId("securityEventsSection");
+  if (!section) {
+    section = document.createElement("section");
+    section.id = "securityEventsSection";
+    section.className = "settings-section";
+    container.appendChild(section);
+  }
+  section.textContent = "";
+  const heading = document.createElement("div");
+  heading.className = "section-heading";
+  const wrap = document.createElement("div");
+  const h3 = document.createElement("h3");
+  h3.textContent = "Live security tail";
+  const p = document.createElement("p");
+  p.textContent = "Recent audit events (ring buffer, newest first)";
+  wrap.append(h3, p);
+  const refresh = document.createElement("button");
+  refresh.type = "button";
+  refresh.className = "secondary-button";
+  refresh.textContent = "Refresh tail";
+  refresh.addEventListener("click", () => loadSecurityEvents());
+  heading.append(wrap, refresh);
+  section.appendChild(heading);
+
+  const table = document.createElement("div");
+  table.className = "metrics-table";
+  const header = document.createElement("div");
+  header.className = "metrics-row metrics-header metrics-row-recent";
+  ["Time", "Level", "Event", "IP", "Path"].forEach((label) => {
+    const cell = document.createElement("div");
+    cell.textContent = label;
+    header.appendChild(cell);
+  });
+  table.appendChild(header);
+  (payload.events || []).slice(0, 30).forEach((row) => {
+    const el = document.createElement("div");
+    el.className = "metrics-row metrics-row-recent";
+    const t = formatTs(row.ts);
+    [t, String(row.level || ""), String(row.event || ""), String(row.client_ip || ""), String(row.path || "")].forEach((text, idx) => {
+      const cell = document.createElement("div");
+      cell.textContent = text.slice(0, 120);
+      if (idx >= 2) cell.className = "mono-cell";
+      el.appendChild(cell);
+    });
+    table.appendChild(el);
+  });
+  if (!(payload.events || []).length) {
+    const empty = document.createElement("p");
+    empty.className = "muted-center";
+    empty.textContent = "No security events yet.";
+    section.append(heading, empty);
+    return;
+  }
+  section.append(heading, table);
 }
 
 function renderSecurityView(info) {
@@ -309,8 +392,11 @@ function renderSecurityView(info) {
   const checks = [
     { label: "Remote Admin", ok: info.remote_admin_allowed, desc: info.remote_admin_allowed ? "Enabled (controlled)" : "Disabled" },
     { label: "IP Allowlist", ok: !!info.ip_allowlist_configured, desc: info.ip_allowlist_configured ? "Configured" : "Open (set FCC_ADMIN_IP_ALLOWLIST)" },
+    { label: "Admin API Token", ok: !!info.admin_api_token_configured, desc: info.admin_api_token_configured ? "FCC_ADMIN_API_TOKEN set" : "Optional — empty = IP/loopback only" },
+    { label: "Native backend", ok: true, desc: `ultra-core: ${info.native_backend || "python"}` },
     { label: "Security Headers", ok: info.security_headers, desc: "HSTS, CSP, X-Frame, etc" },
     { label: "Rate Limiting", ok: info.rate_limiting, desc: "Brute force protection" },
+    { label: "Event ring", ok: info.security_event_ring !== false, desc: "Live audit tail" },
     { label: "Metrics", ok: info.metrics_enabled !== false, desc: "Runtime latency + RPS" },
     { label: "CORS", ok: info.cors_enabled, desc: "Remote access enabled" },
     { label: "SSRF Protection", ok: true, desc: "Egress filtering active" },
@@ -723,7 +809,28 @@ function commandPaletteItems() {
     { id: "import", label: "Import config", hint: "From JSON file", run: () => byId("importConfigFile")?.click() },
     { id: "test-all", label: "Test all providers", hint: "Providers view", run: () => testAllProviders() },
     { id: "metrics", label: "Open metrics", hint: "Latency + RPS", run: () => navigateToView("metrics") },
+    { id: "admin-token", label: "Set admin API token", hint: "session only", run: () => promptAdminApiToken() },
   ];
+}
+
+function promptAdminApiToken() {
+  const current = state.adminApiToken || "";
+  const next = window.prompt(
+    "Admin API token (FCC_ADMIN_API_TOKEN). Stored in sessionStorage only. Leave empty to clear.",
+    current,
+  );
+  if (next === null) return;
+  state.adminApiToken = String(next).trim().slice(0, 512);
+  try {
+    if (state.adminApiToken) sessionStorage.setItem("fcc.adminApiToken", state.adminApiToken);
+    else sessionStorage.removeItem("fcc.adminApiToken");
+  } catch {}
+  showToast(
+    state.adminApiToken ? "Admin token set" : "Admin token cleared",
+    "Applies to this browser tab only",
+    "ok",
+  );
+  void load();
 }
 
 function renderCommandPalette(query) {
@@ -992,8 +1099,9 @@ function setActiveView(viewId, { scroll = false } = {}) {
     refreshClaudeIntegration();
     refreshCodexIntegration();
   }
-  if (activeView.id === "security" && state.securityInfo) {
-    renderSecurityView(state.securityInfo);
+  if (activeView.id === "security") {
+    if (state.securityInfo) renderSecurityView(state.securityInfo);
+    void loadSecurityEvents();
   }
   if (activeView.id === "metrics") {
     startMetricsPolling();

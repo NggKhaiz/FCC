@@ -688,6 +688,10 @@ class Settings(BaseModel):
         default=None,
         validation_alias="FCC_ADMIN_IP_ALLOWLIST",
     )
+    admin_api_token: OptionalNonEmptyString = Field(
+        default=None,
+        validation_alias="FCC_ADMIN_API_TOKEN",
+    )
     enable_docs: bool = Field(
         default=False,
         validation_alias="FCC_ENABLE_DOCS",

@@ -201,6 +201,20 @@ _NON_PROVIDER_FIELDS: tuple[ConfigFieldSpec, ...] = (
         advanced=True,
     ),
     ConfigFieldSpec(
+        "FCC_ADMIN_API_TOKEN",
+        "Admin API Token",
+        "runtime",
+        "secret",
+        settings_attr="admin_api_token",
+        secret=True,
+        restart_required=True,
+        description=(
+            "Optional token for Admin JSON APIs (Bearer or X-FCC-Admin-Token). "
+            "Separate from the proxy/CLI token. Empty = disabled (IP/loopback only)."
+        ),
+        advanced=True,
+    ),
+    ConfigFieldSpec(
         "PROXY_AUTH_ENABLED",
         "Require API Authentication",
         "runtime",

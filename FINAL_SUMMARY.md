@@ -126,5 +126,15 @@ Truy cập: `http://YOUR_IP:8082/admin`
 - Bench: ~0.6–5µs/op on CPython ultra (see `benchmarks/RESULTS.md`)
 - Chi tiết: `PHASE4_ULTRA.md`
 
+### 13. Phase 5 — Hardening + live tail + Helm
+✅ **Production controls**
+- `FCC_ADMIN_API_TOKEN` (Bearer / X-FCC-Admin-Token) separate from proxy token
+- Auth brute-force via native SlidingWindow
+- Security event ring + `/admin/api/security/events` + Admin Security live tail
+- JSON compact helpers on Responses tool parse path
+- Helm chart: `deploy/helm/fcc`
+- Tests: `tests/api/test_phase5_hardening.py`
+- Chi tiết: `PHASE5_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 4 Ultra on top of Phase 3)*
+*2026-09-12 - arena/01a095da-fcc (Phase 5 on top of Phase 4)*

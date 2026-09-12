@@ -47,7 +47,7 @@
     this on 100% of chats.
   </user_prompt_restated_en>
 
-  <execution_plan phases="8">
+  <execution_plan phases="10">
     <phase id="1" name="Recon+Stats">
       Measure LOC, hot modules, middleware order, security surface, deploy pack.
     </phase>
@@ -76,6 +76,14 @@
     </phase>
     <phase id="8" name="Ship">
       Commit + push branch; open/update PR; never invent non-existent history.
+    </phase>
+    <phase id="9" name="Phase5 Hardening">
+      Dedicated admin API token, auth SlidingWindow, security event ring + live tail,
+      JSON compact helpers on Responses tools, Helm chart.
+    </phase>
+    <phase id="10" name="Next">
+      CI native wheels, admin.js token header when configured, stream SSE ultra,
+      deeper provider latency graphs.
     </phase>
   </execution_plan>
 

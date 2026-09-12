@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fcc.fullname" . }}
+  labels:
+    app.kubernetes.io/name: fcc
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fcc
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fcc
+    spec:
+      containers:
+        - name: fcc
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http
+          env:
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+            - name: PROXY_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "fcc.fullname" . }}-secrets
+                  key: PROXY_AUTH_TOKEN
+                  optional: true
+            - name: ANTHROPIC_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "fcc.fullname" . }}-secrets
+                  key: PROXY_AUTH_TOKEN
+                  optional: true
+            - name: FCC_ADMIN_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "fcc.fullname" . }}-secrets
+                  key: FCC_ADMIN_API_TOKEN
+                  optional: true
+            - name: FCC_ADMIN_IP_ALLOWLIST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "fcc.fullname" . }}-secrets
+                  key: FCC_ADMIN_IP_ALLOWLIST
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            {{- end }}
+      volumes:
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "fcc.fullname" . }}-data
+        {{- end }}
