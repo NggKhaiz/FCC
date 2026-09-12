@@ -192,6 +192,16 @@ src/free_claude_code/
 - [x] Documentation cho remote deployment (`deploy/REMOTE.md`)
 - [ ] Helm chart cho Kubernetes — future
 
+### Phase 4: Ultra Core (Rust-ready) ✅ DONE source + Python path
+- [x] Flower skill XML + EN restatement (`skills/`)
+- [x] Python ultra-core (`native/ultra.py`) — Bloom, cache, window, validators
+- [x] Rust crate `crates/fcc_core` (build when rustc available)
+- [x] Wire security / rate_limit / metrics / token_estimation / assets
+- [x] UI content-visibility paint
+- [x] Benchmarks + pentest delta
+- [ ] CI job to build fcc_core wheels (needs Rust runners)
+- [ ] Replace more stream JSON transforms with native helpers — future
+
 ---
 
 ## 5. Cách Sử Dụng Sau Nâng Cấp

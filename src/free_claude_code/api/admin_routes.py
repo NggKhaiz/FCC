@@ -132,12 +132,14 @@ def admin_page(request: Request):
 
 @router.get("/admin/assets/{version}/{filename}", include_in_schema=False)
 async def admin_asset(version: str, filename: str, request: Request):
+    from free_claude_code.native import is_safe_asset_name
+
     check_rate_limit(request)
     require_loopback_admin(request)
     if version != package_version() or filename not in _ADMIN_ASSET_FILENAMES:
         raise HTTPException(status_code=404, detail="Admin asset not found")
-    # Validate filename to prevent path traversal
-    if ".." in filename or "/" in filename or "\\" in filename:
+    # Native ultra path validation (no separators / traversal / odd charset)
+    if not is_safe_asset_name(filename):
         raise HTTPException(status_code=400, detail="Invalid filename")
     return _asset_response(filename)
 

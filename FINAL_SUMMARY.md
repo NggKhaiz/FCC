@@ -116,5 +116,15 @@ Truy cập: `http://YOUR_IP:8082/admin`
 - Tests: `tests/api/test_metrics_and_config_io.py`
 - Chi tiết: `PHASE3_COMPLETE.md`
 
+### 12. Phase 4 — Ultra Core + Flower skill
+✅ **Rust-ready hot paths + always-on Python ultra**
+- Flower skill XML+EN: `skills/Fl0w3r_RHLZ_V3r$!0n_03.xml`
+- `free_claude_code.native` (Bloom, TTL-LRU, SlidingWindow, validators, token approx)
+- Rust crate `crates/fcc_core` (PyO3/maturin) — optional wheel
+- Wired into security, rate_limit, metrics, token_estimation, assets, code sessions
+- UI `content-visibility` paint wins
+- Bench: ~0.6–5µs/op on CPython ultra (see `benchmarks/RESULTS.md`)
+- Chi tiết: `PHASE4_ULTRA.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 3 on top of merged PR #1)*
+*2026-09-12 - arena/01a095da-fcc (Phase 4 Ultra on top of Phase 3)*

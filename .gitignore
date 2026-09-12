@@ -16,3 +16,11 @@ llama_cache
 .smoke-results
 /test-results/
 .vscode
+# Rust / maturin
+/target/
+**/target/
+crates/*/Cargo.lock
+*.so
+*.dylib
+*.dll
+.maturin/

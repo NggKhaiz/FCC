@@ -145,28 +145,10 @@ class RuntimeMetrics:
 
 
 def _normalize_path(path: str) -> str:
-    """Collapse dynamic path segments for aggregation."""
-    if not path:
-        return "/"
-    parts = path.split("?")[0].split("/")
-    normalized: list[str] = []
-    for part in parts:
-        if not part:
-            continue
-        # UUID-ish / long ids / pure numbers
-        if len(part) > 40 or part.isdigit() or _looks_like_id(part):
-            normalized.append(":id")
-        else:
-            normalized.append(part[:64])
-    return "/" + "/".join(normalized) if normalized else "/"
+    """Collapse dynamic path segments for aggregation (native ultra)."""
+    from free_claude_code.native import normalize_path_key
 
-
-def _looks_like_id(value: str) -> bool:
-    if len(value) < 8:
-        return False
-    # hex-ish tokens
-    hexish = all(c in "0123456789abcdefABCDEF-_" for c in value)
-    return hexish and any(c.isdigit() for c in value)
+    return normalize_path_key(path or "/")
 
 
 # Process-wide singleton

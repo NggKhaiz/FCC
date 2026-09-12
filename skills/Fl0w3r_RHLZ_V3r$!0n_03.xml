@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fl0w3r RHLZ Skill — Version 03 (reconstructed + upgraded)
+  Source intent: Fl0w3r_RHLZ_V3r$!0n_02.xml (user-attached; not mountable in sandbox)
+  Language: English canonical · Vietnamese notes in <vi>
+  Project: Free Claude Code (FCC) — NggKhaiz/FCC
+  Session rule: EVERY chat must re-read this skill, restate the prompt as XML+EN,
+                then plan → stats → build → pentest → debug → loop.
+-->
+<FlowerSkill id="Fl0w3r_RHLZ" version="03" codename="Raven-FCC-Ultra">
+  <meta>
+    <title>FCC Ultimate Performance + Stability Loop</title>
+    <owner>NggKhaiz</owner>
+    <branch>arena/01a095da-fcc</branch>
+    <goal>Highest stable performance; prefer Rust for hot paths; never lose correctness or security</goal>
+    <vi>Tối ưu đỉnh cao, ổn định; ưu tiên Rust cho hot-path; không đánh đổi correctness/security</vi>
+  </meta>
+
+  <problem>
+    <statement_en>
+      FCC is a multi-provider coding-agent proxy (~60k LOC Python).
+      Latency is dominated by: request validation, path normalization, rate-limit
+      checks, token estimation on stream chunks, JSON-ish sanitization, metrics
+      recording, and admin UI paint. User wants continuous plan/build/pentest/debug
+      loops aiming at Rust-backed ultra cores while keeping a pure-Python fallback
+      so the product never breaks when rustc/maturin is unavailable.
+    </statement_en>
+    <statement_vi>
+      FCC là proxy multi-provider. Nút thắt: validation, normalize path, rate-limit,
+      ước lượng token khi stream, sanitize, metrics, UI. Cần loop plan/build/pentest
+      và core Rust + fallback Python để luôn chạy được.
+    </statement_vi>
+    <constraints>
+      <c>Keep public HTTP API stable</c>
+      <c>Secrets never exported</c>
+      <c>OWASP posture must not regress</c>
+      <c>Optional native extension — graceful fallback</c>
+      <c>Session branch fixed: arena/01a095da-fcc</c>
+    </constraints>
+  </problem>
+
+  <user_prompt_restated_en>
+    Continue optimizing and coding to the highest quality. Self-drive the full loop:
+    plan → stats → build → pentest → debug → loop. Prioritize stability and best
+    possible code. Target Rust for maximum performance. Always read the Flower skill,
+    recreate this prompt as XML + English so the problem is crystal clear, and do
+    this on 100% of chats.
+  </user_prompt_restated_en>
+
+  <execution_plan phases="8">
+    <phase id="1" name="Recon+Stats">
+      Measure LOC, hot modules, middleware order, security surface, deploy pack.
+    </phase>
+    <phase id="2" name="Flower Skill">
+      Persist XML skill + EN restatement in-repo (skills/).
+    </phase>
+    <phase id="3" name="Python Ultra Core">
+      Bloom filter, LRU/TTL cache, path/id validators, sliding window rate limiter,
+      token approx, metrics ring — zero extra deps, always available.
+    </phase>
+    <phase id="4" name="Rust Crate fcc_core">
+      PyO3/maturin-ready crate mirroring Python ultra APIs (bloom, validate, hash,
+      rate limit, token approx). Build when toolchain exists; otherwise document.
+    </phase>
+    <phase id="5" name="Wire Hot Paths">
+      Plug ultra core into api/security, api/rate_limit, api/metrics, detection,
+      token_estimation, admin asset allowlist.
+    </phase>
+    <phase id="6" name="UI Paint Perf">
+      content-visibility, contain, will-change sparingly, reduce layout thrash on
+      metrics/provider grids.
+    </phase>
+    <phase id="7" name="Pentest+Bench">
+      Extend security tests; micro-benchmarks for bloom/validate/rate-limit;
+      update PENTEST + PHASE4 docs.
+    </phase>
+    <phase id="8" name="Ship">
+      Commit + push branch; open/update PR; never invent non-existent history.
+    </phase>
+  </execution_plan>
+
+  <success_metrics>
+    <m id="correctness">All existing admin/security contracts hold</m>
+    <m id="perf">Python ultra validators &lt; 1µs typical small inputs (bench)</m>
+    <m id="bloom">Negative membership checks O(k) bit ops; no false negatives</m>
+    <m id="fallback">Import path works with or without native module</m>
+    <m id="security">No secret leakage; path traversal still blocked</m>
+  </success_metrics>
+
+  <anti_patterns>
+    <a>Do not claim Raven Office commits that are not on git</a>
+    <a>Do not require Rust at runtime</a>
+    <a>Do not use innerHTML with user data</a>
+    <a>Do not weaken rate limits or auth to chase benchmarks</a>
+  </anti_patterns>
+
+  <every_chat_ritual>
+    <step>1. Read this skill file</step>
+    <step>2. Restate user intent as XML + English</step>
+    <step>3. Stats snapshot of current tree</step>
+    <step>4. Plan deltas</step>
+    <step>5. Build</step>
+    <step>6. Pentest/bench</step>
+    <step>7. Debug failures</step>
+    <step>8. Loop or ship</step>
+  </every_chat_ritual>
+</FlowerSkill>

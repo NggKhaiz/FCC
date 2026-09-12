@@ -1605,3 +1605,29 @@ html[data-theme="dark"] .theme-icon-dark { display: block; }
   .metrics-header { display: none; }
   .topbar-actions .secondary-button { padding-inline: 10px; }
 }
+
+/* ========== Phase 4: paint performance (content-visibility) ========== */
+.provider-grid {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 600px;
+}
+.provider-card,
+.stat-card,
+.metrics-row {
+  contain: layout style paint;
+}
+.metrics-table {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 400px;
+}
+.settings-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 320px;
+}
+.admin-view:not(.active) {
+  content-visibility: hidden;
+}
+/* Reduce font download blocking for secondary UI */
+.mono-cell, .mono-note, .cmd-hint {
+  font-display: swap;
+}

@@ -10,29 +10,40 @@ from fastapi import Request, HTTPException
 from pydantic import StringConstraints
 from loguru import logger
 
+from free_claude_code.native import (
+    sanitize_log_fast,
+    validate_model_ref_fast,
+    validate_provider_id_fast,
+    validate_session_id_fast,
+)
 
-# Input validation patterns
+
+# Input validation patterns (kept for external/docs; hot path uses native ultra)
 SAFE_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9/_\-\.]+$")
 PROVIDER_ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 MODEL_REF_PATTERN = re.compile(r"^[a-z0-9_]+/[a-zA-Z0-9/_\-\.:]+$")
+SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
 
 
 def validate_provider_id(provider_id: str) -> str:
-    """Validate provider ID to prevent injection."""
-    if not PROVIDER_ID_PATTERN.match(provider_id):
+    """Validate provider ID to prevent injection (native ultra-fast path)."""
+    if not isinstance(provider_id, str) or not validate_provider_id_fast(provider_id):
         raise HTTPException(status_code=400, detail="Invalid provider ID format")
-    if len(provider_id) > 64:
-        raise HTTPException(status_code=400, detail="Provider ID too long")
     return provider_id
 
 
 def validate_model_ref(model_ref: str) -> str:
-    """Validate model reference."""
-    if len(model_ref) > 512:
-        raise HTTPException(status_code=400, detail="Model reference too long")
-    if not MODEL_REF_PATTERN.match(model_ref):
+    """Validate model reference (native ultra-fast path)."""
+    if not isinstance(model_ref, str) or not validate_model_ref_fast(model_ref):
         raise HTTPException(status_code=400, detail="Invalid model reference format")
     return model_ref
+
+
+def validate_session_id(session_id: str) -> str:
+    """Validate session / code-session id."""
+    if not isinstance(session_id, str) or not validate_session_id_fast(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session ID format")
+    return session_id
 
 
 def validate_file_path(path: str, allowed_base: Path | None = None) -> Path:
@@ -62,15 +73,10 @@ def validate_file_path(path: str, allowed_base: Path | None = None) -> Path:
 
 
 def sanitize_log_value(value: str, max_length: int = 200) -> str:
-    """Sanitize value for logging to prevent log injection."""
+    """Sanitize value for logging to prevent log injection (native fast path)."""
     if not isinstance(value, str):
         value = str(value)
-    # Remove newlines and control chars
-    value = value.replace("\n", "\\n").replace("\r", "\\r")
-    value = "".join(c for c in value if ord(c) >= 32 or c in "\t")
-    if len(value) > max_length:
-        value = value[:max_length] + "..."
-    return value
+    return sanitize_log_fast(value, max_length)
 
 
 def generate_secure_token(length: int = 32) -> str:
