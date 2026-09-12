@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Free Claude Code Admin</title>
     <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/assets/__FCC_VERSION__/admin.css" />
     <link rel="stylesheet" href="/admin/assets/__FCC_VERSION__/code_sessions.css" />
     <link rel="stylesheet" href="/admin/assets/__FCC_VERSION__/session_layout.css" />
@@ -25,17 +28,45 @@
           <div>
             <h1>Free Claude Code</h1>
             <p>Server Control · v__FCC_VERSION__</p>
+            <span class="brand-badge">Remote Enabled</span>
           </div>
         </div>
         <nav id="sectionNav" class="section-nav" aria-label="Admin views"></nav>
+        <div class="sidebar-footer">
+          <div class="sidebar-stat">
+            <span>Providers</span>
+            <span id="sidebarProviders">--</span>
+          </div>
+          <div class="sidebar-stat">
+            <span>Models</span>
+            <span id="sidebarModels">--</span>
+          </div>
+          <div class="sidebar-stat">
+            <span>Status</span>
+            <span id="sidebarStatus" style="color: var(--ok)">● Online</span>
+          </div>
+        </div>
       </aside>
 
       <main class="main">
         <header class="topbar">
-          <div>
+          <div class="topbar-left">
             <h2 id="pageTitle">Providers</h2>
+            <p id="pageSubtitle" class="topbar-subtitle">Manage AI providers and model routing</p>
+          </div>
+          <div class="topbar-actions">
+            <div class="search-box" id="globalSearchBox" hidden>
+              <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <input type="text" id="globalSearch" placeholder="Search providers, models..." />
+            </div>
+            <button id="refreshButton" class="secondary-button" type="button" title="Refresh">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+              Refresh
+            </button>
           </div>
         </header>
+
+        <div id="statsGrid" class="stats-grid"></div>
 
         <div id="adminViews" class="admin-views">
           <section id="view-providers" class="admin-view active" data-view="providers">
@@ -55,7 +86,11 @@
             </section>
             <section class="provider-strip" aria-label="Provider status">
               <div class="strip-header">
-                <h3>Providers</h3>
+                <div>
+                  <h3>Providers</h3>
+                  <p id="providersCountLabel">Loading providers...</p>
+                </div>
+                <button id="testAllButton" class="secondary-button" type="button">Test All</button>
               </div>
               <div id="providerGrid" class="provider-grid"></div>
             </section>
@@ -80,6 +115,12 @@
               class="form-sections"
               aria-label="Messaging configuration"
             ></div>
+          </section>
+
+          <section id="view-security" class="admin-view" data-view="security" hidden>
+            <div class="form-sections">
+              <p style="color:var(--muted);text-align:center;padding:20px">Loading security status...</p>
+            </div>
           </section>
 
           <section id="view-integrations" class="admin-view provider-grid" data-view="integrations" hidden>
@@ -167,6 +208,9 @@
         </div>
       </footer>
     </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
     <script src="/admin/assets/__FCC_VERSION__/model_combobox.js"></script>
     <script src="/admin/assets/__FCC_VERSION__/session_ui.js"></script>
     <script src="/admin/assets/__FCC_VERSION__/code_sessions.js"></script>

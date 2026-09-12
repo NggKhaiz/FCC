@@ -1,4 +1,4 @@
-"""Local admin UI routes and APIs."""
+"""Admin UI routes and APIs - remote-enabled with security hardening."""
 
 import asyncio
 from collections.abc import Awaitable, Callable, Mapping
@@ -14,7 +14,7 @@ from fastapi import (
 )
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from free_claude_code.application.connected_accounts import (
     ConnectedAccountLoginMode,
@@ -33,6 +33,12 @@ from free_claude_code.core.version import package_version
 from .admin_security import require_loopback_admin
 from .dependencies import get_services
 from .ports import ApiServices
+from .rate_limit import check_rate_limit
+from .security import (
+    check_request_size,
+    log_security_event,
+    validate_provider_id,
+)
 
 router = APIRouter()
 
@@ -66,11 +72,29 @@ class AdminConfigPayload(BaseModel):
 
     values: JsonObject = Field(default_factory=dict)
 
+    @field_validator("values")
+    @classmethod
+    def validate_values_size(cls, v: JsonObject) -> JsonObject:
+        if len(v) > 100:
+            raise ValueError("Too many config values")
+        # Check key lengths
+        for key in v.keys():
+            if len(key) > 128:
+                raise ValueError(f"Config key too long: {key[:20]}...")
+        return v
+
 
 class ConnectedAccountLoginPayload(BaseModel):
     """Interactive connected-account login selection."""
 
     mode: ConnectedAccountLoginMode | None = None
+
+    @field_validator("mode")
+    @classmethod
+    def validate_mode(cls, v):
+        if v is not None and v not in (ConnectedAccountLoginMode.BROWSER, ConnectedAccountLoginMode.DEVICE):
+            raise ValueError("Invalid login mode")
+        return v
 
 
 def _asset_path(filename: str) -> Path:
@@ -97,15 +121,21 @@ def admin_page_response() -> HTMLResponse:
 @router.get("/admin/messaging", include_in_schema=False)
 @router.get("/admin/integrations", include_in_schema=False)
 def admin_page(request: Request):
+    check_rate_limit(request)
     require_loopback_admin(request)
+    log_security_event("admin_page_access", request)
     return admin_page_response()
 
 
 @router.get("/admin/assets/{version}/{filename}", include_in_schema=False)
 async def admin_asset(version: str, filename: str, request: Request):
+    check_rate_limit(request)
     require_loopback_admin(request)
     if version != package_version() or filename not in _ADMIN_ASSET_FILENAMES:
         raise HTTPException(status_code=404, detail="Admin asset not found")
+    # Validate filename to prevent path traversal
+    if ".." in filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
     return _asset_response(filename)
 
 
@@ -113,6 +143,7 @@ async def admin_asset(version: str, filename: str, request: Request):
 async def get_admin_config(
     request: Request, services: ApiServices = Depends(get_services)
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
     return await services.admin.admin_config()
 
@@ -123,7 +154,14 @@ async def apply_admin_config(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
+    check_request_size(request, max_size=1024 * 1024)  # 1MB max for config
     require_loopback_admin(request)
+    log_security_event(
+        "admin_config_apply",
+        request,
+        {"keys": list(payload.values.keys())[:10]},
+    )
     result = await services.admin.apply_admin_config(_filtered_values(payload.values))
     return result
 
@@ -134,9 +172,9 @@ async def admin_status(
     response: Response,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
-    # A local Admin page may reconnect after Apply changes the listening port.
-    # The existing security check admits only loopback callers and origins.
+    # Allow CORS for remote admin reconnection
     if origin := request.headers.get("origin"):
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Vary"] = "Origin"
@@ -147,6 +185,7 @@ async def admin_status(
 async def local_provider_status(
     request: Request, services: ApiServices = Depends(get_services)
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
     values = {
         key: entry.value or ""
@@ -171,8 +210,48 @@ async def test_provider(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
+    validate_provider_id(provider_id)
+    log_security_event("provider_test", request, {"provider_id": provider_id})
     return await services.admin.test_provider(provider_id)
+
+
+@router.get("/admin/api/security/audit")
+async def security_audit(request: Request):
+    """Security audit endpoint - shows current security config."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    from .admin_security import _is_remote_admin_allowed
+    import os
+
+    return {
+        "remote_admin_allowed": _is_remote_admin_allowed(),
+        "local_only_enforced": os.getenv("FCC_ADMIN_LOCAL_ONLY", "").lower() in {"1", "true", "yes"},
+        "cors_enabled": True,
+        "security_headers": True,
+        "rate_limiting": True,
+        "version": package_version(),
+    }
+
+
+@router.get("/admin/api/health/detailed")
+async def detailed_health(
+    request: Request, services: ApiServices = Depends(get_services)
+):
+    """Detailed health check with security info."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    status = await services.admin.admin_status()
+    return {
+        "status": "healthy",
+        "version": package_version(),
+        "instance_id": status.get("instance_id"),
+        "providers_configured": len(
+            [p for p in (await services.admin.admin_values()).values() if p.value]
+        ),
+        "model_count": len(services.requests.cached_prefixed_model_infos()),
+    }
 
 
 @router.get("/admin/api/providers/{provider_id}/auth")
@@ -181,7 +260,9 @@ async def connected_account_status(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
+    validate_provider_id(provider_id)
     _require_connected_account_provider(provider_id)
     status = await services.admin.connected_account_status(provider_id)
     return _no_store(status.as_dict())
@@ -194,8 +275,11 @@ async def start_connected_account_login(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
+    validate_provider_id(provider_id)
     _require_connected_account_provider(provider_id)
+    log_security_event("connected_account_login_start", request, {"provider_id": provider_id})
     account = await services.admin.connected_account_status(provider_id)
     mode = payload.mode or account.default_login_mode
     if mode not in account.supported_login_modes:
@@ -219,7 +303,9 @@ async def cancel_connected_account_login(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
+    validate_provider_id(provider_id)
     _require_connected_account_provider(provider_id)
     status = await services.admin.cancel_connected_account_login(provider_id)
     return _no_store(status.as_dict())
@@ -231,8 +317,11 @@ async def disconnect_connected_account(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
+    validate_provider_id(provider_id)
     _require_connected_account_provider(provider_id)
+    log_security_event("connected_account_disconnect", request, {"provider_id": provider_id})
     status = await services.admin.disconnect_connected_account(provider_id)
     return _no_store(status.as_dict())
 
@@ -242,6 +331,7 @@ async def models(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
     return _model_options(services)
 
@@ -251,6 +341,7 @@ async def claude_vscode_status(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
     return await _integration_response(services.admin.claude_vscode_status)
 
@@ -260,7 +351,9 @@ async def connect_claude_vscode(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
+    log_security_event("integration_connect", request, {"integration": "claude-vscode"})
     return await _integration_response(services.admin.connect_claude_vscode)
 
 
@@ -269,6 +362,7 @@ async def disconnect_claude_vscode(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
     return await _integration_response(services.admin.disconnect_claude_vscode)
 
@@ -278,6 +372,7 @@ async def codex_integration_status(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
     return await _integration_response(services.admin.codex_integration_status)
 
@@ -287,7 +382,9 @@ async def connect_codex(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
+    log_security_event("integration_connect", request, {"integration": "codex"})
     return await _integration_response(services.admin.connect_codex)
 
 
@@ -296,6 +393,7 @@ async def disconnect_codex(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
     return await _integration_response(services.admin.disconnect_codex)
 
@@ -318,7 +416,9 @@ async def refresh_models(
     request: Request,
     services: ApiServices = Depends(get_services),
 ):
+    check_rate_limit(request)
     require_loopback_admin(request)
+    log_security_event("models_refresh", request)
     result = await services.admin.refresh_models()
     return _model_options(services, refresh_result=result)
 

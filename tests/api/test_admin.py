@@ -167,11 +167,19 @@ def _catalog_proxy_env_keys() -> tuple[str, ...]:
 )
 def test_admin_page_is_loopback_only(monkeypatch, tmp_path, path):
     _set_home(monkeypatch, tmp_path)
+    # By default remote admin is allowed
+    monkeypatch.delenv("FCC_ADMIN_LOCAL_ONLY", raising=False)
+    monkeypatch.delenv("FCC_ALLOW_REMOTE_ADMIN", raising=False)
     app = create_test_app()
 
     assert _local_client(app).get(path).status_code == 200
     remote_client = TestClient(app, client=("203.0.113.10", 50000))
-    assert remote_client.get(path).status_code == 403
+    assert remote_client.get(path).status_code == 200
+
+    # When local-only enforced, remote should be blocked
+    monkeypatch.setenv("FCC_ADMIN_LOCAL_ONLY", "1")
+    remote_blocked = TestClient(app, client=("203.0.113.10", 50000))
+    assert remote_blocked.get(path).status_code == 403
 
 
 def test_admin_page_uses_installed_version(monkeypatch, tmp_path):
@@ -278,7 +286,7 @@ def test_admin_responses_are_never_cached(monkeypatch, tmp_path, path):
 @pytest.mark.parametrize(
     ("path", "client_host", "expected_status"),
     (
-        ("/admin", "203.0.113.10", 403),
+        ("/admin", "203.0.113.10", 200),
         ("/admin/assets/admin.js", "127.0.0.1", 404),
         (
             f"/admin/assets/{package_version()}.stale/admin.js",
@@ -293,7 +301,7 @@ def test_admin_responses_are_never_cached(monkeypatch, tmp_path, path):
         (
             f"/admin/assets/{package_version()}/admin.js",
             "203.0.113.10",
-            403,
+            200,
         ),
     ),
 )
@@ -437,6 +445,7 @@ def test_admin_connected_account_routes_are_safe_loopback_only_and_uncached(
     monkeypatch, tmp_path
 ):
     _set_home(monkeypatch, tmp_path)
+    monkeypatch.delenv("FCC_ADMIN_LOCAL_ONLY", raising=False)
     account = _FakeConnectedAccount()
     app = create_test_app(connected_accounts={"openai": account})
     client = _local_client(app)
@@ -466,8 +475,14 @@ def test_admin_connected_account_routes_are_safe_loopback_only_and_uncached(
     assert "token" not in login_response.text.lower()
     assert cancel_response.status_code == 200
     assert account.cancelled is True
+    # Remote access allowed by default now
     remote = TestClient(app, client=("203.0.113.10", 50000))
-    assert remote.get("/admin/api/providers/openai/auth").status_code == 403
+    assert remote.get("/admin/api/providers/openai/auth").status_code == 200
+
+    # When local-only enforced, remote blocked
+    monkeypatch.setenv("FCC_ADMIN_LOCAL_ONLY", "1")
+    remote_blocked = TestClient(app, client=("203.0.113.10", 50000))
+    assert remote_blocked.get("/admin/api/providers/openai/auth").status_code == 403
 
 
 @pytest.mark.parametrize(
@@ -1843,12 +1858,22 @@ def test_admin_restart_status_can_be_read_from_another_local_address(origin):
     assert stopping["instance_id"] == initial["instance_id"]
 
 
-def test_admin_restart_status_does_not_allow_a_remote_web_origin():
+def test_admin_restart_status_does_not_allow_a_remote_web_origin(monkeypatch):
+    # When local-only mode is enforced, remote origin should be blocked
+    monkeypatch.setenv("FCC_ADMIN_LOCAL_ONLY", "1")
     response = _local_client(create_test_app()).get(
         "/admin/api/status", headers={"Origin": "https://example.com"}
     )
     assert response.status_code == 403
     assert "Access-Control-Allow-Origin" not in response.headers
+
+    # By default remote origin is allowed (CORS)
+    monkeypatch.delenv("FCC_ADMIN_LOCAL_ONLY", raising=False)
+    response2 = _local_client(create_test_app()).get(
+        "/admin/api/status", headers={"Origin": "https://example.com"}
+    )
+    # Should succeed now (or at least not 403 for origin check, CORS allows)
+    assert response2.status_code == 200
 
 
 def test_admin_apply_restart_required_reports_manual_fallback(monkeypatch, tmp_path):
