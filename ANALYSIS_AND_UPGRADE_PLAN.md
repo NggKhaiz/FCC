@@ -269,7 +269,16 @@ src/free_claude_code/
 - [x] package_fcc_core.sh + native-core.ci.yml matrix
 - [x] ed25519_fast backend switch
 - [ ] Push workflow file under .github/workflows (needs App permission)
-- [ ] PyPI publish fcc-core optional package — future
+- [x] PyPI packaging metadata + gated publish script for fcc-core
+- [x] Per-hub mesh auth tokens
+- [x] Continuous mesh sync scheduler
+
+### Phase 14: Tokens + Sync + PyPI gate ✅ DONE
+- [x] mesh/token + token_set in snapshot
+- [x] mesh/sync start/stop/once + FCC_MESH_SYNC_AUTO
+- [x] publish_fcc_core.sh (TestPyPI default, explicit pypi)
+- [ ] Automated PyPI OIDC publish on tag — future
+- [ ] Distributed lock for multi-process scheduler — future
 
 ---
 

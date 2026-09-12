@@ -94,3 +94,7 @@ jobs:
         with:
           name: fcc-core-packaging-note
           path: dist/fcc_core_PACKAGING.md
+
+  # Manual publish is intentionally NOT automated.
+  # Operators: download wheel artifacts, then:
+  #   FCC_CORE_PUBLISH=1 FCC_CORE_REPOSITORY=testpypi ./scripts/publish_fcc_core.sh

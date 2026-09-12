@@ -47,12 +47,36 @@ from .validation_log import summarize_request_validation_body
 
 def create_app(services: ApiServices) -> FastAPI:
     """Create the HTTP adapter around explicitly supplied runtime services."""
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def _lifespan(_app: FastAPI):
+        # Optional continuous multi-hub mesh sync (FCC_MESH_SYNC_AUTO=1)
+        try:
+            from .mesh_scheduler import autostart_from_env, mesh_scheduler
+
+            if autostart_from_env():
+                await mesh_scheduler.start()
+                logger.info("mesh sync auto-started from FCC_MESH_SYNC_AUTO")
+        except Exception as exc:
+            logger.warning("mesh sync autostart skipped: {}", type(exc).__name__)
+        try:
+            yield
+        finally:
+            try:
+                from .mesh_scheduler import mesh_scheduler
+
+                await mesh_scheduler.stop()
+            except Exception:
+                pass
+
     app = FastAPI(
         title="Claude Code Proxy",
         version=package_version(),
         docs_url=None,  # Disable docs in production for security
         redoc_url=None,
         openapi_url="/openapi.json" if _is_docs_enabled() else None,
+        lifespan=_lifespan,
     )
     app.state.services = services
     # NOTE: FastAPI/Starlette runs the *last* added middleware outermost.

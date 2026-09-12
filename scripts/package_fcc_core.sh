@@ -32,3 +32,5 @@ maturin build --release -m crates/fcc_core/Cargo.toml --out "$OUT"
 echo "==> wheels:"
 ls -la "$OUT"/*.whl 2>/dev/null || ls -la "$OUT"
 echo "==> done"
+
+echo "To publish (gated): FCC_CORE_PUBLISH=1 FCC_CORE_REPOSITORY=testpypi ./scripts/publish_fcc_core.sh"

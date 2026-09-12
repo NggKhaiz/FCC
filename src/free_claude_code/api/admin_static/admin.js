@@ -475,6 +475,9 @@ function renderSecurityView(info) {
     { label: "Ed25519 bundles", ok: info.audit_bundle_ed25519 === true, desc: "FCC_AUDIT_ED25519_SEED" },
     { label: "Hub mesh", ok: info.hub_mesh !== false, desc: "multi-hub registry" },
     { label: "Mesh pull", ok: info.hub_mesh_pull !== false, desc: "active pull peers" },
+    { label: "Mesh tokens", ok: info.hub_mesh_tokens !== false, desc: "per-hub admin tokens" },
+    { label: "Mesh sync", ok: info.hub_mesh_sync !== false, desc: "continuous scheduler" },
+    { label: "fcc-core PyPI", ok: info.fcc_core_pypi !== false, desc: "publish_fcc_core.sh" },
     { label: "mTLS scrape", ok: info.console_fanin_mtls === true, desc: "FCC_FANIN_MTLS_*" },
     { label: "Ed25519 backend", ok: true, desc: String(info.ed25519_backend || "pure") },
     { label: "fcc_core packaging", ok: info.fcc_core_packaging !== false, desc: "scripts/package_fcc_core.sh" },
@@ -1043,6 +1046,10 @@ function commandPaletteItems() {
     { id: "fanin-scrape", label: "Scrape fan-in peers", hint: "FCC_FANIN_PEER_ALLOWLIST", run: () => promptFaninScrape() },
     { id: "hub-mesh", label: "Hub mesh snapshot", hint: "multi-hub federation", run: () => showHubMesh() },
     { id: "mesh-pull", label: "Pull mesh hubs", hint: "active fan-in from peers", run: () => promptMeshPull() },
+    { id: "mesh-sync-start", label: "Start mesh sync", hint: "continuous pull scheduler", run: () => meshSyncStart() },
+    { id: "mesh-sync-stop", label: "Stop mesh sync", hint: "stop scheduler", run: () => meshSyncStop() },
+    { id: "mesh-sync-once", label: "Mesh sync once", hint: "single pull cycle", run: () => meshSyncOnce() },
+    { id: "mesh-token", label: "Set hub mesh token", hint: "per-hub admin token", run: () => promptMeshToken() },
     { id: "native-status", label: "Native backend status", hint: "rust/python + ed25519", run: () => showNativeStatus() },
     { id: "console", label: "Open console", hint: "WebSocket live tail", run: () => navigateToView("console") },
   ];
@@ -1072,6 +1079,58 @@ function promptAdminApiToken() {
 
 
 
+
+
+async function meshSyncStart() {
+  const raw = window.prompt("Mesh sync interval seconds (min 15, default 60)", "60");
+  if (raw === null) return;
+  const interval = Number(raw) || 60;
+  try {
+    const payload = await api("/admin/api/console/mesh/sync/start", {
+      method: "POST",
+      body: JSON.stringify({ interval_seconds: interval }),
+    });
+    showToast("Mesh sync", `enabled every ${payload.interval_seconds}s`, "ok");
+  } catch (error) {
+    showToast("Mesh sync failed", error.message || String(error), "error");
+  }
+}
+
+async function meshSyncStop() {
+  try {
+    await api("/admin/api/console/mesh/sync/stop", { method: "POST", body: "{}" });
+    showToast("Mesh sync", "stopped", "ok");
+  } catch (error) {
+    showToast("Mesh sync stop failed", error.message || String(error), "error");
+  }
+}
+
+async function meshSyncOnce() {
+  try {
+    const payload = await api("/admin/api/console/mesh/sync/once", { method: "POST", body: "{}" });
+    const total = (payload.results || []).length;
+    const ok = (payload.results || []).filter((r) => r.ok).length;
+    showToast("Mesh sync once", `${ok}/${total}`, ok ? "ok" : "error");
+  } catch (error) {
+    showToast("Mesh sync once failed", error.message || String(error), "error");
+  }
+}
+
+async function promptMeshToken() {
+  const hubId = window.prompt("Hub id (must already be registered)", "");
+  if (hubId === null || !String(hubId).trim()) return;
+  const token = window.prompt("Per-hub admin token (empty clears)", "");
+  if (token === null) return;
+  try {
+    const payload = await api("/admin/api/console/mesh/token", {
+      method: "POST",
+      body: JSON.stringify({ hub_id: String(hubId).trim(), token: String(token) }),
+    });
+    showToast("Hub token", payload.token_set ? "set" : "cleared", "ok");
+  } catch (error) {
+    showToast("Hub token failed", error.message || String(error), "error");
+  }
+}
 
 async function promptMeshPull() {
   const raw = window.prompt(

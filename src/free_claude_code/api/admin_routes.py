@@ -299,6 +299,9 @@ async def security_audit(request: Request):
         "console_fanin_mtls": bool(os.getenv("FCC_FANIN_MTLS_CERT", "").strip()),
         "hub_mesh": True,
         "hub_mesh_pull": True,
+        "hub_mesh_tokens": True,
+        "hub_mesh_sync": True,
+        "fcc_core_pypi": True,
         "native_hotpath_v2": True,
         "ed25519_backend": __import__("free_claude_code.api.audit_sign", fromlist=["ed25519_backend"]).ed25519_backend(),
         "fcc_core_packaging": True,
@@ -861,6 +864,8 @@ async def native_status(request: Request):
                 "ci_recipe": "scripts/native-core.ci.yml",
                 "build_script": "scripts/build_native.sh",
                 "package_script": "scripts/package_fcc_core.sh",
+                "publish_script": "scripts/publish_fcc_core.sh",
+                "pypi_name": "fcc-core",
             },
         }
     )
@@ -896,6 +901,111 @@ async def console_mesh_snapshot(request: Request):
 
     return _no_store(hub_mesh.snapshot())
 
+
+
+
+@router.post("/admin/api/console/mesh/token")
+async def console_mesh_set_token(request: Request):
+    """Set or clear a per-hub admin token (never returned by snapshot).
+
+    Body: { "hub_id": "hub-b", "token": "..." } — empty token clears.
+    """
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    check_request_size(request, max_size=8 * 1024)
+    body = await request.json()
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="JSON object required")
+    from .hub_mesh import hub_mesh
+
+    hub_id = str(body.get("hub_id") or "").strip()
+    token = body.get("token")
+    token_s = None if token is None else str(token)
+    try:
+        result = hub_mesh.set_token(hub_id, token_s)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)[:200]) from exc
+    log_security_event(
+        "hub_mesh_token_set",
+        request,
+        {"hub_id": hub_id, "token_set": result.get("token_set")},
+        level="info",
+    )
+    return _no_store(result)
+
+
+@router.get("/admin/api/console/mesh/sync")
+async def console_mesh_sync_status(request: Request):
+    """Status of the continuous mesh sync scheduler."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    from .mesh_scheduler import mesh_scheduler
+
+    return _no_store(mesh_scheduler.status())
+
+
+@router.post("/admin/api/console/mesh/sync/start")
+async def console_mesh_sync_start(request: Request):
+    """Start continuous mesh pull (interval_seconds optional, min 15)."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    body: dict = {}
+    try:
+        raw = await request.body()
+        if raw.strip():
+            import json as _json
+            parsed = _json.loads(raw)
+            if isinstance(parsed, dict):
+                body = parsed
+    except Exception:
+        body = {}
+    interval = body.get("interval_seconds")
+    from .mesh_scheduler import mesh_scheduler
+
+    status = await mesh_scheduler.start(
+        interval_seconds=float(interval) if interval is not None else None
+    )
+    log_security_event(
+        "hub_mesh_sync_start",
+        request,
+        {"interval_seconds": status.get("interval_seconds")},
+        level="info",
+    )
+    return _no_store(status)
+
+
+@router.post("/admin/api/console/mesh/sync/stop")
+async def console_mesh_sync_stop(request: Request):
+    """Stop continuous mesh pull."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    from .mesh_scheduler import mesh_scheduler
+
+    status = await mesh_scheduler.stop()
+    log_security_event("hub_mesh_sync_stop", request, level="info")
+    return _no_store(status)
+
+
+@router.post("/admin/api/console/mesh/sync/once")
+async def console_mesh_sync_once(request: Request):
+    """Run one mesh pull cycle immediately (does not change scheduler enabled flag)."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    from .mesh_scheduler import mesh_scheduler
+
+    result = await mesh_scheduler.run_once()
+    log_security_event(
+        "hub_mesh_sync_once",
+        request,
+        {"ok": result.get("ok"), "total": len(result.get("results") or [])},
+        level="info",
+    )
+    return _no_store(result)
 
 
 @router.post("/admin/api/console/mesh/pull")
@@ -945,54 +1055,68 @@ async def console_mesh_pull(request: Request):
     ingest_fanin = body.get("ingest_fanin", True) is not False
     register_remote = body.get("register_remote", True) is not False
 
-    targets: list[str] = []
+    # target specs: list of {url, token?, hub_id?}
+    target_specs: list[dict] = []
     raw_hubs = body.get("hubs")
     if isinstance(raw_hubs, list) and raw_hubs:
+        global_token = str(body.get("token") or "").strip()[:512]
         for item in raw_hubs[:16]:
             try:
-                # allow bare base or full URL
-                u = str(item).strip()
+                if isinstance(item, dict):
+                    u = str(item.get("url") or item.get("base_url") or "").strip()
+                    tok = str(item.get("token") or global_token or "").strip()[:512]
+                    hid = str(item.get("hub_id") or "").strip()[:64]
+                else:
+                    u = str(item).strip()
+                    tok = global_token
+                    hid = ""
                 if "://" in u and "/admin/api/" not in u:
                     u = u.rstrip("/") + path
-                targets.append(normalize_peer_url(u))
+                url = normalize_peer_url(u)
+                target_specs.append({"url": url, "token": tok, "hub_id": hid})
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)[:200]) from exc
     else:
+        global_token = str(body.get("token") or "").strip()[:512]
         for h in hub_mesh.pull_targets(limit=16):
             base = h["base_url"].rstrip("/")
             try:
                 if "/admin/api/" in base:
-                    targets.append(normalize_peer_url(base))
+                    url = normalize_peer_url(base)
                 else:
-                    targets.append(normalize_peer_url(base + path))
+                    url = normalize_peer_url(base + path)
             except ValueError:
                 continue
+            tok = str(h.get("token") or global_token or "").strip()[:512]
+            target_specs.append(
+                {"url": url, "token": tok, "hub_id": str(h.get("hub_id") or "")}
+            )
 
-    # de-dupe
+    # de-dupe by url
     seen: set[str] = set()
-    uniq: list[str] = []
-    for u in targets:
+    uniq: list[dict] = []
+    for spec in target_specs:
+        u = spec["url"]
         if u not in seen:
             seen.add(u)
-            uniq.append(u)
-    targets = uniq
-    if not targets:
+            uniq.append(spec)
+    target_specs = uniq
+    if not target_specs:
         raise HTTPException(
             status_code=400,
             detail="no pull targets — register hubs with base_url or pass hubs[]",
         )
 
-    token = str(body.get("token") or "").strip()[:512]
-    if not token:
-        token = os.getenv("FCC_ADMIN_API_TOKEN", "").strip()
-    headers = {}
-    if token:
-        headers["X-FCC-Admin-Token"] = token
-
+    default_token = os.getenv("FCC_ADMIN_API_TOKEN", "").strip()
     results = []
     _mtls = mtls_client_kwargs_from_env()
     async with httpx.AsyncClient(timeout=3.0, follow_redirects=False, **_mtls) as client:
-        for url in targets:
+        for spec in target_specs:
+            url = spec["url"]
+            headers = {}
+            token = (spec.get("token") or default_token or "").strip()
+            if token:
+                headers["X-FCC-Admin-Token"] = token
             try:
                 resp = await client.get(url, headers=headers)
                 if resp.status_code != 200:
@@ -1110,7 +1234,7 @@ async def console_mesh_pull(request: Request):
         "hub_mesh_pull",
         request,
         {
-            "targets": len(targets),
+            "targets": len(results),
             "ok": sum(1 for r in results if r.get("ok")),
         },
         level="info",
@@ -1172,6 +1296,9 @@ async def audit_bundle_export(
         "console_fanin_mtls": bool(os.getenv("FCC_FANIN_MTLS_CERT", "").strip()),
         "hub_mesh": True,
         "hub_mesh_pull": True,
+        "hub_mesh_tokens": True,
+        "hub_mesh_sync": True,
+        "fcc_core_pypi": True,
         "native_hotpath_v2": True,
         "ed25519_backend": __import__("free_claude_code.api.audit_sign", fromlist=["ed25519_backend"]).ed25519_backend(),
         "fcc_core_packaging": True,

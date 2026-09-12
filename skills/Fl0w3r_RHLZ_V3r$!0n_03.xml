@@ -113,9 +113,13 @@
       Active mesh pull between hubs; cryptography Ed25519 fast-path;
       fcc_core packaging scripts + CI matrix.
     </phase>
-    <phase id="18" name="Next">
-      PyPI optional fcc-core package; mesh auth tokens per-hub;
-      continuous mesh sync scheduler.
+    <phase id="18" name="Phase14">
+      Per-hub mesh auth tokens; continuous mesh sync scheduler;
+      fcc-core PyPI metadata + gated publish script.
+    </phase>
+    <phase id="19" name="Next">
+      OIDC PyPI publish on tag; distributed mesh scheduler lock;
+      hub health probes + alerting hooks.
     </phase>
   </execution_plan>
 

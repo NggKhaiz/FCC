@@ -200,5 +200,13 @@ Truy cập: `http://YOUR_IP:8082/admin`
 - Tests: `tests/api/test_phase13_mesh_pull.py`
 - Chi tiết: `PHASE13_COMPLETE.md`
 
+### 22. Phase 14 — Per-hub tokens · Mesh sync · fcc-core PyPI
+✅ **Continuous multi-hub federation + gated publish**
+- Per-hub mesh tokens (never in snapshot)
+- Continuous sync scheduler + autostart env
+- `fcc-core` PyPI metadata + publish_fcc_core.sh (gated)
+- Tests: `tests/api/test_phase14_mesh_sync.py`
+- Chi tiết: `PHASE14_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 13)*
+*2026-09-13 - arena/01a095da-fcc (Phase 14)*
