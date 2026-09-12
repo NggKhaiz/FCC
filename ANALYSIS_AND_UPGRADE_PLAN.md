@@ -174,7 +174,7 @@ src/free_claude_code/
 - [x] Detailed health includes RPS / error rate / uptime
 - [x] Config export (non-secret) + import dry-run/apply
 - [ ] API key riêng cho admin (khác proxy token) — still optional
-- [ ] WebSocket cho real-time logs — future
+- [x] WebSocket cho real-time logs (admin console)
 
 #### Frontend
 - [x] Light/dark theme toggle (localStorage + `theme_boot.js`)
@@ -225,12 +225,19 @@ src/free_claude_code/
 - [x] EventSource admin-token cookie bridge
 - [x] Multi-node metrics export/merge federation
 - [x] Live metrics SSE stream
-- [ ] WebSocket bidirectional logs — future
+- [x] WebSocket bidirectional logs (admin console)
 
 ### Phase 8: Cookie + Federation ✅ DONE
 - [x] session token cookie for SSE
 - [x] metrics stream / export / merge
-- [ ] Bidirectional WebSocket admin console — future
+- [x] Bidirectional WebSocket admin console
+- [x] Prometheus text exposition
+
+### Phase 9: Console + Prometheus ✅ DONE
+- [x] WS `/admin/api/console/ws` protocol + UI
+- [x] `GET /admin/api/metrics/prometheus`
+- [ ] Multi-replica fan-in console hub — future
+- [ ] OpenMetrics protobuf optional — future
 
 ---
 

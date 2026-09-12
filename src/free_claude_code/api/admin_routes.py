@@ -11,6 +11,8 @@ from fastapi import (
     HTTPException,
     Request,
     Response,
+    WebSocket,
+    WebSocketDisconnect,
 )
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from loguru import logger
@@ -141,6 +143,7 @@ def admin_page_response() -> HTMLResponse:
 @router.get("/admin/messaging", include_in_schema=False)
 @router.get("/admin/security", include_in_schema=False)
 @router.get("/admin/metrics", include_in_schema=False)
+@router.get("/admin/console", include_in_schema=False)
 @router.get("/admin/integrations", include_in_schema=False)
 def admin_page(request: Request):
     check_rate_limit(request)
@@ -284,6 +287,8 @@ async def security_audit(request: Request):
         "rate_limiting": True,
         "metrics_enabled": True,
         "security_event_ring": True,
+        "prometheus_export": True,
+        "admin_console_ws": True,
         "native_backend": __import__("free_claude_code.native", fromlist=["backend"]).backend(),
         "version": package_version(),
     }
@@ -475,6 +480,190 @@ async def metrics_merge(
     from .metrics_federation import merge_metric_exports
 
     return _no_store(merge_metric_exports(nodes))
+
+
+
+@router.get("/admin/api/metrics/prometheus")
+async def metrics_prometheus(
+    request: Request, services: ApiServices = Depends(get_services)
+):
+    """Prometheus text exposition of runtime metrics (scrape-compatible)."""
+    import os
+
+    from fastapi.responses import PlainTextResponse
+
+    from .metrics import metrics as runtime_metrics
+    from .prometheus_export import render_prometheus_text
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request, services)
+    snap = runtime_metrics.snapshot()
+    node_id = os.getenv("FCC_NODE_ID") or (
+        f"node-{int(snap['started_at'])}" if snap.get("started_at") else "node-local"
+    )
+    body = render_prometheus_text(
+        snap,
+        node_id=node_id,
+        version=package_version(),
+    )
+    return PlainTextResponse(
+        body,
+        media_type="text/plain; version=0.0.4; charset=utf-8",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@router.websocket("/admin/api/console/ws")
+async def admin_console_ws(websocket: WebSocket):
+    """Bidirectional admin console: security + metrics push, ping/subscribe.
+
+    Auth: cookie ``fcc_admin_token`` on upgrade, or first message
+    ``{"op":"auth","token":"..."}`` when ``FCC_ADMIN_API_TOKEN`` is set.
+    """
+    import asyncio
+    import os
+    import secrets as _secrets
+    import time as _time
+
+    from .admin_console import (
+        dumps,
+        error_message,
+        handle_command,
+        metrics_frame,
+        parse_client_message,
+        security_event_frame,
+        system_frame,
+        welcome_message,
+    )
+    from .metrics import metrics as runtime_metrics
+
+    # IP / remote gate before accepting the socket
+    client = websocket.client
+    real_ip = None
+    forwarded = websocket.headers.get("x-forwarded-for")
+    if forwarded:
+        real_ip = forwarded.split(",")[0].strip()
+    elif client:
+        real_ip = client.host
+    try:
+        from .admin_security import _is_ip_allowed, _is_remote_admin_allowed, _is_loopback_host
+        if not _is_ip_allowed(real_ip or (client.host if client else None)):
+            await websocket.close(code=1008, reason="IP allowlist")
+            return
+        if not _is_remote_admin_allowed():
+            host = client.host if client else None
+            if host and not _is_loopback_host(host):
+                await websocket.close(code=1008, reason="local only")
+                return
+    except Exception:
+        await websocket.close(code=1011, reason="gate error")
+        return
+
+    await websocket.accept()
+
+    configured = os.getenv("FCC_ADMIN_API_TOKEN", "").strip()
+    cookie_tok = (websocket.cookies.get("fcc_admin_token") or "").strip()
+    authed = False
+    if not configured:
+        authed = True
+    elif cookie_tok and _secrets.compare_digest(
+        cookie_tok.encode("utf-8"), configured.encode("utf-8")
+    ):
+        authed = True
+
+    node_id = os.getenv("FCC_NODE_ID") or "node-local"
+    subscribed: set[str] = set()
+    send_task = None
+    try:
+        if not authed:
+            try:
+                raw = await asyncio.wait_for(websocket.receive_text(), timeout=10.0)
+            except (asyncio.TimeoutError, WebSocketDisconnect):
+                await websocket.send_text(dumps(error_message("auth_timeout", "Auth required")))
+                await websocket.close(code=1008, reason="auth required")
+                return
+            try:
+                data = parse_client_message(raw)
+            except (ValueError, Exception) as e:
+                await websocket.send_text(dumps(error_message("bad_frame", str(e)[:200])))
+                await websocket.close(code=1003, reason="bad frame")
+                return
+            if data.get("op") != "auth":
+                await websocket.send_text(
+                    dumps(error_message("auth_required", "Send op=auth first"))
+                )
+                await websocket.close(code=1008, reason="auth required")
+                return
+            token = str(data.get("token") or "").strip()
+            if not token or not _secrets.compare_digest(
+                token.encode("utf-8"), configured.encode("utf-8")
+            ):
+                log_security_event("admin_ws_auth_failed", None, level="warning")
+                await websocket.send_text(dumps(error_message("auth_failed", "Invalid token")))
+                await websocket.close(code=1008, reason="auth failed")
+                return
+            authed = True
+            await websocket.send_text(dumps({"op": "auth_ok", "ts": _time.time()}))
+
+        log_security_event("admin_ws_connected", None, level="info")
+        await websocket.send_text(
+            dumps(welcome_message(node_id=node_id, version=package_version()))
+        )
+        subscribed = {"system"}
+        await websocket.send_text(dumps(system_frame("console ready")))
+
+        from free_claude_code.native import security_events as ring
+
+        last_seq = ring.latest_seq()
+        last_metrics_push = 0.0
+
+        async def sender() -> None:
+            nonlocal last_seq, last_metrics_push
+            while True:
+                await asyncio.sleep(0.5)
+                now = _time.time()
+                if "security" in subscribed:
+                    cur = ring.latest_seq()
+                    if cur > last_seq:
+                        events = list(reversed(ring.snapshot(after_seq=last_seq, limit=40)))
+                        last_seq = cur
+                        await websocket.send_text(dumps(security_event_frame(events, cur)))
+                if "metrics" in subscribed and (now - last_metrics_push) >= 2.0:
+                    last_metrics_push = now
+                    snap = runtime_metrics.snapshot()
+                    await websocket.send_text(dumps(metrics_frame(snap)))
+
+        send_task = asyncio.create_task(sender())
+        while True:
+            raw = await websocket.receive_text()
+            try:
+                data = parse_client_message(raw)
+            except (ValueError, Exception) as e:
+                await websocket.send_text(dumps(error_message("bad_frame", str(e)[:200])))
+                continue
+            op = data["op"]
+            if op == "auth":
+                await websocket.send_text(dumps({"op": "auth_ok", "ts": _time.time()}))
+                continue
+            reply, subscribed = handle_command(op, data, subscribed=subscribed)
+            if reply is not None:
+                await websocket.send_text(dumps(reply))
+    except WebSocketDisconnect:
+        log_security_event("admin_ws_disconnected", None, level="info")
+    except Exception as exc:
+        logger.warning("admin console ws error: {}", exc)
+        try:
+            await websocket.close(code=1011, reason="server error")
+        except Exception:
+            pass
+    finally:
+        if send_task is not None:
+            send_task.cancel()
+            try:
+                await send_task
+            except (asyncio.CancelledError, Exception):
+                pass
 
 
 @router.get("/admin/api/security/events/stream")

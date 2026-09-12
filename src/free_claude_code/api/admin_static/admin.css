@@ -1689,3 +1689,94 @@ html[data-theme="dark"] .theme-icon-dark { display: block; }
     text-align: left;
   }
 }
+
+
+/* Phase 9 — Admin WebSocket console */
+.console-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 420px;
+}
+.console-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.console-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.console-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.muted-inline {
+  color: var(--muted);
+  font-size: 13px;
+}
+.console-log {
+  flex: 1;
+  min-height: 320px;
+  max-height: min(60vh, 560px);
+  overflow: auto;
+  padding: 12px 14px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel, #111) 92%, black);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.console-line {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  padding: 2px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
+}
+.console-ts {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.console-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text, #e8e8e8);
+}
+.console-line.console-error .console-text { color: var(--error, #f87171); }
+.console-line.console-ok .console-text { color: var(--ok, #4ade80); }
+.console-line.console-security .console-text { color: var(--warn, #fbbf24); }
+.console-line.console-metrics .console-text { color: var(--accent, #60a5fa); }
+.console-line.console-out .console-text { color: var(--accent-2, #a78bfa); }
+.console-line.console-system .console-text { color: var(--muted); }
+.console-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.console-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--line);
+  background: var(--panel, #151515);
+  color: var(--text, #eee);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 13px;
+}
+.console-hint {
+  margin: 0;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .console-line {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}

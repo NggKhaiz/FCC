@@ -160,5 +160,13 @@ Truy cập: `http://YOUR_IP:8082/admin`
 - Tests: `tests/api/test_phase8_federation.py`
 - Chi tiết: `PHASE8_COMPLETE.md`
 
+### 17. Phase 9 — WebSocket console · Prometheus
+✅ **Bidirectional admin console + scrape metrics**
+- `WS /admin/api/console/ws` (auth, subscribe, live security/metrics)
+- `GET /admin/api/metrics/prometheus` text exposition
+- Console UI view + ⌘K shortcuts
+- Tests: `tests/api/test_phase9_console.py`
+- Chi tiết: `PHASE9_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 8)*
+*2026-09-12 - arena/01a095da-fcc (Phase 9)*

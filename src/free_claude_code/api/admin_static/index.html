@@ -146,6 +146,36 @@
             </div>
           </section>
 
+          <section id="view-console" class="admin-view" data-view="console" hidden>
+            <div class="form-sections console-shell" id="consoleRoot">
+              <div class="console-toolbar">
+                <div class="console-status-row">
+                  <span id="consoleWsStatus" class="status-pill neutral" role="status">Disconnected</span>
+                  <span id="consoleSubLabel" class="muted-inline">channels: —</span>
+                </div>
+                <div class="console-actions">
+                  <button id="consoleConnectBtn" class="secondary-button" type="button">Connect</button>
+                  <button id="consoleClearBtn" class="secondary-button" type="button">Clear</button>
+                  <button id="consolePingBtn" class="secondary-button" type="button" disabled>Ping</button>
+                </div>
+              </div>
+              <div id="consoleLog" class="console-log" role="log" aria-live="polite" aria-label="Admin console log"></div>
+              <form id="consoleForm" class="console-form" autocomplete="off">
+                <input
+                  id="consoleInput"
+                  type="text"
+                  maxlength="500"
+                  placeholder='Command: ping | subscribe security,metrics | help'
+                  aria-label="Console command"
+                />
+                <button id="consoleSendBtn" class="primary-button" type="submit" disabled>Send</button>
+              </form>
+              <p class="muted-center console-hint">
+                WebSocket console — security events + live metrics. Auth via admin token cookie or first-frame auth.
+              </p>
+            </div>
+          </section>
+
           <section id="view-integrations" class="admin-view provider-grid" data-view="integrations" hidden>
             <article class="provider-strip integration-card">
               <div class="section-heading">

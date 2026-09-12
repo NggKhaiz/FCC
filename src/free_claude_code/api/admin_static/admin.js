@@ -26,6 +26,9 @@ const state = {
   adminApiToken: "",
   securityEvents: null,
   securityEventsSource: null,
+  consoleWs: null,
+  consoleSubscribed: [],
+  consoleLines: [],
 };
 
 const MASKED_SECRET = "********";
@@ -93,6 +96,15 @@ const VIEW_GROUPS = [
     icon: `<svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>`,
     sections: [],
     containerId: "view-metrics",
+  },
+  {
+    id: "console",
+    label: "Console",
+    title: "Console",
+    subtitle: "Bidirectional WebSocket admin console",
+    icon: `<svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`,
+    sections: [],
+    containerId: "view-console",
   },
   {
     id: "integrations",
@@ -452,6 +464,8 @@ function renderSecurityView(info) {
     { label: "Rate Limiting", ok: info.rate_limiting, desc: "Brute force protection" },
     { label: "Event ring", ok: info.security_event_ring !== false, desc: "Live audit tail" },
     { label: "Metrics", ok: info.metrics_enabled !== false, desc: "Runtime latency + RPS" },
+    { label: "Prometheus", ok: info.prometheus_export !== false, desc: "/admin/api/metrics/prometheus" },
+    { label: "WS Console", ok: info.admin_console_ws !== false, desc: "/admin/api/console/ws" },
     { label: "CORS", ok: info.cors_enabled, desc: "Remote access enabled" },
     { label: "SSRF Protection", ok: true, desc: "Egress filtering active" },
     { label: "XSS Protection", ok: true, desc: "Safe rendering" },
@@ -1010,6 +1024,8 @@ function commandPaletteItems() {
     { id: "metrics", label: "Open metrics", hint: "Latency + RPS", run: () => navigateToView("metrics") },
     { id: "admin-token", label: "Set admin API token", hint: "session + cookie", run: () => promptAdminApiToken() },
     { id: "export-metrics", label: "Export metrics federation", hint: "JSON snapshot", run: () => exportMetricsFederation() },
+    { id: "export-prometheus", label: "Open Prometheus metrics", hint: "text exposition", run: () => window.open("/admin/api/metrics/prometheus", "_blank", "noopener") },
+    { id: "console", label: "Open console", hint: "WebSocket live tail", run: () => navigateToView("console") },
   ];
 }
 
@@ -1069,6 +1085,258 @@ async function syncAdminSessionCookie(token) {
     console.warn("Admin session cookie sync failed", e);
   }
 }
+
+
+/* ---- Admin WebSocket Console (Phase 9) ---- */
+function consoleAppend(kind, text) {
+  const line = {
+    ts: Date.now(),
+    kind: String(kind || "info").slice(0, 16),
+    text: String(text || "").slice(0, 2000),
+  };
+  state.consoleLines = (state.consoleLines || []).concat(line).slice(-300);
+  const log = byId("consoleLog");
+  if (!log) return;
+  const row = document.createElement("div");
+  row.className = `console-line console-${line.kind}`;
+  const time = document.createElement("span");
+  time.className = "console-ts";
+  time.textContent = new Date(line.ts).toLocaleTimeString();
+  const body = document.createElement("span");
+  body.className = "console-text";
+  body.textContent = line.text;
+  row.append(time, body);
+  log.appendChild(row);
+  while (log.childNodes.length > 300) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
+function setConsoleStatus(label, tone) {
+  const el = byId("consoleWsStatus");
+  if (!el) return;
+  el.textContent = String(label || "").slice(0, 40);
+  el.className = `status-pill ${tone || "neutral"}`;
+}
+
+function setConsoleSubscribed(channels) {
+  state.consoleSubscribed = Array.isArray(channels) ? channels.slice(0, 8) : [];
+  const el = byId("consoleSubLabel");
+  if (el) {
+    el.textContent = state.consoleSubscribed.length
+      ? `channels: ${state.consoleSubscribed.join(", ")}`
+      : "channels: —";
+  }
+}
+
+function consoleWsUrl() {
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${window.location.host}/admin/api/console/ws`;
+}
+
+function stopAdminConsole() {
+  if (state.consoleWs) {
+    try { state.consoleWs.close(); } catch {}
+    state.consoleWs = null;
+  }
+  setConsoleStatus("Disconnected", "neutral");
+  const ping = byId("consolePingBtn");
+  const send = byId("consoleSendBtn");
+  const conn = byId("consoleConnectBtn");
+  if (ping) ping.disabled = true;
+  if (send) send.disabled = true;
+  if (conn) conn.textContent = "Connect";
+}
+
+function startAdminConsole() {
+  if (typeof WebSocket === "undefined") {
+    consoleAppend("error", "WebSocket not supported in this browser");
+    return;
+  }
+  if (state.consoleWs && (state.consoleWs.readyState === WebSocket.OPEN || state.consoleWs.readyState === WebSocket.CONNECTING)) {
+    return;
+  }
+  stopAdminConsole();
+  setConsoleStatus("Connecting…", "neutral");
+  consoleAppend("system", `Connecting ${consoleWsUrl()}`);
+  let ws;
+  try {
+    ws = new WebSocket(consoleWsUrl());
+  } catch (e) {
+    consoleAppend("error", `Connect failed: ${e.message || e}`);
+    setConsoleStatus("Error", "error");
+    return;
+  }
+  state.consoleWs = ws;
+  const conn = byId("consoleConnectBtn");
+  if (conn) conn.textContent = "Disconnect";
+
+  ws.addEventListener("open", () => {
+    setConsoleStatus("Connected", "positive");
+    const ping = byId("consolePingBtn");
+    const send = byId("consoleSendBtn");
+    if (ping) ping.disabled = false;
+    if (send) send.disabled = false;
+    // If admin token present, send auth frame (cookie may already unlock)
+    if (state.adminApiToken) {
+      try {
+        ws.send(JSON.stringify({ op: "auth", token: state.adminApiToken }));
+      } catch {}
+    }
+    // Auto-subscribe useful channels
+    try {
+      ws.send(JSON.stringify({ op: "subscribe", channels: ["security", "metrics", "system"] }));
+    } catch {}
+  });
+
+  ws.addEventListener("message", (ev) => {
+    let data;
+    try { data = JSON.parse(ev.data); } catch {
+      consoleAppend("raw", String(ev.data).slice(0, 500));
+      return;
+    }
+    const op = data && data.op;
+    if (op === "welcome") {
+      consoleAppend("system", `welcome node=${data.node_id || "?"} v=${data.version || "?"} protocol=${data.protocol}`);
+      return;
+    }
+    if (op === "auth_ok") {
+      consoleAppend("system", "authenticated");
+      return;
+    }
+    if (op === "pong") {
+      consoleAppend("ok", `pong${data.nonce ? " " + data.nonce : ""}`);
+      return;
+    }
+    if (op === "subscribed") {
+      setConsoleSubscribed(data.channels || []);
+      consoleAppend("ok", `subscribed [${(data.channels || []).join(", ")}]`);
+      return;
+    }
+    if (op === "help") {
+      consoleAppend("info", `ops=${(data.ops || []).join(", ")} channels=${(data.channels || []).join(", ")}`);
+      return;
+    }
+    if (op === "error") {
+      consoleAppend("error", `${data.code || "error"}: ${data.message || ""}`);
+      return;
+    }
+    if (op === "event") {
+      if (data.channel === "security") {
+        const events = data.events || [];
+        for (const row of events) {
+          consoleAppend(
+            "security",
+            `#${row.seq || "?"} ${row.level || ""} ${row.event || ""} ${row.method || ""} ${row.path || ""} ip=${row.client_ip || ""}`
+          );
+        }
+        return;
+      }
+      if (data.channel === "metrics") {
+        const m = data.metrics || {};
+        consoleAppend(
+          "metrics",
+          `req=${m.total_requests || 0} err=${m.total_errors || 0} rps=${m.requests_per_second || 0} up=${m.uptime_seconds || 0}s`
+        );
+        return;
+      }
+      if (data.channel === "system") {
+        consoleAppend("system", data.message || "");
+        return;
+      }
+    }
+    consoleAppend("info", JSON.stringify(data).slice(0, 500));
+  });
+
+  ws.addEventListener("close", () => {
+    consoleAppend("system", "disconnected");
+    stopAdminConsole();
+    if (state.activeView === "console") {
+      window.setTimeout(() => {
+        if (state.activeView === "console" && !state.consoleWs) {
+          // soft auto-reconnect once
+        }
+      }, 4000);
+    }
+  });
+
+  ws.addEventListener("error", () => {
+    consoleAppend("error", "WebSocket error");
+    setConsoleStatus("Error", "error");
+  });
+}
+
+function toggleAdminConsole() {
+  if (state.consoleWs && state.consoleWs.readyState === WebSocket.OPEN) {
+    stopAdminConsole();
+    consoleAppend("system", "closed by user");
+  } else {
+    startAdminConsole();
+  }
+}
+
+function sendConsoleCommand(raw) {
+  const text = String(raw || "").trim().slice(0, 500);
+  if (!text) return;
+  consoleAppend("out", text);
+  const ws = state.consoleWs;
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    consoleAppend("error", "not connected");
+    return;
+  }
+  let payload;
+  const lower = text.toLowerCase();
+  if (lower === "ping" || lower.startsWith("ping ")) {
+    const nonce = text.slice(4).trim() || undefined;
+    payload = { op: "ping", nonce };
+  } else if (lower === "help") {
+    payload = { op: "help" };
+  } else if (lower.startsWith("subscribe ")) {
+    const channels = text.slice(9).split(/[,\s]+/).map((s) => s.trim()).filter(Boolean);
+    payload = { op: "subscribe", channels };
+  } else if (lower.startsWith("unsubscribe")) {
+    const rest = text.slice(11).trim();
+    const channels = rest ? rest.split(/[,\s]+/).map((s) => s.trim()).filter(Boolean) : state.consoleSubscribed;
+    payload = { op: "unsubscribe", channels };
+  } else if (text.startsWith("{")) {
+    try { payload = JSON.parse(text); } catch (e) {
+      consoleAppend("error", `invalid JSON: ${e.message || e}`);
+      return;
+    }
+  } else {
+    consoleAppend("error", "unknown command — try: ping | help | subscribe security,metrics");
+    return;
+  }
+  try {
+    ws.send(JSON.stringify(payload));
+  } catch (e) {
+    consoleAppend("error", `send failed: ${e.message || e}`);
+  }
+}
+
+function initAdminConsoleUi() {
+  const connectBtn = byId("consoleConnectBtn");
+  const clearBtn = byId("consoleClearBtn");
+  const pingBtn = byId("consolePingBtn");
+  const form = byId("consoleForm");
+  if (connectBtn) connectBtn.addEventListener("click", () => toggleAdminConsole());
+  if (clearBtn) clearBtn.addEventListener("click", () => {
+    state.consoleLines = [];
+    const log = byId("consoleLog");
+    if (log) log.textContent = "";
+  });
+  if (pingBtn) pingBtn.addEventListener("click", () => sendConsoleCommand("ping"));
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = byId("consoleInput");
+      if (!input) return;
+      const val = input.value;
+      input.value = "";
+      sendConsoleCommand(val);
+    });
+  }
+}
+
 
 function renderCommandPalette(query) {
   const list = byId("commandPaletteList");
@@ -1305,7 +1573,7 @@ function setActiveView(viewId, { scroll = false } = {}) {
   const topbar = document.querySelector(".topbar");
   if (topbar) topbar.hidden = sessionActive;
   const actionBar = document.querySelector(".action-bar");
-  if (actionBar) actionBar.hidden = sessionActive || ["integrations", "security", "metrics"].includes(activeView.id);
+  if (actionBar) actionBar.hidden = sessionActive || ["integrations", "security", "metrics", "console"].includes(activeView.id);
   const statsGrid = byId("statsGrid");
   if (statsGrid) statsGrid.hidden = sessionActive || activeView.id !== "providers";
   const searchBox = byId("globalSearchBox");
@@ -1347,7 +1615,26 @@ function setActiveView(viewId, { scroll = false } = {}) {
   } else {
     stopMetricsPolling();
   }
+  if (activeView.id === "console") {
+    const log = byId("consoleLog");
+    if (log && !log.childNodes.length && state.consoleLines && state.consoleLines.length) {
+      state.consoleLines.forEach((line) => {
+        const row = document.createElement("div");
+        row.className = `console-line console-${line.kind}`;
+        const time = document.createElement("span");
+        time.className = "console-ts";
+        time.textContent = new Date(line.ts).toLocaleTimeString();
+        const body = document.createElement("span");
+        body.className = "console-text";
+        body.textContent = line.text;
+        row.append(time, body);
+        log.appendChild(row);
+      });
+    }
+    if (!state.consoleWs) startAdminConsole();
+  }
 }
+
 
 function navigateToView(viewId) {
   const validViews = VIEW_GROUPS.map(v => v.id);
@@ -2570,6 +2857,7 @@ if (globalSearch) {
 
 initTheme();
 setupKeyboardShortcuts();
+initAdminConsoleUi();
 try {
   if (!state.adminApiToken) {
     state.adminApiToken = sessionStorage.getItem("fcc.adminApiToken") || "";

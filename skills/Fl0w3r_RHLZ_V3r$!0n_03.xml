@@ -93,9 +93,13 @@
       EventSource admin-token cookie bridge; metrics live SSE;
       multi-node metrics export/merge federation.
     </phase>
-    <phase id="13" name="Next">
-      WebSocket bidirectional admin console; scrape-compatible Prometheus
-      text exposition optional.
+    <phase id="13" name="Phase9">
+      WebSocket bidirectional admin console; Prometheus text exposition;
+      Console UI view with live security/metrics channels.
+    </phase>
+    <phase id="14" name="Next">
+      Multi-replica console fan-in; OpenMetrics optional; admin
+      audit export bundles.
     </phase>
   </execution_plan>
 
