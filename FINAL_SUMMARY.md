@@ -138,12 +138,19 @@ Truy cập: `http://YOUR_IP:8082/admin`
 
 ### 14. Phase 6 — Native CI · stream JSON · latency graphs
 ✅ **Observe + CI + stream hot path**
-- CI workflow `scripts/native-core.ci.yml (copy into .github/workflows/ when workflows permission available)` (maturin + cargo test)
+- CI recipe `scripts/native-core.ci.yml`
 - Stream/tool JSON → `json_dumps_compact`
 - Metrics latency histogram + provider_latency ranking
 - Admin Metrics CSS bar charts (zero Chart.js)
-- CI-safe: no `from __future__` / `type: ignore` in Phase modules
 - Chi tiết: `PHASE6_COMPLETE.md`
 
+### 15. Phase 7 — Live latency · SSE · PWA (A→Z)
+✅ **Full Flower loop**
+- Live `provider_latency` on every proxy stream candidate
+- SSE `/admin/api/security/events/stream` + EventSource UI tail
+- PWA: manifest + service worker (assets only)
+- Tests: `tests/api/test_phase7_live.py`
+- Chi tiết: `PHASE7_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 6 loop)*
+*2026-09-12 - arena/01a095da-fcc (Phase 7 A→Z)*

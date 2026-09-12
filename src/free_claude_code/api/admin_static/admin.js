@@ -24,6 +24,7 @@ const state = {
   theme: "dark",
   adminApiToken: "",
   securityEvents: null,
+  securityEventsSource: null,
 };
 
 const MASKED_SECRET = "********";
@@ -303,8 +304,63 @@ async function loadSecurityEvents() {
     const payload = await api("/admin/api/security/events?limit=30");
     state.securityEvents = payload;
     renderSecurityEvents(payload);
+    startSecurityEventsStream();
   } catch (e) {
     console.warn("Security events failed", e);
+  }
+}
+
+function stopSecurityEventsStream() {
+  if (state.securityEventsSource) {
+    try { state.securityEventsSource.close(); } catch {}
+    state.securityEventsSource = null;
+  }
+}
+
+function startSecurityEventsStream() {
+  if (state.activeView !== "security") return;
+  if (typeof EventSource === "undefined") return;
+  if (state.securityEventsSource) return;
+  try {
+    // EventSource cannot set custom headers; token via query is avoided (leak risk).
+    // When FCC_ADMIN_API_TOKEN is set, SSE requires same-origin cookie-less header —
+    // fall back to poll-only if token is configured in session.
+    if (state.adminApiToken) return;
+    const src = new EventSource("/admin/api/security/events/stream");
+    state.securityEventsSource = src;
+    const onPayload = (ev) => {
+      try {
+        const data = JSON.parse(ev.data);
+        if (!data || !Array.isArray(data.events)) return;
+        const prev = (state.securityEvents && state.securityEvents.events) || [];
+        const seen = new Set();
+        const newestFirst = [];
+        // incoming may be chronological; UI wants newest first
+        const incoming = [...data.events].reverse();
+        for (const row of incoming.concat(prev)) {
+          const seq = row && row.seq;
+          if (seq != null) {
+            if (seen.has(seq)) continue;
+            seen.add(seq);
+          }
+          newestFirst.push(row);
+          if (newestFirst.length >= 50) break;
+        }
+        state.securityEvents = { events: newestFirst, latest_seq: data.latest_seq };
+        renderSecurityEvents(state.securityEvents);
+      } catch {}
+    };
+    src.addEventListener("snapshot", onPayload);
+    src.addEventListener("events", onPayload);
+    src.onerror = () => {
+      stopSecurityEventsStream();
+      // retry later while still on security view
+      window.setTimeout(() => {
+        if (state.activeView === "security") startSecurityEventsStream();
+      }, 5000);
+    };
+  } catch (e) {
+    console.warn("SSE security tail unavailable", e);
   }
 }
 
@@ -1204,6 +1260,8 @@ function setActiveView(viewId, { scroll = false } = {}) {
   if (activeView.id === "security") {
     if (state.securityInfo) renderSecurityView(state.securityInfo);
     void loadSecurityEvents();
+  } else {
+    stopSecurityEventsStream();
   }
   if (activeView.id === "metrics") {
     startMetricsPolling();
@@ -2716,6 +2774,21 @@ load().then(showRestartNotice).catch((error) => {
 
 // Stop metrics polling when tab is hidden
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden) stopMetricsPolling();
-  else if (state.activeView === "metrics") startMetricsPolling();
+  if (document.hidden) {
+    stopMetricsPolling();
+    stopSecurityEventsStream();
+  } else {
+    if (state.activeView === "metrics") startMetricsPolling();
+    if (state.activeView === "security") startSecurityEventsStream();
+  }
 });
+
+// PWA: register service worker for versioned asset shell cache
+try {
+  if ("serviceWorker" in navigator) {
+    const swUrl = (document.querySelector('script[src*="admin.js"]')?.src || "").replace(/admin\.js.*/, "sw.js");
+    if (swUrl.endsWith("sw.js")) {
+      navigator.serviceWorker.register(swUrl).catch(() => {});
+    }
+  }
+} catch {}

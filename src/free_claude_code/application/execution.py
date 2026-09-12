@@ -378,6 +378,7 @@ class ProviderExecutor:
                 provider_stream: AsyncIterator[str] | None = None
                 candidate_committed = False
                 candidate_failure: ExecutionFailure | None = None
+                candidate_t0 = loop.time()
                 try:
                     try:
                         provider_stream = open_candidate(index, target)
@@ -435,6 +436,20 @@ class ProviderExecutor:
                         yield chunk
                         progress_deadline = loop.time() + self._progress_timeout_seconds
                 finally:
+                    # Live provider latency for this candidate (success or fail)
+                    try:
+                        from free_claude_code.api.metrics import (
+                            metrics as runtime_metrics,
+                        )
+
+                        latency_ms = max(0.0, (loop.time() - candidate_t0) * 1000.0)
+                        runtime_metrics.record_provider_latency(
+                            target.provider_id,
+                            latency_ms=latency_ms,
+                            ok=candidate_failure is None and candidate_committed,
+                        )
+                    except Exception:
+                        pass
                     if provider_stream is not None:
                         active_error = sys.exception()
                         preserved_error = active_error or candidate_failure

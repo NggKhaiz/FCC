@@ -1,0 +1,18 @@
+{
+  "name": "Free Claude Code Admin",
+  "short_name": "FCC Admin",
+  "description": "FCC server control panel",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "background_color": "#080a12",
+  "theme_color": "#080a12",
+  "icons": [
+    {
+      "src": "/admin/assets/__FCC_VERSION__/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

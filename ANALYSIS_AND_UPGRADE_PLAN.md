@@ -214,8 +214,16 @@ src/free_claude_code/
 - [x] Stream/tool_calls → `json_dumps_compact`
 - [x] Latency histogram + provider_latency metrics + CSS bars
 - [x] Strip banned future/type-ignore from Phase modules
-- [ ] Wire provider_latency on live proxy turns (not only tests) — next
-- [ ] PWA / WebSocket log stream — future
+- [x] Wire provider_latency on live proxy turns (ProviderExecutor)
+- [x] SSE security events stream (EventSource UI)
+- [x] PWA shell (manifest + SW assets-only)
+
+### Phase 7: Live + SSE + PWA ✅ DONE (A→Z)
+- [x] Live provider latency recording
+- [x] SSE audit tail
+- [x] PWA admin shell
+- [ ] WebSocket bidirectional logs — future
+- [ ] Multi-node metrics aggregator — future
 
 ---
 

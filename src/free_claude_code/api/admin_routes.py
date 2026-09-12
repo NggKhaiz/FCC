@@ -73,6 +73,8 @@ _ADMIN_ASSET_FILENAMES = frozenset(
         "session_ui.js",
         "model_combobox.js",
         "theme_boot.js",
+        "manifest.webmanifest",
+        "sw.js",
     }
 )
 LOCAL_PROVIDER_PATHS = {
@@ -313,6 +315,58 @@ async def detailed_health(
         "requests_per_second": snap["requests_per_second"],
     }
 
+
+
+@router.get("/admin/api/security/events/stream")
+async def security_events_stream(request: Request):
+    """SSE live tail of security/audit events (admin-only)."""
+    import asyncio
+    import json
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    from free_claude_code.native import security_events as ring
+    from fastapi.responses import StreamingResponse
+
+    async def event_gen():
+        last_seq = ring.latest_seq()
+        # initial snapshot
+        snap = ring.snapshot(after_seq=0, limit=20)
+        payload = json.dumps(
+            {"events": list(reversed(snap)), "latest_seq": ring.latest_seq()},
+            separators=(",", ":"),
+            default=str,
+        )
+        yield f"event: snapshot\ndata: {payload}\n\n"
+        while True:
+            if await request.is_disconnected():
+                break
+            await asyncio.sleep(1.0)
+            cur = ring.latest_seq()
+            if cur <= last_seq:
+                yield ": keepalive\n\n"
+                continue
+            events = ring.snapshot(after_seq=last_seq, limit=50)
+            # snapshot returns newest first; reverse for chronological SSE
+            events = list(reversed(events))
+            last_seq = cur
+            body = json.dumps(
+                {"events": events, "latest_seq": cur},
+                separators=(",", ":"),
+                default=str,
+            )
+            yield f"event: events\ndata: {body}\n\n"
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-store",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @router.get("/admin/api/security/events")

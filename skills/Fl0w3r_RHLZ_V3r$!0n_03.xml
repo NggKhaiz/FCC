@@ -85,9 +85,13 @@
       CI native wheels, stream SSE JSON ultra, latency histogram + provider bars,
       CI-safe annotations (no future/type-ignore in Phase modules).
     </phase>
-    <phase id="11" name="Next">
-      Record provider_latency on live proxy turns; optional WebSocket log stream;
-      PWA; deeper multi-node metrics.
+    <phase id="11" name="Phase7-A-Z">
+      Live provider_latency on proxy turns; SSE security events stream;
+      PWA admin shell (manifest + asset SW); full A→Z ship.
+    </phase>
+    <phase id="12" name="Next">
+      WebSocket bidirectional logs; multi-node metrics; optional admin token
+      for EventSource via cookie bridge.
     </phase>
   </execution_plan>
 
