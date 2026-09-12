@@ -165,13 +165,13 @@
                   id="consoleInput"
                   type="text"
                   maxlength="500"
-                  placeholder='Command: ping | subscribe security,metrics | help'
+                  placeholder='Command: ping | subscribe security,metrics,fanin | help'
                   aria-label="Console command"
                 />
                 <button id="consoleSendBtn" class="primary-button" type="submit" disabled>Send</button>
               </form>
               <p class="muted-center console-hint">
-                WebSocket console — security events + live metrics. Auth via admin token cookie or first-frame auth.
+                WebSocket console — security, metrics, fan-in. Auth via admin token cookie or first-frame auth. ⌘K: audit bundle / OpenMetrics.
               </p>
             </div>
           </section>

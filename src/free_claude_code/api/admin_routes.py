@@ -288,7 +288,10 @@ async def security_audit(request: Request):
         "metrics_enabled": True,
         "security_event_ring": True,
         "prometheus_export": True,
+        "openmetrics_export": True,
         "admin_console_ws": True,
+        "audit_bundle_export": True,
+        "console_fanin": True,
         "native_backend": __import__("free_claude_code.native", fromlist=["backend"]).backend(),
         "version": package_version(),
     }
@@ -514,6 +517,183 @@ async def metrics_prometheus(
     )
 
 
+
+@router.get("/admin/api/metrics/openmetrics")
+async def metrics_openmetrics(
+    request: Request, services: ApiServices = Depends(get_services)
+):
+    """OpenMetrics 1.0.0 text exposition of runtime metrics."""
+    import os
+
+    from fastapi.responses import PlainTextResponse
+
+    from .metrics import metrics as runtime_metrics
+    from .openmetrics_export import render_openmetrics_text
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request, services)
+    snap = runtime_metrics.snapshot()
+    node_id = os.getenv("FCC_NODE_ID") or (
+        f"node-{int(snap['started_at'])}" if snap.get("started_at") else "node-local"
+    )
+    body = render_openmetrics_text(
+        snap,
+        node_id=node_id,
+        version=package_version(),
+    )
+    return PlainTextResponse(
+        body,
+        media_type="application/openmetrics-text; version=1.0.0; charset=utf-8",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@router.get("/admin/api/security/events/export")
+async def security_events_export(request: Request):
+    """Portable security-events export for multi-replica fan-in."""
+    import os
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    from free_claude_code.native import security_events as ring
+
+    from .console_fanin import export_local_events
+
+    events = ring.snapshot(after_seq=0, limit=200)
+    node_id = os.getenv("FCC_NODE_ID") or "node-local"
+    return _no_store(
+        export_local_events(
+            node_id=node_id,
+            version=package_version(),
+            events=events,
+            latest_seq=ring.latest_seq(),
+        )
+    )
+
+
+@router.post("/admin/api/console/fanin/ingest")
+async def console_fanin_ingest(request: Request):
+    """Ingest a peer node's security-events export into the local fan-in hub."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    check_request_size(request, max_size=1 * 1024 * 1024)
+    body = await request.json()
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="JSON object required")
+    from .console_fanin import fanin_hub
+
+    try:
+        result = fanin_hub.ingest(body)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)[:200]) from exc
+    log_security_event("console_fanin_ingest", request, {"node_id": result.get("node_id")})
+    return _no_store(result)
+
+
+@router.post("/admin/api/console/fanin/merge")
+async def console_fanin_merge(request: Request):
+    """Pure merge of multiple security-events exports (no hub mutation)."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    check_request_size(request, max_size=2 * 1024 * 1024)
+    body = await request.json()
+    nodes = body.get("nodes") if isinstance(body, dict) else None
+    if not isinstance(nodes, list) or len(nodes) > 32:
+        raise HTTPException(status_code=400, detail="nodes must be a list (max 32)")
+    from .console_fanin import merge_event_exports
+
+    return _no_store(merge_event_exports(nodes))
+
+
+@router.get("/admin/api/console/fanin")
+async def console_fanin_snapshot(request: Request, limit: int = 100):
+    """Current fan-in hub snapshot (merged events + node roster)."""
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request)
+    from .console_fanin import fanin_hub
+
+    return _no_store(fanin_hub.snapshot(limit=limit))
+
+
+@router.get("/admin/api/audit/bundle")
+async def audit_bundle_export(
+    request: Request, services: ApiServices = Depends(get_services)
+):
+    """Download a ZIP audit bundle (metrics + security + audit, no secrets)."""
+    import os
+    import time as _time
+
+    from fastapi.responses import Response as FastResponse
+
+    from .audit_bundle import build_audit_bundle_zip
+    from .console_fanin import fanin_hub
+    from .metrics import metrics as runtime_metrics
+    from .openmetrics_export import render_openmetrics_text
+    from .prometheus_export import render_prometheus_text
+    from free_claude_code.native import security_events as ring
+    from .admin_security import _is_remote_admin_allowed
+
+    check_rate_limit(request)
+    require_loopback_admin(request)
+    _enforce_admin_api_token(request, services)
+    log_security_event("audit_bundle_export", request, level="info")
+
+    snap = runtime_metrics.snapshot()
+    node_id = os.getenv("FCC_NODE_ID") or (
+        f"node-{int(snap['started_at'])}" if snap.get("started_at") else "node-local"
+    )
+    ver = package_version()
+    audit = {
+        "remote_admin_allowed": _is_remote_admin_allowed(),
+        "local_only_enforced": os.getenv("FCC_ADMIN_LOCAL_ONLY", "").lower()
+        in {"1", "true", "yes"},
+        "ip_allowlist_configured": bool(os.getenv("FCC_ADMIN_IP_ALLOWLIST", "").strip()),
+        "admin_api_token_configured": bool(os.getenv("FCC_ADMIN_API_TOKEN", "").strip()),
+        "prometheus_export": True,
+        "openmetrics_export": True,
+        "admin_console_ws": True,
+        "audit_bundle_export": True,
+        "console_fanin": True,
+        "version": ver,
+    }
+    events = ring.snapshot(after_seq=0, limit=200)
+    metrics_exp = {
+        "format": "fcc-metrics-federation",
+        "format_version": 1,
+        "exported_at": _time.time(),
+        "node_id": node_id,
+        "version": ver,
+        "snapshot": snap,
+    }
+    prom = render_prometheus_text(snap, node_id=node_id, version=ver)
+    om = render_openmetrics_text(snap, node_id=node_id, version=ver)
+    blob = build_audit_bundle_zip(
+        node_id=node_id,
+        version=ver,
+        audit=audit,
+        events=events,
+        metrics_export=metrics_exp,
+        prometheus_text=prom,
+        openmetrics_text=om,
+        fanin_summary=fanin_hub.summary(),
+    )
+    stamp = _time.strftime("%Y%m%d-%H%M%S", _time.gmtime())
+    filename = f"fcc-audit-{node_id}-{stamp}.zip"
+    return FastResponse(
+        content=blob,
+        media_type="application/zip",
+        headers={
+            "Cache-Control": "no-store",
+            "Content-Disposition": f'attachment; filename="{filename}"',
+        },
+    )
+
+
 @router.websocket("/admin/api/console/ws")
 async def admin_console_ws(websocket: WebSocket):
     """Bidirectional admin console: security + metrics push, ping/subscribe.
@@ -529,6 +709,7 @@ async def admin_console_ws(websocket: WebSocket):
     from .admin_console import (
         dumps,
         error_message,
+        fanin_frame,
         handle_command,
         metrics_frame,
         parse_client_message,
@@ -617,9 +798,12 @@ async def admin_console_ws(websocket: WebSocket):
 
         last_seq = ring.latest_seq()
         last_metrics_push = 0.0
+        last_fanin_push = 0.0
 
         async def sender() -> None:
-            nonlocal last_seq, last_metrics_push
+            nonlocal last_seq, last_metrics_push, last_fanin_push
+            from .console_fanin import fanin_hub
+
             while True:
                 await asyncio.sleep(0.5)
                 now = _time.time()
@@ -633,6 +817,9 @@ async def admin_console_ws(websocket: WebSocket):
                     last_metrics_push = now
                     snap = runtime_metrics.snapshot()
                     await websocket.send_text(dumps(metrics_frame(snap)))
+                if "fanin" in subscribed and (now - last_fanin_push) >= 2.0:
+                    last_fanin_push = now
+                    await websocket.send_text(dumps(fanin_frame(fanin_hub.snapshot(limit=40))))
 
         send_task = asyncio.create_task(sender())
         while True:

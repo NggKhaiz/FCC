@@ -9,7 +9,7 @@ from typing import Any
 PROTOCOL_VERSION = 1
 MAX_MESSAGE_BYTES = 8 * 1024
 MAX_SUBSCRIBE = 8
-ALLOWED_CHANNELS = frozenset({"security", "metrics", "system"})
+ALLOWED_CHANNELS = frozenset({"security", "metrics", "system", "fanin"})
 
 
 def dumps(payload: dict[str, Any]) -> str:
@@ -113,7 +113,36 @@ def metrics_frame(slim: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def fanin_frame(snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Frame for multi-replica merged security events."""
+    events = []
+    for ev in (snapshot.get("events") or [])[:40]:
+        if not isinstance(ev, dict):
+            continue
+        events.append(
+            {
+                "seq": ev.get("seq"),
+                "event": str(ev.get("event") or "")[:128],
+                "ts": ev.get("ts"),
+                "level": str(ev.get("level") or "")[:16],
+                "client_ip": str(ev.get("client_ip") or "")[:64],
+                "path": str(ev.get("path") or "")[:128],
+                "method": str(ev.get("method") or "")[:16],
+                "node_id": str(ev.get("node_id") or "")[:64],
+            }
+        )
+    return {
+        "op": "event",
+        "channel": "fanin",
+        "ts": time.time(),
+        "nodes_tracked": int(snapshot.get("nodes_tracked") or 0),
+        "nodes": (snapshot.get("nodes") or [])[:32],
+        "events": events,
+    }
+
+
 def system_frame(message: str, *, level: str = "info") -> dict[str, Any]:
+
     return {
         "op": "event",
         "channel": "system",

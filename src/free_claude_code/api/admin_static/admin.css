@@ -1755,6 +1755,7 @@ html[data-theme="dark"] .theme-icon-dark { display: block; }
 .console-line.console-metrics .console-text { color: var(--accent, #60a5fa); }
 .console-line.console-out .console-text { color: var(--accent-2, #a78bfa); }
 .console-line.console-system .console-text { color: var(--muted); }
+.console-line.console-fanin .console-text { color: #c4b5fd; }
 .console-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

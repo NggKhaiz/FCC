@@ -465,7 +465,10 @@ function renderSecurityView(info) {
     { label: "Event ring", ok: info.security_event_ring !== false, desc: "Live audit tail" },
     { label: "Metrics", ok: info.metrics_enabled !== false, desc: "Runtime latency + RPS" },
     { label: "Prometheus", ok: info.prometheus_export !== false, desc: "/admin/api/metrics/prometheus" },
+    { label: "OpenMetrics", ok: info.openmetrics_export !== false, desc: "/admin/api/metrics/openmetrics" },
     { label: "WS Console", ok: info.admin_console_ws !== false, desc: "/admin/api/console/ws" },
+    { label: "Audit bundle", ok: info.audit_bundle_export !== false, desc: "ZIP export no secrets" },
+    { label: "Console fan-in", ok: info.console_fanin !== false, desc: "Multi-replica event hub" },
     { label: "CORS", ok: info.cors_enabled, desc: "Remote access enabled" },
     { label: "SSRF Protection", ok: true, desc: "Egress filtering active" },
     { label: "XSS Protection", ok: true, desc: "Safe rendering" },
@@ -1025,6 +1028,8 @@ function commandPaletteItems() {
     { id: "admin-token", label: "Set admin API token", hint: "session + cookie", run: () => promptAdminApiToken() },
     { id: "export-metrics", label: "Export metrics federation", hint: "JSON snapshot", run: () => exportMetricsFederation() },
     { id: "export-prometheus", label: "Open Prometheus metrics", hint: "text exposition", run: () => window.open("/admin/api/metrics/prometheus", "_blank", "noopener") },
+    { id: "export-openmetrics", label: "Open OpenMetrics", hint: "OM 1.0.0 text", run: () => window.open("/admin/api/metrics/openmetrics", "_blank", "noopener") },
+    { id: "export-audit-bundle", label: "Download audit bundle", hint: "ZIP no secrets", run: () => downloadAuditBundle() },
     { id: "console", label: "Open console", hint: "WebSocket live tail", run: () => navigateToView("console") },
   ];
 }
@@ -1048,6 +1053,39 @@ function promptAdminApiToken() {
     "ok",
   );
   void load();
+}
+
+
+async function downloadAuditBundle() {
+  try {
+    const headers = {};
+    if (state.adminApiToken) {
+      headers["X-FCC-Admin-Token"] = state.adminApiToken;
+    }
+    const resp = await fetch("/admin/api/audit/bundle", {
+      method: "GET",
+      headers,
+      credentials: "same-origin",
+    });
+    if (!resp.ok) {
+      const detail = await resp.text();
+      throw new Error(detail.slice(0, 200) || `HTTP ${resp.status}`);
+    }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    a.href = url;
+    a.download = `fcc-audit-${stamp}.zip`;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast("Audit bundle", "ZIP downloaded (no secrets)", "ok");
+  } catch (error) {
+    showToast("Bundle failed", error.message || String(error), "error");
+  }
 }
 
 async function exportMetricsFederation() {
@@ -1184,7 +1222,7 @@ function startAdminConsole() {
     }
     // Auto-subscribe useful channels
     try {
-      ws.send(JSON.stringify({ op: "subscribe", channels: ["security", "metrics", "system"] }));
+      ws.send(JSON.stringify({ op: "subscribe", channels: ["security", "metrics", "system", "fanin"] }));
     } catch {}
   });
 
@@ -1241,6 +1279,21 @@ function startAdminConsole() {
       }
       if (data.channel === "system") {
         consoleAppend("system", data.message || "");
+        return;
+      }
+      if (data.channel === "fanin") {
+        const nodes = data.nodes_tracked || 0;
+        const events = data.events || [];
+        if (!events.length) {
+          consoleAppend("fanin", `hub nodes=${nodes} (no events)`);
+        } else {
+          for (const row of events.slice(0, 20)) {
+            consoleAppend(
+              "fanin",
+              `[${row.node_id || "?"}] #${row.seq || "?"} ${row.level || ""} ${row.event || ""} ${row.method || ""} ${row.path || ""}`
+            );
+          }
+        }
         return;
       }
     }

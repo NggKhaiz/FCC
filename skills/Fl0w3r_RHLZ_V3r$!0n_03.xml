@@ -97,9 +97,13 @@
       WebSocket bidirectional admin console; Prometheus text exposition;
       Console UI view with live security/metrics channels.
     </phase>
-    <phase id="14" name="Next">
-      Multi-replica console fan-in; OpenMetrics optional; admin
-      audit export bundles.
+    <phase id="14" name="Phase10">
+      Multi-replica console fan-in; OpenMetrics text; admin
+      audit export bundles (ZIP).
+    </phase>
+    <phase id="15" name="Next">
+      Active peer scrape for fan-in; OpenMetrics protobuf optional;
+      signed audit bundles.
     </phase>
   </execution_plan>
 

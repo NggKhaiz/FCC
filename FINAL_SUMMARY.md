@@ -168,5 +168,13 @@ Truy cập: `http://YOUR_IP:8082/admin`
 - Tests: `tests/api/test_phase9_console.py`
 - Chi tiết: `PHASE9_COMPLETE.md`
 
+### 18. Phase 10 — Fan-in · OpenMetrics · Audit bundles
+✅ **Multi-replica hub + incident ZIP**
+- OpenMetrics 1.0.0 exposition
+- Console fan-in ingest/merge/snapshot + WS `fanin` channel
+- `GET /admin/api/audit/bundle` ZIP (no secrets)
+- Tests: `tests/api/test_phase10_fanin.py`
+- Chi tiết: `PHASE10_COMPLETE.md`
+
 ---
-*2026-09-12 - arena/01a095da-fcc (Phase 9)*
+*2026-09-12 - arena/01a095da-fcc (Phase 10)*
