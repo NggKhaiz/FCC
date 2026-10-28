@@ -513,6 +513,88 @@ def scenarios():
 
     out.append(run_stream("responses_progress_clears_gate", "responses", seed, build_progress_clears_gate))
 
+    # S9. Failure frames bypass the text-constraint gate and survive the
+    # overlap machinery as plain passthrough (with remapping).
+    def build_failure_frame(stream, delivered):
+        steps = [
+            step_begin(False),
+            step_prepare(
+                {
+                    "type": "response.failed",
+                    "response": {
+                        "id": "resp_fail",
+                        "status": "failed",
+                        "output": [],
+                    },
+                }
+            ),
+        ]
+        return execute(stream, delivered, steps)
+
+    out.append(run_stream("responses_failure_frame_passthrough", "responses", seed, build_failure_frame))
+
+    # S10. Gemini handoff leaves frames untouched while still stamping the
+    # retained header, and drops usageMetadata at finalize.
+    _, gemini_seed = seed_gemini_delivered()
+
+    def build_gemini_handoff(stream, delivered):
+        steps = [
+            step_begin(True),
+            step_boundary(),
+            step_prepare(
+                {
+                    "candidates": [
+                        {
+                            "index": 0,
+                            "content": {"parts": [{"text": "handed off"}]},
+                        }
+                    ]
+                }
+            ),
+            step_finalize(
+                {
+                    "candidates": [
+                        {
+                            "index": 0,
+                            "finishReason": "STOP",
+                            "content": {"parts": [{"text": "handed off"}]},
+                        }
+                    ],
+                    "usageMetadata": {"candidatesTokenCount": 3},
+                }
+            ),
+        ]
+        return execute(stream, delivered, steps)
+
+    out.append(run_stream("gemini_handoff_passthrough", "gemini", gemini_seed, build_gemini_handoff))
+
+    # S11. Messages handoff keeps raw frames and overrides usage on the
+    # terminal message_delta.
+    _, messages_seed = seed_messages_delivered()
+
+    def build_messages_handoff(stream, delivered):
+        steps = [
+            step_begin(True),
+            step_boundary(),
+            step_prepare(
+                {
+                    "type": "content_block_delta",
+                    "index": 0,
+                    "delta": {"type": "text_delta", "text": "raw"},
+                }
+            ),
+            step_finalize(
+                {
+                    "type": "message_delta",
+                    "delta": {"stop_reason": "end_turn"},
+                    "usage": {"output_tokens": 9},
+                }
+            ),
+        ]
+        return execute(stream, delivered, steps)
+
+    out.append(run_stream("messages_handoff_passthrough", "messages", messages_seed, build_messages_handoff))
+
     return out
 
 

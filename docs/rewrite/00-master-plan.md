@@ -98,6 +98,21 @@ rewrites. UUID generation gets an injectable factory so golden sequences
 are deterministic. Exit: overlap and handoff scenarios from the Python
 recovery tests replay identically in Go.
 
+Exit met: the Go `continuation/` package replays 115 overlap scenarios
+(messages, responses and gemini wires; prefix corrections, terminal
+snapshots, thought exclusion, retention failures with exact 502 messages)
+and 12 stream scenarios (overlap removal, handoff passthrough on all three
+wires, restart namespace rotation, no-progress and native-contract
+failures, boundary synthesis, prefix-item/usage merge). The `wireuuid`
+package supplies RFC 4122 v4/v5 on stdlib crypto with deterministic
+namespace injection; `wirejson` centralizes the simplejson-exact encoder
+shared by retention sizing and token estimates. A 260-frame continuation
+runs in ~0.43 ms in Go vs ~4.0 ms in Python (~9x), race detector clean.
+The responses/gemini branches of `Delivered` are no longer stubs: 10
+golden delivery scenarios lock item/part/text observation, unsafe reasons,
+closing events and usage. Admission-layer annotation blocking remains a
+phase-4 provider-adapter concern.
+
 ### Phase 4 — Transport and provider adapters
 
 Go upstream HTTP client with the same timeout/retry/admission behavior,
@@ -172,7 +187,9 @@ it is off the hot path.
 
 ## Immediate work
 
-Phase 3: `continuation/` — ContinuationStream, overlap detection, and
-synthetic boundary events, with deterministic UUID injection and golden
-replay of the Python recovery test scenarios. The responses- and
-gemini-wire branches of `delivery` follow immediately after.
+Phase 4: transport and provider adapters — Go upstream HTTP client with
+the same timeout/retry/admission behavior, followed by the OpenAI-
+compatible provider family, Anthropic-native and Responses-API mappers,
+Gemini and the long tail, each behind recorded request/response fixtures.
+Phase 3 (`continuation/`, deterministic UUID injection, golden recovery
+replays, and the responses/gemini branches of `delivery`) is complete.

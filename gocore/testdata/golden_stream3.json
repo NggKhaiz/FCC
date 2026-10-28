@@ -1351,6 +1351,327 @@
           }
         }
       ]
+    },
+    {
+      "name": "responses_failure_frame_passthrough",
+      "wire": "responses",
+      "seed_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_seed",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 9,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_text.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "text": "Hello "
+        },
+        {
+          "type": "response.content_part.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 1,
+          "item": {
+            "id": "msg_seed_1",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "world",
+                "annotations": []
+              }
+            ]
+          }
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": false
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "response.failed",
+            "response": {
+              "id": "resp_fail",
+              "status": "failed",
+              "output": []
+            }
+          },
+          "events": [
+            {
+              "type": "response.failed",
+              "response": {
+                "id": "resp_seed",
+                "status": "failed",
+                "output": [],
+                "created_at": 1700000000
+              },
+              "sequence_number": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "gemini_handoff_passthrough",
+      "wire": "gemini",
+      "seed_events": [
+        {
+          "responseId": "gem_seed",
+          "modelVersion": "gem-1.5",
+          "candidates": [
+            {
+              "index": 0,
+              "content": {
+                "parts": [
+                  {
+                    "text": "Hello "
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": true
+        },
+        {
+          "op": "boundary",
+          "events": []
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "candidates": [
+              {
+                "index": 0,
+                "content": {
+                  "parts": [
+                    {
+                      "text": "handed off"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "events": [
+            {
+              "candidates": [
+                {
+                  "index": 0,
+                  "content": {
+                    "parts": [
+                      {
+                        "text": "handed off"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "responseId": "gem_seed",
+              "modelVersion": "gem-1.5"
+            }
+          ]
+        },
+        {
+          "op": "finalize",
+          "payload": {
+            "candidates": [
+              {
+                "index": 0,
+                "finishReason": "STOP",
+                "content": {
+                  "parts": [
+                    {
+                      "text": "handed off"
+                    }
+                  ]
+                }
+              }
+            ],
+            "usageMetadata": {
+              "candidatesTokenCount": 3
+            }
+          },
+          "event": {
+            "candidates": [
+              {
+                "index": 0,
+                "finishReason": "STOP",
+                "content": {
+                  "parts": [
+                    {
+                      "text": "handed off"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "messages_handoff_passthrough",
+      "wire": "messages",
+      "seed_events": [
+        {
+          "type": "message_start",
+          "message": {
+            "id": "msg_seed",
+            "usage": {
+              "input_tokens": 7
+            }
+          }
+        },
+        {
+          "type": "content_block_start",
+          "index": 0,
+          "content_block": {
+            "type": "text",
+            "text": "Hello "
+          }
+        },
+        {
+          "type": "content_block_stop",
+          "index": 0
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": true
+        },
+        {
+          "op": "boundary",
+          "events": []
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "text_delta",
+              "text": "raw"
+            }
+          },
+          "events": [
+            {
+              "type": "content_block_delta",
+              "index": 0,
+              "delta": {
+                "type": "text_delta",
+                "text": "raw"
+              }
+            }
+          ]
+        },
+        {
+          "op": "finalize",
+          "payload": {
+            "type": "message_delta",
+            "delta": {
+              "stop_reason": "end_turn"
+            },
+            "usage": {
+              "output_tokens": 9
+            }
+          },
+          "event": {
+            "type": "message_delta",
+            "delta": {
+              "stop_reason": "end_turn"
+            },
+            "usage": {
+              "output_tokens": 9
+            }
+          }
+        }
+      ]
     }
   ]
 }
