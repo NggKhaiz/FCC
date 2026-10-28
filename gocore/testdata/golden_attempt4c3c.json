@@ -1,0 +1,1996 @@
+{
+  "schema": "phase4c3c-attempt-v1",
+  "correction_actions": [
+    "retry",
+    "final"
+  ],
+  "exhausted_message": "Provider recovery retry budget was exhausted.",
+  "scenarios": {
+    "attempt_decisions": {
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-a",
+          "request_id": "req-1",
+          "max_attempts": 3,
+          "controller": 0
+        }
+      ],
+      "steps": [
+        {
+          "label": "first_attempt_opened",
+          "op": "open_attempt",
+          "now": 0.25,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "permit": {
+              "generation": null,
+              "probe": false
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": 1,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "retryable_failure",
+          "op": "attempt_fail",
+          "now": 0.5,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "retryable": true,
+            "retry_allowed": true,
+            "error_descriptor": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-a": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 0.5,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": 1,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "close_after_retryable",
+          "op": "attempt_close",
+          "now": 0.75,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-a": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 0.5,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "probe_attempt_opened",
+          "op": "open_attempt",
+          "now": 1.0,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "permit": {
+              "generation": 1,
+              "probe": true
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-a": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 0.5,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": 2,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "probe_accepted",
+          "op": "attempt_accept",
+          "now": 1.25,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": 2,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "close_after_accept",
+          "op": "attempt_close",
+          "now": 1.5,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "double_close_noop",
+          "op": "attempt_close",
+          "now": 1.75,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        }
+      ]
+    },
+    "non_retryable": {
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-b",
+          "request_id": "req-2",
+          "max_attempts": 3,
+          "controller": 0
+        }
+      ],
+      "steps": [
+        {
+          "label": "fatal_attempt_opened",
+          "op": "open_attempt",
+          "now": 0.25,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "permit": {
+              "generation": null,
+              "probe": false
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": 1,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "non_retryable_failure",
+          "op": "attempt_fail",
+          "now": 0.5,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "retryable": false,
+            "retry_allowed": false,
+            "error_descriptor": {
+              "kind": "BadRequestError",
+              "module": "openai",
+              "message": "bad request",
+              "status_code": 400,
+              "body": {
+                "error": {
+                  "message": "bad request"
+                }
+              },
+              "response_status": 400,
+              "response_text": ""
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "failed",
+            "attempts_started": 1,
+            "can_attempt": false,
+            "attempts_remaining": 0,
+            "active_claim": 1,
+            "last_failure": {
+              "kind": "BadRequestError",
+              "module": "openai",
+              "message": "bad request",
+              "status_code": 400,
+              "body": {
+                "error": {
+                  "message": "bad request"
+                }
+              },
+              "response_status": 400,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "close_after_fatal",
+          "op": "attempt_close",
+          "now": 0.75,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "failed",
+            "attempts_started": 1,
+            "can_attempt": false,
+            "attempts_remaining": 0,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "BadRequestError",
+              "module": "openai",
+              "message": "bad request",
+              "status_code": 400,
+              "body": {
+                "error": {
+                  "message": "bad request"
+                }
+              },
+              "response_status": 400,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "terminal_execution_gate",
+          "op": "open_attempt",
+          "now": 1.0,
+          "execution": "exec_1",
+          "raised": "Provider recovery retry budget was exhausted.",
+          "raised_type": "ProviderRecoveryExhausted",
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "failed",
+            "attempts_started": 1,
+            "can_attempt": false,
+            "attempts_remaining": 0,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "BadRequestError",
+              "module": "openai",
+              "message": "bad request",
+              "status_code": 400,
+              "body": {
+                "error": {
+                  "message": "bad request"
+                }
+              },
+              "response_status": 400,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        }
+      ]
+    },
+    "correction": {
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-c",
+          "request_id": "req-3",
+          "max_attempts": 3,
+          "controller": 0
+        },
+        {
+          "label": "tight_exec_1",
+          "model": "model-d",
+          "request_id": "req-4",
+          "max_attempts": 2,
+          "controller": 1
+        }
+      ],
+      "steps": [
+        {
+          "label": "repair_attempt_opened",
+          "op": "open_attempt",
+          "now": 0.25,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "permit": {
+              "generation": null,
+              "probe": false
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": 1,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "repair_failure",
+          "op": "attempt_fail",
+          "now": 0.5,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "retryable": true,
+            "retry_allowed": true,
+            "error_descriptor": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-c": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 0.5,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": 1,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "close_after_repair_failure",
+          "op": "attempt_close",
+          "now": 0.75,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-c": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 0.5,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "repair_probe_opened",
+          "op": "open_attempt",
+          "now": 1.0,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "permit": {
+              "generation": 1,
+              "probe": true
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-c": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 0.5,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": 2,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "correction_with_budget",
+          "op": "attempt_correct",
+          "now": 1.25,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "error_descriptor": {
+              "kind": "HTTPStatusError",
+              "module": "httpx",
+              "message": "internal failure",
+              "response_status": 500,
+              "response_text": "{\"error\":{\"message\":\"internal failure\",\"api_key\":\"SECRET\"}}"
+            }
+          },
+          "correction": "retry",
+          "result": null,
+          "episodes": {
+            "model-c": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 1.25,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": 2,
+            "last_failure": {
+              "kind": "HTTPStatusError",
+              "module": "httpx",
+              "message": "internal failure",
+              "response_status": 500,
+              "response_text": "{\"error\":{\"message\":\"internal failure\",\"api_key\":\"SECRET\"}}"
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "close_after_correction",
+          "op": "attempt_close",
+          "now": 1.5,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-c": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 1.25,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "HTTPStatusError",
+              "module": "httpx",
+              "message": "internal failure",
+              "response_status": 500,
+              "response_text": "{\"error\":{\"message\":\"internal failure\",\"api_key\":\"SECRET\"}}"
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "tight_first_opened",
+          "op": "open_attempt",
+          "now": 1.75,
+          "execution": "tight_exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "permit": {
+              "generation": null,
+              "probe": false
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "tight_exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": 1,
+            "last_failure": null
+          },
+          "controller": 1
+        },
+        {
+          "label": "tight_failure",
+          "op": "attempt_fail",
+          "now": 2.0,
+          "execution": "tight_exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "retryable": true,
+            "retry_allowed": true,
+            "error_descriptor": {
+              "kind": "RateLimitError",
+              "module": "openai",
+              "message": "rate limited",
+              "status_code": 429,
+              "body": {
+                "error": {
+                  "message": "rate limited"
+                }
+              },
+              "response_status": 429,
+              "response_text": ""
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-d": {
+              "generation": 1,
+              "leader": "tight_exec_1",
+              "ready_at": 2.0,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "RateLimitError",
+                "module": "openai",
+                "message": "rate limited",
+                "status_code": 429,
+                "body": {
+                  "error": {
+                    "message": "rate limited"
+                  }
+                },
+                "response_status": 429,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "tight_exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": 1,
+            "last_failure": {
+              "kind": "RateLimitError",
+              "module": "openai",
+              "message": "rate limited",
+              "status_code": 429,
+              "body": {
+                "error": {
+                  "message": "rate limited"
+                }
+              },
+              "response_status": 429,
+              "response_text": ""
+            }
+          },
+          "controller": 1
+        },
+        {
+          "label": "tight_close_after_failure",
+          "op": "attempt_close",
+          "now": 2.25,
+          "execution": "tight_exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-d": {
+              "generation": 1,
+              "leader": "tight_exec_1",
+              "ready_at": 2.0,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "RateLimitError",
+                "module": "openai",
+                "message": "rate limited",
+                "status_code": 429,
+                "body": {
+                  "error": {
+                    "message": "rate limited"
+                  }
+                },
+                "response_status": 429,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "tight_exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "RateLimitError",
+              "module": "openai",
+              "message": "rate limited",
+              "status_code": 429,
+              "body": {
+                "error": {
+                  "message": "rate limited"
+                }
+              },
+              "response_status": 429,
+              "response_text": ""
+            }
+          },
+          "controller": 1
+        },
+        {
+          "label": "tight_probe_opened",
+          "op": "open_attempt",
+          "now": 2.5,
+          "execution": "tight_exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "permit": {
+              "generation": 1,
+              "probe": true
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-d": {
+              "generation": 1,
+              "leader": "tight_exec_1",
+              "ready_at": 2.0,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "RateLimitError",
+                "module": "openai",
+                "message": "rate limited",
+                "status_code": 429,
+                "body": {
+                  "error": {
+                    "message": "rate limited"
+                  }
+                },
+                "response_status": 429,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "tight_exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": false,
+            "attempts_remaining": 0,
+            "active_claim": 2,
+            "last_failure": {
+              "kind": "RateLimitError",
+              "module": "openai",
+              "message": "rate limited",
+              "status_code": 429,
+              "body": {
+                "error": {
+                  "message": "rate limited"
+                }
+              },
+              "response_status": 429,
+              "response_text": ""
+            }
+          },
+          "controller": 1
+        },
+        {
+          "label": "correction_when_exhausted",
+          "op": "attempt_correct",
+          "now": 2.75,
+          "execution": "tight_exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "error_descriptor": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "correction": "final",
+          "result": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "tight_exec_1",
+            "state": "failed",
+            "attempts_started": 2,
+            "can_attempt": false,
+            "attempts_remaining": 0,
+            "active_claim": 2,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 1
+        },
+        {
+          "label": "close_after_final_correction",
+          "op": "attempt_close",
+          "now": 3.0,
+          "execution": "tight_exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "tight_exec_1",
+            "state": "failed",
+            "attempts_started": 2,
+            "can_attempt": false,
+            "attempts_remaining": 0,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 1
+        }
+      ]
+    },
+    "abandoned": {
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-e",
+          "request_id": "req-5",
+          "max_attempts": 3,
+          "controller": 0
+        }
+      ],
+      "steps": [
+        {
+          "label": "open_for_abandon",
+          "op": "open_attempt",
+          "now": 0.25,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "permit": {
+              "generation": null,
+              "probe": false
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": 1,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "controller_marks_failure",
+          "op": "controller_attempt_failed",
+          "now": 0.5,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "error_descriptor": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-e": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 0.5,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": 1,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "unresolved_close_abandons",
+          "op": "attempt_close",
+          "now": 0.75,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "error_descriptor": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-e": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 0.5,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": null,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "second_attempt_opened",
+          "op": "open_attempt",
+          "now": 1.0,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "permit": {
+              "generation": 1,
+              "probe": true
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {
+            "model-e": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 0.5,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "module": "openai",
+                "message": "upstream unavailable",
+                "status_code": 503,
+                "body": {
+                  "error": {
+                    "message": "upstream unavailable"
+                  }
+                },
+                "response_status": 503,
+                "response_text": ""
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": 2,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "resolved_before_close",
+          "op": "attempt_accept",
+          "now": 1.25,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": 2,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "first_close_releases_slot",
+          "op": "attempt_close",
+          "now": 1.5,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": null,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "second_close_is_noop",
+          "op": "attempt_close",
+          "now": 1.75,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 2,
+            "can_attempt": true,
+            "attempts_remaining": 1,
+            "active_claim": null,
+            "last_failure": null
+          },
+          "controller": 0
+        }
+      ]
+    },
+    "run_call_sequences": {
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-r",
+          "request_id": "req-run",
+          "max_attempts": 3,
+          "controller": 0
+        },
+        {
+          "label": "exec_2",
+          "model": "model-f",
+          "request_id": "req-run",
+          "max_attempts": 3,
+          "controller": 0
+        }
+      ],
+      "steps": [
+        {
+          "label": "retry_then_succeed",
+          "op": "run_call",
+          "now": 0.25,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "calls": 3,
+            "max_attempts": 3,
+            "script": [
+              {
+                "descriptor": {
+                  "kind": "InternalServerError",
+                  "module": "openai",
+                  "message": "upstream unavailable",
+                  "status_code": 503,
+                  "body": {
+                    "error": {
+                      "message": "upstream unavailable"
+                    }
+                  },
+                  "response_status": 503,
+                  "response_text": ""
+                }
+              },
+              {
+                "descriptor": {
+                  "kind": "RateLimitError",
+                  "module": "openai",
+                  "message": "rate limited",
+                  "status_code": 429,
+                  "body": {
+                    "error": {
+                      "message": "rate limited"
+                    }
+                  },
+                  "response_status": 429,
+                  "response_text": ""
+                }
+              },
+              {
+                "result": "ok"
+              }
+            ]
+          },
+          "correction": null,
+          "result": "ok",
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 3
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "succeeded",
+            "attempts_started": 3,
+            "can_attempt": false,
+            "attempts_remaining": 0,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "RateLimitError",
+              "module": "openai",
+              "message": "rate limited",
+              "status_code": 429,
+              "body": {
+                "error": {
+                  "message": "rate limited"
+                }
+              },
+              "response_status": 429,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        },
+        {
+          "label": "non_retryable_propagates",
+          "op": "run_call",
+          "now": 0.5,
+          "execution": "exec_2",
+          "raised": "unauthorized",
+          "raised_type": "AuthenticationError",
+          "decision": {
+            "calls": 1,
+            "max_attempts": 3,
+            "script": [
+              {
+                "descriptor": {
+                  "kind": "AuthenticationError",
+                  "module": "openai",
+                  "message": "unauthorized",
+                  "status_code": 401,
+                  "body": {
+                    "error": {
+                      "message": "unauthorized"
+                    }
+                  },
+                  "response_status": 401,
+                  "response_text": ""
+                }
+              }
+            ]
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 4
+          },
+          "execution_state": {
+            "label": "exec_2",
+            "state": "failed",
+            "attempts_started": 1,
+            "can_attempt": false,
+            "attempts_remaining": 0,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "AuthenticationError",
+              "module": "openai",
+              "message": "unauthorized",
+              "status_code": 401,
+              "body": {
+                "error": {
+                  "message": "unauthorized"
+                }
+              },
+              "response_status": 401,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        }
+      ]
+    },
+    "run_call_exhausted": {
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-x",
+          "request_id": "req-run",
+          "max_attempts": 2,
+          "controller": 0
+        }
+      ],
+      "steps": [
+        {
+          "label": "retries_exhausted",
+          "op": "run_call",
+          "now": 0.25,
+          "execution": "exec_1",
+          "raised": "upstream unavailable",
+          "raised_type": "InternalServerError",
+          "decision": {
+            "calls": 2,
+            "max_attempts": 2,
+            "script": [
+              {
+                "descriptor": {
+                  "kind": "InternalServerError",
+                  "module": "openai",
+                  "message": "upstream unavailable",
+                  "status_code": 503,
+                  "body": {
+                    "error": {
+                      "message": "upstream unavailable"
+                    }
+                  },
+                  "response_status": 503,
+                  "response_text": ""
+                }
+              },
+              {
+                "descriptor": {
+                  "kind": "InternalServerError",
+                  "module": "openai",
+                  "message": "upstream unavailable",
+                  "status_code": 503,
+                  "body": {
+                    "error": {
+                      "message": "upstream unavailable"
+                    }
+                  },
+                  "response_status": 503,
+                  "response_text": ""
+                }
+              }
+            ]
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 2
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "failed",
+            "attempts_started": 2,
+            "can_attempt": false,
+            "attempts_remaining": 0,
+            "active_claim": null,
+            "last_failure": {
+              "kind": "InternalServerError",
+              "module": "openai",
+              "message": "upstream unavailable",
+              "status_code": 503,
+              "body": {
+                "error": {
+                  "message": "upstream unavailable"
+                }
+              },
+              "response_status": 503,
+              "response_text": ""
+            }
+          },
+          "controller": 0
+        }
+      ]
+    },
+    "guards": {
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-g",
+          "request_id": "req-6",
+          "max_attempts": 3,
+          "controller": 0
+        }
+      ],
+      "steps": [
+        {
+          "label": "guard_first_opened",
+          "op": "open_attempt",
+          "now": 0.25,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": {
+            "permit": {
+              "generation": null,
+              "probe": false
+            }
+          },
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": 1,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "double_open_rejected",
+          "op": "open_attempt",
+          "now": 0.5,
+          "execution": "exec_1",
+          "raised": "provider execution already has an active attempt",
+          "raised_type": "RuntimeError",
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 1,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": 1,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "guard_close_releases_slot",
+          "op": "attempt_close",
+          "now": 0.75,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": false,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": null,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "controller_closed",
+          "op": "controller_close",
+          "now": 1.0,
+          "execution": "exec_1",
+          "raised": null,
+          "raised_type": null,
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": true,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": null,
+            "last_failure": null
+          },
+          "controller": 0
+        },
+        {
+          "label": "closed_controller_rejects",
+          "op": "open_attempt",
+          "now": 1.25,
+          "execution": "exec_1",
+          "raised": "provider admission controller is closed",
+          "raised_type": "RuntimeError",
+          "decision": null,
+          "correction": null,
+          "result": null,
+          "episodes": {},
+          "next_generation": 1,
+          "closed": true,
+          "capacity": {
+            "active_attempts": 0,
+            "admission_count": 1
+          },
+          "execution_state": {
+            "label": "exec_1",
+            "state": "active",
+            "attempts_started": 1,
+            "can_attempt": true,
+            "attempts_remaining": 2,
+            "active_claim": null,
+            "last_failure": null
+          },
+          "controller": 0
+        }
+      ]
+    }
+  }
+}

@@ -1,6 +1,7 @@
 package admission
 
 import (
+	"context"
 	"errors"
 	"math"
 	"math/rand"
@@ -69,8 +70,9 @@ type Controller struct {
 	nextGeneration int
 	closed         bool
 
-	now    func() float64
-	jitter func() float64
+	now      func() float64
+	jitter   func() float64
+	gateWake chan struct{}
 }
 
 // NewController builds a controller with its own capacity limiter, real
@@ -84,14 +86,19 @@ func NewController(providerName string, limits Limits, retry RetryConfig) *Contr
 		episodes:       map[string]*RecoveryEpisode{},
 		nextGeneration: 1,
 		now:            defaultMonotonic,
+		gateWake:       make(chan struct{}),
 	}
 	c.jitter = c.defaultJitter
 	return c
 }
 
-// WithClock replaces the time source (golden tests use a virtual clock).
+// WithClock replaces the time source (golden tests use a virtual clock)
+// on both the gate and the shared capacity limiter.
 func (c *Controller) WithClock(now func() float64) *Controller {
+	c.mu.Lock()
 	c.now = now
+	c.mu.Unlock()
+	c.capacity.WithClock(now)
 	return c
 }
 
@@ -227,7 +234,7 @@ func (c *Controller) AttemptFailed(execution *Execution, permit GatePermit,
 			episode.Waiters[execution] = true
 		}
 		// Python notifies waiters, which also runs idle maintenance.
-		c.maintainIdleEpisodesLocked()
+		c.notifyRecoveryLocked()
 		return
 	}
 
@@ -251,7 +258,7 @@ func (c *Controller) AttemptFailed(execution *Execution, permit GatePermit,
 			waiter.Fail(error)
 		}
 	}
-	c.maintainIdleEpisodesLocked()
+	c.notifyRecoveryLocked()
 }
 
 // AttemptAccepted mirrors _attempt_accepted: a successful probe closes
@@ -266,7 +273,7 @@ func (c *Controller) AttemptAccepted(execution *Execution, permit GatePermit) {
 		return
 	}
 	delete(c.episodes, execution.Model())
-	c.maintainIdleEpisodesLocked()
+	c.notifyRecoveryLocked()
 }
 
 // AttemptRejected mirrors _attempt_rejected: a final probe rejection
@@ -281,7 +288,7 @@ func (c *Controller) AttemptRejected(execution *Execution, permit GatePermit) {
 		return
 	}
 	delete(c.episodes, execution.Model())
-	c.maintainIdleEpisodesLocked()
+	c.notifyRecoveryLocked()
 }
 
 // AttemptAbandoned mirrors _attempt_abandoned: leadership is released and
@@ -300,7 +307,7 @@ func (c *Controller) AttemptAbandoned(execution *Execution, permit GatePermit) {
 	episode.ProbeActive = false
 	episode.ReadyAt = c.now()
 	// A leaderless, waiterless episode is immediately collectable.
-	c.maintainIdleEpisodesLocked()
+	c.notifyRecoveryLocked()
 }
 
 // AttemptCorrected mirrors _attempt_corrected: the probe slot is released
@@ -317,7 +324,7 @@ func (c *Controller) AttemptCorrected(execution *Execution, permit GatePermit) {
 	}
 	episode.ProbeActive = false
 	episode.ReadyAt = c.now()
-	c.maintainIdleEpisodesLocked()
+	c.notifyRecoveryLocked()
 }
 
 func (c *Controller) matchingProbeLocked(execution *Execution,
@@ -340,28 +347,36 @@ func (c *Controller) matchingProbeLocked(execution *Execution,
 // exhaustion/closed error. A path that would block on another leader
 // returns ErrGateWouldWait for the transport loop to park.
 func (c *Controller) WaitForGate(execution *Execution) (GatePermit, error) {
+	permit, _, err := c.waitForGateOnce(execution)
+	return permit, err
+}
+
+// waitForGateOnce performs one gate evaluation. Besides the permit/error,
+// it reports how long the caller must sleep when ErrGateWouldWait comes
+// from a leader backoff: zero means park until the next wake instead.
+func (c *Controller) waitForGateOnce(execution *Execution) (GatePermit, float64, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	c.maintainIdleEpisodesLocked()
 	if c.closed {
-		return GatePermit{}, errors.New(
+		return GatePermit{}, 0, errors.New(
 			"provider admission controller is closed")
 	}
 	if terminal := execution.TerminalFailure(); terminal != nil {
-		return GatePermit{}, &RecoveryExhaustedError{LastError: terminal}
+		return GatePermit{}, 0, &RecoveryExhaustedError{LastError: terminal}
 	}
 	if !execution.CanAttempt() {
-		return GatePermit{}, errors.New(
+		return GatePermit{}, 0, errors.New(
 			"provider execution is terminal or exhausted")
 	}
 
 	episode := c.episodes[execution.Model()]
 	if episode == nil {
-		return GatePermit{Probe: false}, nil
+		return GatePermit{Probe: false}, 0, nil
 	}
 	if episode.TerminalUntil != nil {
-		return GatePermit{}, &RecoveryExhaustedError{
+		return GatePermit{}, 0, &RecoveryExhaustedError{
 			LastError: episode.LastError}
 	}
 
@@ -371,10 +386,9 @@ func (c *Controller) WaitForGate(execution *Execution) (GatePermit, error) {
 		c.maintainIdleEpisodesLocked()
 	}
 	if episode.Leader == execution && !episode.ProbeActive {
-		// The transport slice performs the ready_at sleep; golden
-		// scenarios always reach this point with ready_at <= now.
+		// Leader backoff: sleep until the episode becomes ready.
 		if episode.ReadyAt > c.now() {
-			return GatePermit{}, ErrGateWouldWait
+			return GatePermit{}, episode.ReadyAt - c.now(), ErrGateWouldWait
 		}
 		if c.episodes[execution.Model()] == episode &&
 			episode.Leader == execution &&
@@ -383,13 +397,142 @@ func (c *Controller) WaitForGate(execution *Execution) (GatePermit, error) {
 			execution.CanAttempt() {
 			episode.ProbeActive = true
 			generation := episode.Generation
-			return GatePermit{Generation: &generation, Probe: true}, nil
+			return GatePermit{Generation: &generation, Probe: true}, 0, nil
 		}
-		return GatePermit{}, ErrGateWouldWait
+		return GatePermit{}, 0, ErrGateWouldWait
 	}
 
+	// Another execution owns the probe; wait without a private deadline.
 	episode.Waiters[execution] = true
-	return GatePermit{}, ErrGateWouldWait
+	return GatePermit{}, 0, ErrGateWouldWait
+}
+
+// notifyRecoveryLocked mirrors _notify_recovery_waiters: expire idle
+// episodes, then wake both the gate and capacity waiters. Callers hold mu.
+func (c *Controller) notifyRecoveryLocked() {
+	c.maintainIdleEpisodesLocked()
+	c.gateWakeLocked()
+	c.capacity.wakeLocked()
+}
+
+// gateWakeLocked broadcasts to parked gate visitors. Callers hold mu.
+func (c *Controller) gateWakeLocked() {
+	close(c.gateWake)
+	c.gateWake = make(chan struct{})
+}
+
+// waitGateBlocking drives the asyncio event loop of _wait_for_gate:
+// evaluate, park on the wake signal or a leader backoff deadline, then
+// re-evaluate until a permit is issued or the context/terminal state ends
+// the wait.
+func (c *Controller) waitGateBlocking(ctx context.Context,
+	execution *Execution) (GatePermit, error) {
+	for {
+		permit, wait, err := c.waitForGateOnce(execution)
+		if !errors.Is(err, ErrGateWouldWait) {
+			return permit, err
+		}
+		var timer <-chan time.Time
+		if wait > 0 {
+			timer = time.After(time.Duration(wait * float64(time.Second)))
+		}
+		c.mu.Lock()
+		signal := c.gateWake
+		c.mu.Unlock()
+		select {
+		case <-signal:
+		case <-timer:
+		case <-ctx.Done():
+			return GatePermit{}, ctx.Err()
+		}
+	}
+}
+
+// PermitIsCurrent mirrors _permit_is_current: whether the recovery state
+// that issued permit still owns this execution's admission path.
+func (c *Controller) PermitIsCurrent(execution *Execution, permit GatePermit) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.closed || !execution.CanAttempt() {
+		return false
+	}
+	episode := c.episodes[execution.Model()]
+	if !permit.Probe {
+		return episode == nil
+	}
+	return episode != nil &&
+		permit.Generation != nil &&
+		episode.Generation == *permit.Generation &&
+		episode.TerminalUntil == nil &&
+		episode.Leader == execution &&
+		episode.ProbeActive
+}
+
+// abandonProbePermit mirrors _abandon_probe_permit: a probe that lost its
+// capacity race releases leadership without advancing the generation.
+func (c *Controller) abandonProbePermit(execution *Execution, permit GatePermit) {
+	if !permit.Probe {
+		return
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.matchingProbeLocked(execution, permit) == nil {
+		return
+	}
+	if episode := c.episodes[execution.Model()]; episode != nil {
+		episode.Leader = nil
+		episode.ProbeActive = false
+		episode.ReadyAt = c.now()
+	}
+	c.notifyRecoveryLocked()
+}
+
+// OpenAttempt mirrors _open_attempt: wait for gate admission, charge
+// shared capacity while the permit stays current, then claim the
+// execution's sole active physical call.
+func (c *Controller) OpenAttempt(ctx context.Context, execution *Execution,
+	kind OperationKind) (*Attempt, error) {
+	// Mirror Python's pre-loop guards: reject before touching the gate or
+	// taking a capacity slot, so a double open leaves no admission record.
+	if terminal := execution.TerminalFailure(); terminal != nil {
+		return nil, &RecoveryExhaustedError{LastError: terminal}
+	}
+	if !execution.CanAttempt() {
+		return nil, errors.New(
+			"provider execution is terminal or exhausted")
+	}
+	if execution.ActiveClaimOrdinal() != 0 {
+		return nil, errors.New(
+			"provider execution already has an active attempt")
+	}
+	for {
+		permit, err := c.waitGateBlocking(ctx, execution)
+		if err != nil {
+			return nil, err
+		}
+		admitted := c.capacity.Acquire(ctx, func() bool {
+			return c.PermitIsCurrent(execution, permit)
+		})
+		if !admitted {
+			c.abandonProbePermit(execution, permit)
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
+			continue
+		}
+		ordinal, err := execution.ClaimAttempt(kind)
+		if err != nil {
+			c.capacity.Release()
+			c.abandonProbePermit(execution, permit)
+			return nil, err
+		}
+		return &Attempt{
+			controller: c,
+			execution:  execution,
+			permit:     permit,
+			ordinal:    ordinal,
+		}, nil
+	}
 }
 
 // OnExecutionTerminated mirrors _execution_terminated: drop waiter
@@ -407,7 +550,7 @@ func (c *Controller) OnExecutionTerminated(execution *Execution) {
 		episode.Leader = nil
 		episode.ProbeActive = false
 	}
-	c.maintainIdleEpisodesLocked()
+	c.notifyRecoveryLocked()
 }
 
 // MaintainIdleEpisodes expires leaderless, waiterless, inactive episodes
@@ -438,12 +581,15 @@ func (c *Controller) maintainIdleEpisodesLocked() {
 	}
 }
 
-// Close releases recovery state after runtimes have drained.
+// Close releases recovery state after runtimes have drained and wakes
+// every parked gate visitor and capacity acquirer.
 func (c *Controller) Close() {
 	c.mu.Lock()
-	defer c.mu.Unlock()
 	c.closed = true
 	c.episodes = map[string]*RecoveryEpisode{}
+	c.gateWakeLocked()
+	c.capacity.wakeLocked()
+	c.mu.Unlock()
 }
 
 // Episodes returns a snapshot copy of the current recovery state for

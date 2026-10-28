@@ -1,6 +1,10 @@
 package admission
 
-import "sync"
+import (
+	"context"
+	"sync"
+	"time"
+)
 
 // CapacityDecision is the outcome of one non-blocking admission evaluation.
 type CapacityDecision struct {
@@ -16,8 +20,8 @@ type CapacityDecision struct {
 
 // CapacityLimiter owns one provider's rate history, active slots and the
 // timestamp of the most recently evicted admission. It mirrors
-// ProviderCapacityLimiter; the blocking wait loop lives in the transport
-// layer and drives Evaluate/Commit under an injectable clock.
+// ProviderCapacityLimiter, including its blocking acquire loop and wake
+// semantics.
 type CapacityLimiter struct {
 	mu sync.Mutex
 
@@ -25,11 +29,27 @@ type CapacityLimiter struct {
 	admissionTimes  []float64
 	lastDiscardedAt *float64
 	activeAttempts  int
+
+	now  func() float64
+	wake chan struct{}
 }
 
-// NewCapacityLimiter starts a limiter with empty history and occupancy.
+// NewCapacityLimiter starts a limiter with empty history and occupancy and
+// a real process-relative monotonic clock.
 func NewCapacityLimiter(limits Limits) *CapacityLimiter {
-	return &CapacityLimiter{limits: limits}
+	return &CapacityLimiter{
+		limits: limits,
+		now:    defaultMonotonic,
+		wake:   make(chan struct{}),
+	}
+}
+
+// WithClock replaces the time source (golden tests use a virtual clock).
+func (l *CapacityLimiter) WithClock(now func() float64) *CapacityLimiter {
+	l.mu.Lock()
+	l.now = now
+	l.mu.Unlock()
+	return l
 }
 
 // Limits returns the policy currently in force.
@@ -40,14 +60,17 @@ func (l *CapacityLimiter) Limits() Limits {
 }
 
 // Reconfigure swaps limits without resetting occupancy or history, matching
-// ProviderCapacityLimiter.reconfigure. Identical limits are a no-op.
+// ProviderCapacityLimiter.reconfigure. Identical limits are a no-op; any
+// actual change wakes blocked acquirers.
 func (l *CapacityLimiter) Reconfigure(limits Limits) {
 	l.mu.Lock()
-	defer l.mu.Unlock()
 	if l.limits == limits {
+		l.mu.Unlock()
 		return
 	}
 	l.limits = limits
+	l.wakeLocked()
+	l.mu.Unlock()
 }
 
 // Evaluate runs one pass of the acquire loop at now: stale admissions are
@@ -56,7 +79,10 @@ func (l *CapacityLimiter) Reconfigure(limits Limits) {
 func (l *CapacityLimiter) Evaluate(now float64) CapacityDecision {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	return l.evaluateLocked(now)
+}
 
+func (l *CapacityLimiter) evaluateLocked(now float64) CapacityDecision {
 	cutoff := now - l.limits.RateWindow
 	for len(l.admissionTimes) > 0 && l.admissionTimes[0] <= cutoff {
 		discarded := l.admissionTimes[0]
@@ -90,15 +116,66 @@ func (l *CapacityLimiter) Evaluate(now float64) CapacityDecision {
 func (l *CapacityLimiter) Commit(now float64) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	l.commitLocked(now)
+}
+
+func (l *CapacityLimiter) commitLocked(now float64) {
 	l.admissionTimes = append(l.admissionTimes, now)
 	l.activeAttempts++
 }
 
-// Release frees one concurrency slot after an attempt finishes.
+// Release frees one concurrency slot after an attempt finishes and wakes
+// every blocked acquirer.
 func (l *CapacityLimiter) Release() {
 	l.mu.Lock()
-	defer l.mu.Unlock()
 	l.activeAttempts--
+	l.wakeLocked()
+	l.mu.Unlock()
+}
+
+// Acquire mirrors ProviderCapacityLimiter.acquire: it charges capacity only
+// while the caller's recovery permit stays valid, parking on wake signals
+// between evaluations. A rate-bucket wait carries a deadline; an
+// occupancy-only wait parks until Release/Reconfigure. Context
+// cancellation makes the caller leave without charging, like an invalidated
+// permit.
+func (l *CapacityLimiter) Acquire(ctx context.Context,
+	permitIsCurrent func() bool) bool {
+	for permitIsCurrent() {
+		l.mu.Lock()
+		now := l.now()
+		decision := l.evaluateLocked(now)
+		if decision.Admit {
+			l.commitLocked(now)
+			l.mu.Unlock()
+			return true
+		}
+		var timer <-chan time.Time
+		// Python only arms a timer while a concurrency slot remains free;
+		// full occupancy waits for the wake event without a deadline.
+		if l.activeAttempts < l.limits.MaxConcurrency {
+			if delay := decision.ReadyAt - now; delay > 0 {
+				timer = time.After(time.Duration(delay * float64(time.Second)))
+			}
+		}
+		wait := l.wake
+		l.mu.Unlock()
+
+		select {
+		case <-wait:
+		case <-timer:
+		case <-ctx.Done():
+			return false
+		}
+	}
+	return false
+}
+
+// wakeLocked broadcasts to blocked acquirers by replacing the signal
+// channel; callers must hold mu.
+func (l *CapacityLimiter) wakeLocked() {
+	close(l.wake)
+	l.wake = make(chan struct{})
 }
 
 // Snapshot is a point-in-time view used by golden parity tests.
