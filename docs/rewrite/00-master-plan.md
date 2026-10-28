@@ -171,6 +171,17 @@ scenarios, 45 golden steps, replay identically; a latent non-canonical
 `wireuuid.String` layout was found and fixed to 8-4-4-4-12 with its own
 parity tests.
 
+Step 4c-3b (complete): the recovery episode decision core in
+`admission/controller.go` — gate permits, episode open/probe/coalesce/
+exhaust transitions, leader election and waiter sets, terminal
+episodes that fail every waiter, idle maintenance with immediate
+self-expiry of leaderless, waiterless, probe-inactive episodes, and
+the closed/terminal gate errors. Blocking sleeps and event wakes are
+explicitly deferred to the transport slice (`ErrGateWouldWait`); every
+mutating call, including probe arming and waiter registration, is an
+explicit golden op. Nine scenarios and 32 steps replay identically
+under a virtual clock with scripted jitter.
+
 ### Phase 5 — Catalog, config, and storage
 
 Provider catalog and settings move as data-driven tables. SQLite schemas
@@ -235,14 +246,13 @@ it is off the hot path.
 
 ## Immediate work
 
-Phase 4c-3b: the `ProviderAdmissionController` recovery core — gate
-permits, recovery episodes (open/probe/coalesce/exhaust), leader/waiter
-coordination and idle expiry — behind golden scripts driven from the live
-asyncio controller with a virtual clock. Then the blocking transport loop
-(timeouts, wake/event wiring over the 4c-1/4c-2 primitives) and the
-provider adapters in traffic order (OpenAI-compatible family first, then
-Anthropic-native and Responses-API mappers, Gemini and the long tail).
-Phases 4a, 4b, 4c-1, 4c-2, 4c-3a and phase 3 (`continuation/` plus the
+Phase 4c-3c: wire the blocking transport loop over the 4c decision core —
+gate wait/event wakes, ready_at backoff sleeps, capacity wait integration
+and the `ProviderAttempt` accept/correct/fail/aclose lifecycle with
+retryable classification from the 4a policy. Then the provider adapters
+in traffic order (OpenAI-compatible family first, then Anthropic-native
+and Responses-API mappers, Gemini and the long tail). Phases 4a, 4b,
+4c-1, 4c-2, 4c-3a, 4c-3b and phase 3 (`continuation/` plus the
 responses/gemini branches of `delivery`) are complete.
 
 Toolchain note: sandbox resets wipe the local Go and Python toolchains;

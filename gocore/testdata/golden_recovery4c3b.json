@@ -1,0 +1,1134 @@
+{
+  "schema": "phase4c3b-recovery-v1",
+  "clock_origin": 1000.0,
+  "jitter_draws": [
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8
+  ],
+  "retry_config": {
+    "base_delay": 2.0,
+    "max_delay": 60.0,
+    "jitter": 1.0
+  },
+  "exhausted_message": "Provider recovery retry budget was exhausted.",
+  "closed_message": "provider admission controller is closed",
+  "scenarios": {
+    "open_probe_accept": {
+      "max_attempts": 3,
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-x",
+          "claims": 1,
+          "open_claim": true
+        },
+        {
+          "label": "exec_2",
+          "model": "model-x",
+          "claims": 1,
+          "open_claim": true
+        }
+      ],
+      "steps": [
+        {
+          "label": "leader_opens_episode",
+          "op": "attempt_failed",
+          "now": 0.0,
+          "target": "exec_1",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "model-x": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 2.1,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "waiter_coalesces",
+          "op": "attempt_failed",
+          "now": 0.0,
+          "target": "exec_2",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "RateLimitError",
+            "message": "rate limited"
+          },
+          "status": 429,
+          "episodes": {
+            "model-x": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 2.1,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [
+                "exec_2"
+              ],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "arm_leader_probe",
+          "op": "arm_probe",
+          "now": 0.0,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-x": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 2.1,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [
+                "exec_2"
+              ],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "probe_failure_reschedules",
+          "op": "attempt_failed",
+          "now": 2.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "model-x": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 4.8,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [
+                "exec_2"
+              ],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "rearm_leader_probe",
+          "op": "arm_probe",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-x": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 4.8,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [
+                "exec_2"
+              ],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "probe_accept_closes_episode",
+          "op": "attempt_accepted",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        }
+      ]
+    },
+    "probe_rejected": {
+      "max_attempts": 3,
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-r",
+          "claims": 1,
+          "open_claim": true
+        }
+      ],
+      "steps": [
+        {
+          "label": "failure_opens_episode",
+          "op": "attempt_failed",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "model-r": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 8.6,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        },
+        {
+          "label": "arm_probe",
+          "op": "arm_probe",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-r": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 8.6,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        },
+        {
+          "label": "probe_rejection_closes_episode",
+          "op": "attempt_rejected",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        }
+      ]
+    },
+    "abandon_leadership_transfer": {
+      "max_attempts": 3,
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-t",
+          "claims": 1,
+          "open_claim": true
+        },
+        {
+          "label": "exec_2",
+          "model": "model-t",
+          "claims": 1,
+          "open_claim": true
+        }
+      ],
+      "steps": [
+        {
+          "label": "first_opens_episode",
+          "op": "attempt_failed",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "model-t": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 8.6,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "register_waiter",
+          "op": "add_waiter",
+          "now": 6.5,
+          "target": "exec_2",
+          "raised": null,
+          "permit": null,
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-t": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 8.6,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [
+                "exec_2"
+              ],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "arm_first_probe",
+          "op": "arm_probe",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-t": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 8.6,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [
+                "exec_2"
+              ],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "probe_abandoned_leader_steps_down",
+          "op": "attempt_abandoned",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-t": {
+              "generation": 1,
+              "leader": null,
+              "ready_at": 6.5,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [
+                "exec_2"
+              ],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "second_takes_leadership",
+          "op": "wait_for_gate",
+          "now": 6.5,
+          "target": "exec_2",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-t": {
+              "generation": 1,
+              "leader": "exec_2",
+              "ready_at": 6.5,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        }
+      ]
+    },
+    "exhaustion": {
+      "max_attempts": 1,
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-e",
+          "claims": 1,
+          "open_claim": true
+        },
+        {
+          "label": "exec_2",
+          "model": "model-e",
+          "claims": 0,
+          "open_claim": false
+        }
+      ],
+      "steps": [
+        {
+          "label": "single_attempt_exhausts_episode",
+          "op": "attempt_failed",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "model-e": {
+              "generation": 1,
+              "leader": null,
+              "ready_at": 6.5,
+              "probe_active": false,
+              "terminal_until": 8.7,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        },
+        {
+          "label": "gate_raises_when_terminal",
+          "op": "wait_for_gate",
+          "now": 6.5,
+          "target": "exec_2",
+          "raised": "Provider recovery retry budget was exhausted.",
+          "permit": null,
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-e": {
+              "generation": 1,
+              "leader": null,
+              "ready_at": 6.5,
+              "probe_active": false,
+              "terminal_until": 8.7,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        }
+      ]
+    },
+    "idle_expiry": {
+      "max_attempts": 3,
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-i",
+          "claims": 1,
+          "open_claim": true
+        },
+        {
+          "label": "exec_2",
+          "model": "model-term",
+          "claims": 3,
+          "open_claim": false
+        }
+      ],
+      "steps": [
+        {
+          "label": "lone_failure_opens_episode",
+          "op": "attempt_failed",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "model-i": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 8.6,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        },
+        {
+          "label": "arm_lone_probe",
+          "op": "arm_probe",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-i": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 8.6,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        },
+        {
+          "label": "abandoned_without_waiters_expires_at_once",
+          "op": "attempt_abandoned",
+          "now": 6.5,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        },
+        {
+          "label": "terminal_episode_opened",
+          "op": "attempt_failed",
+          "now": 6.5,
+          "target": "exec_2",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "model-term": {
+              "generation": 2,
+              "leader": null,
+              "ready_at": 6.5,
+              "probe_active": false,
+              "terminal_until": 14.8,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 3,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "maintain_before_terminal_until_keeps_episode",
+          "op": "maintain_idle",
+          "now": 13.8,
+          "target": null,
+          "raised": null,
+          "permit": null,
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-term": {
+              "generation": 2,
+              "leader": null,
+              "ready_at": 6.5,
+              "probe_active": false,
+              "terminal_until": 14.8,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 3,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "maintain_at_terminal_until_expires_episode",
+          "op": "maintain_idle",
+          "now": 14.8,
+          "target": null,
+          "raised": null,
+          "permit": null,
+          "error_input": null,
+          "status": null,
+          "episodes": {},
+          "next_generation": 3,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        }
+      ]
+    },
+    "corrected": {
+      "max_attempts": 3,
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-c",
+          "claims": 1,
+          "open_claim": true
+        }
+      ],
+      "steps": [
+        {
+          "label": "failure_opens_episode",
+          "op": "attempt_failed",
+          "now": 14.8,
+          "target": "exec_1",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "model-c": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 16.9,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        },
+        {
+          "label": "arm_probe",
+          "op": "arm_probe",
+          "now": 14.8,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-c": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 16.9,
+              "probe_active": true,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        },
+        {
+          "label": "correction_resets_probe",
+          "op": "attempt_corrected",
+          "now": 15.8,
+          "target": "exec_1",
+          "raised": null,
+          "permit": {
+            "generation": 1,
+            "probe": true
+          },
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-c": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 15.8,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        }
+      ]
+    },
+    "terminated_leader_stepdown": {
+      "max_attempts": 3,
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-s",
+          "claims": 1,
+          "open_claim": true
+        },
+        {
+          "label": "exec_2",
+          "model": "model-s",
+          "claims": 1,
+          "open_claim": true
+        }
+      ],
+      "steps": [
+        {
+          "label": "leader_opens_episode",
+          "op": "attempt_failed",
+          "now": 15.8,
+          "target": "exec_1",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "model-s": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 17.9,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "waiter_coalesces",
+          "op": "attempt_failed",
+          "now": 15.8,
+          "target": "exec_2",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "RateLimitError",
+            "message": "rate limited"
+          },
+          "status": 429,
+          "episodes": {
+            "model-s": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 17.9,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [
+                "exec_2"
+              ],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active",
+            "exec_2": "active"
+          }
+        },
+        {
+          "label": "leader_success_steps_down_keeps_waiter",
+          "op": "succeed",
+          "now": 15.8,
+          "target": "exec_1",
+          "raised": null,
+          "permit": null,
+          "error_input": null,
+          "status": null,
+          "episodes": {
+            "model-s": {
+              "generation": 1,
+              "leader": null,
+              "ready_at": 17.9,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [
+                "exec_2"
+              ],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "succeeded",
+            "exec_2": "active"
+          }
+        }
+      ]
+    },
+    "discovery_none_model": {
+      "max_attempts": 3,
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "",
+          "claims": 1,
+          "open_claim": true
+        }
+      ],
+      "steps": [
+        {
+          "label": "discovery_episode_under_none_model",
+          "op": "attempt_failed",
+          "now": 15.8,
+          "target": "exec_1",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 17.9,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        }
+      ]
+    },
+    "close": {
+      "max_attempts": 3,
+      "executions": [
+        {
+          "label": "exec_1",
+          "model": "model-z",
+          "claims": 1,
+          "open_claim": true
+        }
+      ],
+      "steps": [
+        {
+          "label": "failure_opens_episode",
+          "op": "attempt_failed",
+          "now": 15.8,
+          "target": "exec_1",
+          "raised": null,
+          "permit": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "upstream unavailable"
+          },
+          "status": 503,
+          "episodes": {
+            "model-z": {
+              "generation": 1,
+              "leader": "exec_1",
+              "ready_at": 17.9,
+              "probe_active": false,
+              "terminal_until": null,
+              "waiters": [],
+              "last_error": {
+                "kind": "InternalServerError",
+                "message": "upstream unavailable"
+              }
+            }
+          },
+          "next_generation": 2,
+          "closed": false,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        },
+        {
+          "label": "close_clears_episodes",
+          "op": "close",
+          "now": 15.8,
+          "target": null,
+          "raised": null,
+          "permit": null,
+          "error_input": null,
+          "status": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": true,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        },
+        {
+          "label": "gate_raises_when_closed",
+          "op": "wait_for_gate",
+          "now": 15.8,
+          "target": "exec_1",
+          "raised": "provider admission controller is closed",
+          "permit": null,
+          "error_input": null,
+          "status": null,
+          "episodes": {},
+          "next_generation": 2,
+          "closed": true,
+          "execution_states": {
+            "exec_1": "active"
+          }
+        }
+      ]
+    }
+  }
+}
