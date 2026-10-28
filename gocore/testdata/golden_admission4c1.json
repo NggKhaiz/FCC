@@ -1,0 +1,537 @@
+{
+  "schema": "phase4c1-admission-v1",
+  "validation_cases": [
+    {
+      "label": "zero_rate_limit",
+      "error": "rate_limit must be a positive integer"
+    },
+    {
+      "label": "negative_rate_limit",
+      "error": "rate_limit must be a positive integer"
+    },
+    {
+      "label": "bool_rate_limit",
+      "error": "rate_limit must be a positive integer"
+    },
+    {
+      "label": "float_rate_limit",
+      "error": "rate_limit must be a positive integer"
+    },
+    {
+      "label": "zero_concurrency",
+      "error": "max_concurrency must be a positive integer"
+    },
+    {
+      "label": "negative_concurrency",
+      "error": "max_concurrency must be a positive integer"
+    },
+    {
+      "label": "bool_concurrency",
+      "error": "max_concurrency must be a positive integer"
+    },
+    {
+      "label": "float_concurrency",
+      "error": "max_concurrency must be a positive integer"
+    },
+    {
+      "label": "zero_window",
+      "error": "rate_window must be finite and > 0"
+    },
+    {
+      "label": "negative_window",
+      "error": "rate_window must be finite and > 0"
+    },
+    {
+      "label": "nan_window",
+      "error": "rate_window must be finite and > 0"
+    },
+    {
+      "label": "inf_window",
+      "error": "rate_window must be finite and > 0"
+    },
+    {
+      "label": "valid_limits",
+      "rate_limit": 4,
+      "rate_window": 2.5,
+      "max_concurrency": 7
+    }
+  ],
+  "scenarios": {
+    "rate_window": {
+      "limits": {
+        "rate_limit": 3,
+        "rate_window": 10.0,
+        "max_concurrency": 5
+      },
+      "steps": [
+        {
+          "label": "initial_admit_0",
+          "op": "admit",
+          "now": 0.0,
+          "limits": null,
+          "admission_times": [
+            0.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": "admitted"
+        },
+        {
+          "label": "initial_admit_1",
+          "op": "admit",
+          "now": 0.0,
+          "limits": null,
+          "admission_times": [
+            0.0,
+            0.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 2,
+          "outcome": "admitted"
+        },
+        {
+          "label": "initial_admit_2",
+          "op": "admit",
+          "now": 0.0,
+          "limits": null,
+          "admission_times": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 3,
+          "outcome": "admitted"
+        },
+        {
+          "label": "rate_blocked",
+          "op": "expect_blocked",
+          "now": 0.0,
+          "limits": null,
+          "admission_times": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 3,
+          "outcome": null
+        },
+        {
+          "label": "window_slide_admit",
+          "op": "advance_wake_admit",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": 0.0,
+          "active_attempts": 4,
+          "outcome": "admitted"
+        },
+        {
+          "label": "release_0",
+          "op": "release",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": 0.0,
+          "active_attempts": 3,
+          "outcome": null
+        },
+        {
+          "label": "release_1",
+          "op": "release",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": 0.0,
+          "active_attempts": 2,
+          "outcome": null
+        },
+        {
+          "label": "release_2",
+          "op": "release",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": 0.0,
+          "active_attempts": 1,
+          "outcome": null
+        },
+        {
+          "label": "release_3",
+          "op": "release",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": 0.0,
+          "active_attempts": 0,
+          "outcome": null
+        }
+      ]
+    },
+    "concurrency_cap": {
+      "limits": {
+        "rate_limit": 10,
+        "rate_window": 30.0,
+        "max_concurrency": 2
+      },
+      "steps": [
+        {
+          "label": "concurrency_admit_0",
+          "op": "admit",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": "admitted"
+        },
+        {
+          "label": "concurrency_admit_1",
+          "op": "admit",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0,
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 2,
+          "outcome": "admitted"
+        },
+        {
+          "label": "concurrency_blocked",
+          "op": "expect_blocked",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0,
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 2,
+          "outcome": null
+        },
+        {
+          "label": "release_unblocks",
+          "op": "release_then_admit",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0,
+            10.0,
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 2,
+          "outcome": "admitted"
+        },
+        {
+          "label": "final_release",
+          "op": "release",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0,
+            10.0,
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": null
+        }
+      ]
+    },
+    "reconfigure": {
+      "limits": {
+        "rate_limit": 2,
+        "rate_window": 10.0,
+        "max_concurrency": 1
+      },
+      "steps": [
+        {
+          "label": "admit_under_old_limits",
+          "op": "admit",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": "admitted"
+        },
+        {
+          "label": "blocked_under_old_limits",
+          "op": "expect_blocked",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": null
+        },
+        {
+          "label": "reconfigured",
+          "op": "reconfigure_admit",
+          "now": 10.0,
+          "limits": {
+            "rate_limit": 5,
+            "rate_window": 20.0,
+            "max_concurrency": 3
+          },
+          "admission_times": [
+            10.0,
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 2,
+          "outcome": "admitted"
+        },
+        {
+          "label": "release_after_reconfigure",
+          "op": "release",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0,
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": null
+        }
+      ]
+    },
+    "permit_invalidation": {
+      "limits": {
+        "rate_limit": 10,
+        "rate_window": 30.0,
+        "max_concurrency": 1
+      },
+      "steps": [
+        {
+          "label": "holder_admit",
+          "op": "admit",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": "admitted"
+        },
+        {
+          "label": "waiter_blocked",
+          "op": "expect_blocked",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": null
+        },
+        {
+          "label": "permit_invalidated",
+          "op": "permit_invalidated",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": "returned_false"
+        },
+        {
+          "label": "holder_releases",
+          "op": "release",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 0,
+          "outcome": null
+        }
+      ]
+    },
+    "window_eviction": {
+      "limits": {
+        "rate_limit": 2,
+        "rate_window": 5.0,
+        "max_concurrency": 4
+      },
+      "steps": [
+        {
+          "label": "cycled_admit_0",
+          "op": "admit",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": "admitted"
+        },
+        {
+          "label": "cycled_release_0",
+          "op": "release",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 0,
+          "outcome": null
+        },
+        {
+          "label": "cycled_admit_1",
+          "op": "admit",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0,
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 1,
+          "outcome": "admitted"
+        },
+        {
+          "label": "cycled_release_1",
+          "op": "release",
+          "now": 10.0,
+          "limits": null,
+          "admission_times": [
+            10.0,
+            10.0
+          ],
+          "last_discarded_at": null,
+          "active_attempts": 0,
+          "outcome": null
+        },
+        {
+          "label": "cycled_admit_2",
+          "op": "admit",
+          "now": 15.0,
+          "limits": null,
+          "admission_times": [
+            15.0
+          ],
+          "last_discarded_at": 10.0,
+          "active_attempts": 1,
+          "outcome": "admitted"
+        },
+        {
+          "label": "cycled_release_2",
+          "op": "release",
+          "now": 15.0,
+          "limits": null,
+          "admission_times": [
+            15.0
+          ],
+          "last_discarded_at": 10.0,
+          "active_attempts": 0,
+          "outcome": null
+        },
+        {
+          "label": "cycled_admit_3",
+          "op": "admit",
+          "now": 15.0,
+          "limits": null,
+          "admission_times": [
+            15.0,
+            15.0
+          ],
+          "last_discarded_at": 10.0,
+          "active_attempts": 1,
+          "outcome": "admitted"
+        },
+        {
+          "label": "cycled_release_3",
+          "op": "release",
+          "now": 15.0,
+          "limits": null,
+          "admission_times": [
+            15.0,
+            15.0
+          ],
+          "last_discarded_at": 10.0,
+          "active_attempts": 0,
+          "outcome": null
+        },
+        {
+          "label": "cycled_admit_4",
+          "op": "admit",
+          "now": 20.0,
+          "limits": null,
+          "admission_times": [
+            20.0
+          ],
+          "last_discarded_at": 15.0,
+          "active_attempts": 1,
+          "outcome": "admitted"
+        },
+        {
+          "label": "cycled_release_4",
+          "op": "release",
+          "now": 20.0,
+          "limits": null,
+          "admission_times": [
+            20.0
+          ],
+          "last_discarded_at": 15.0,
+          "active_attempts": 0,
+          "outcome": null
+        },
+        {
+          "label": "cycled_admit_5",
+          "op": "admit",
+          "now": 20.0,
+          "limits": null,
+          "admission_times": [
+            20.0,
+            20.0
+          ],
+          "last_discarded_at": 15.0,
+          "active_attempts": 1,
+          "outcome": "admitted"
+        },
+        {
+          "label": "cycled_release_5",
+          "op": "release",
+          "now": 20.0,
+          "limits": null,
+          "admission_times": [
+            20.0,
+            20.0
+          ],
+          "last_discarded_at": 15.0,
+          "active_attempts": 0,
+          "outcome": null
+        }
+      ]
+    }
+  }
+}
