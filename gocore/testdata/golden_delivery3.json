@@ -1,0 +1,1430 @@
+{
+  "default_limit": 1048576,
+  "scenarios": [
+    {
+      "name": "responses_two_items",
+      "wire": "responses",
+      "limit": 1048576,
+      "events": [
+        {
+          "type": "response.created",
+          "sequence_number": 0,
+          "response": {
+            "id": "resp_prefix",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 11,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "sequence_number": 1,
+          "item": {
+            "id": "msg_0",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_0",
+          "part": {
+            "type": "output_text",
+            "text": "",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_text.delta",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_0",
+          "delta": "Hel"
+        },
+        {
+          "type": "response.output_text.delta",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_0",
+          "delta": "lo "
+        },
+        {
+          "type": "response.output_text.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_0",
+          "text": "Hello "
+        },
+        {
+          "type": "response.content_part.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "sequence_number": 9,
+          "item": {
+            "id": "msg_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 1,
+          "sequence_number": 11,
+          "item": {
+            "id": "msg_1",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 1,
+          "content_index": 0,
+          "item_id": "msg_1",
+          "part": {
+            "type": "output_text",
+            "text": "",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_text.delta",
+          "output_index": 1,
+          "content_index": 0,
+          "item_id": "msg_1",
+          "delta": "wo"
+        },
+        {
+          "type": "response.output_text.delta",
+          "output_index": 1,
+          "content_index": 0,
+          "item_id": "msg_1",
+          "delta": "rld"
+        },
+        {
+          "type": "response.output_text.done",
+          "output_index": 1,
+          "content_index": 0,
+          "item_id": "msg_1",
+          "text": "world"
+        },
+        {
+          "type": "response.content_part.done",
+          "output_index": 1,
+          "content_index": 0,
+          "item_id": "msg_1",
+          "part": {
+            "type": "output_text",
+            "text": "world",
+            "annotations": []
+          }
+        }
+      ],
+      "trace": [
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 0,
+          "limited": false
+        },
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 138,
+          "limited": false
+        },
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 188,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 193,
+          "limited": false
+        },
+        {
+          "progress": 2,
+          "unsafe": null,
+          "retained": 198,
+          "limited": false
+        },
+        {
+          "progress": 2,
+          "unsafe": null,
+          "retained": 240,
+          "limited": false
+        },
+        {
+          "progress": 2,
+          "unsafe": null,
+          "retained": 331,
+          "limited": false
+        },
+        {
+          "progress": 2,
+          "unsafe": null,
+          "retained": 473,
+          "limited": false
+        },
+        {
+          "progress": 2,
+          "unsafe": null,
+          "retained": 611,
+          "limited": false
+        },
+        {
+          "progress": 2,
+          "unsafe": null,
+          "retained": 661,
+          "limited": false
+        },
+        {
+          "progress": 3,
+          "unsafe": null,
+          "retained": 665,
+          "limited": false
+        },
+        {
+          "progress": 4,
+          "unsafe": null,
+          "retained": 670,
+          "limited": false
+        },
+        {
+          "progress": 4,
+          "unsafe": null,
+          "retained": 711,
+          "limited": false
+        },
+        {
+          "progress": 4,
+          "unsafe": null,
+          "retained": 801,
+          "limited": false
+        }
+      ],
+      "items": {
+        "0": {
+          "id": "msg_0",
+          "type": "message",
+          "status": "completed",
+          "role": "assistant",
+          "content": [
+            {
+              "type": "output_text",
+              "text": "Hello ",
+              "annotations": []
+            }
+          ]
+        },
+        "1": {
+          "id": "msg_1",
+          "type": "message",
+          "status": "in_progress",
+          "role": "assistant",
+          "content": [
+            {
+              "type": "output_text",
+              "text": "world",
+              "annotations": []
+            }
+          ]
+        }
+      },
+      "closed": [
+        0
+      ],
+      "text_closed": [
+        [
+          0,
+          "content",
+          0
+        ],
+        [
+          1,
+          "content",
+          0
+        ]
+      ],
+      "part_closed": [
+        [
+          0,
+          "content",
+          0
+        ],
+        [
+          1,
+          "content",
+          0
+        ]
+      ],
+      "header": {
+        "id": "resp_prefix",
+        "created_at": 1700000000,
+        "status": "in_progress",
+        "usage": {
+          "input_tokens": 11,
+          "output_tokens": 0
+        }
+      },
+      "sequence": 11,
+      "text_constraint": null,
+      "snapshot": {
+        "text": "Hello world",
+        "thinking": "",
+        "has_calls": false,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "closing_events": [
+        {
+          "type": "response.output_item.done",
+          "output_index": 1,
+          "item": {
+            "id": "msg_1",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "world",
+                "annotations": []
+              }
+            ]
+          }
+        }
+      ],
+      "usage": {
+        "input_tokens": 11,
+        "output_tokens": 77,
+        "total_tokens": 88
+      },
+      "output_tokens": 77,
+      "can_handoff": true
+    },
+    {
+      "name": "responses_reasoning",
+      "wire": "responses",
+      "limit": 1048576,
+      "events": [
+        {
+          "type": "response.created",
+          "sequence_number": 0,
+          "response": {
+            "id": "resp_prefix",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 11,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "item": {
+            "id": "rs_0",
+            "type": "reasoning",
+            "summary": [],
+            "content": []
+          }
+        },
+        {
+          "type": "response.reasoning_summary_part.added",
+          "output_index": 0,
+          "summary_index": 0,
+          "item_id": "rs_0",
+          "part": {
+            "type": "summary_text",
+            "text": ""
+          }
+        },
+        {
+          "type": "response.reasoning_summary_text.delta",
+          "output_index": 0,
+          "summary_index": 0,
+          "item_id": "rs_0",
+          "delta": "think"
+        },
+        {
+          "type": "response.reasoning_summary_text.done",
+          "output_index": 0,
+          "summary_index": 0,
+          "item_id": "rs_0",
+          "text": "think"
+        },
+        {
+          "type": "response.reasoning_summary_part.done",
+          "output_index": 0,
+          "summary_index": 0,
+          "item_id": "rs_0",
+          "part": {
+            "type": "summary_text",
+            "text": "think"
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "rs_0",
+          "part": {
+            "type": "reasoning_text",
+            "text": ""
+          }
+        },
+        {
+          "type": "response.reasoning_text.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "rs_0",
+          "text": "reason"
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "id": "rs_0",
+            "type": "reasoning",
+            "summary": [
+              {
+                "type": "summary_text",
+                "text": "think"
+              }
+            ],
+            "content": [
+              {
+                "type": "reasoning_text",
+                "text": "reason"
+              }
+            ]
+          }
+        }
+      ],
+      "trace": [
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 0,
+          "limited": false
+        },
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 59,
+          "limited": false
+        },
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 93,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 100,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 152,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 236,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 272,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 317,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 459,
+          "limited": false
+        }
+      ],
+      "items": {
+        "0": {
+          "id": "rs_0",
+          "type": "reasoning",
+          "summary": [
+            {
+              "type": "summary_text",
+              "text": "think"
+            }
+          ],
+          "content": [
+            {
+              "type": "reasoning_text",
+              "text": "reason"
+            }
+          ]
+        }
+      },
+      "closed": [
+        0
+      ],
+      "text_closed": [
+        [
+          0,
+          "content",
+          0
+        ],
+        [
+          0,
+          "summary",
+          0
+        ]
+      ],
+      "part_closed": [
+        [
+          0,
+          "summary",
+          0
+        ]
+      ],
+      "header": {
+        "id": "resp_prefix",
+        "created_at": 1700000000,
+        "status": "in_progress",
+        "usage": {
+          "input_tokens": 11,
+          "output_tokens": 0
+        }
+      },
+      "sequence": 0,
+      "text_constraint": null,
+      "snapshot": {
+        "text": "",
+        "thinking": "thinkreason",
+        "has_calls": false,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "closing_events": [],
+      "usage": {
+        "input_tokens": 11,
+        "output_tokens": 38,
+        "total_tokens": 49
+      },
+      "output_tokens": 38,
+      "can_handoff": true
+    },
+    {
+      "name": "responses_refusal",
+      "wire": "responses",
+      "limit": 1048576,
+      "events": [
+        {
+          "type": "response.created",
+          "sequence_number": 0,
+          "response": {
+            "id": "resp_prefix",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 11,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "item": {
+            "id": "rf_0",
+            "type": "message",
+            "content": [
+              {
+                "type": "refusal",
+                "refusal": ""
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.refusal.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "rf_0",
+          "refusal": "no"
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "id": "rf_0",
+            "type": "message",
+            "content": [
+              {
+                "type": "refusal",
+                "refusal": "no"
+              }
+            ]
+          }
+        }
+      ],
+      "trace": [
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 0,
+          "limited": false
+        },
+        {
+          "progress": 0,
+          "unsafe": "refusal",
+          "retained": 77,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": "refusal",
+          "retained": 111,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": "refusal",
+          "retained": 190,
+          "limited": false
+        }
+      ],
+      "items": {
+        "0": {
+          "id": "rf_0",
+          "type": "message",
+          "content": [
+            {
+              "type": "refusal",
+              "refusal": "no"
+            }
+          ]
+        }
+      },
+      "closed": [
+        0
+      ],
+      "text_closed": [
+        [
+          0,
+          "content",
+          0
+        ]
+      ],
+      "part_closed": [],
+      "header": {
+        "id": "resp_prefix",
+        "created_at": 1700000000,
+        "status": "in_progress",
+        "usage": {
+          "input_tokens": 11,
+          "output_tokens": 0
+        }
+      },
+      "sequence": 0,
+      "text_constraint": null,
+      "snapshot": {
+        "text": "",
+        "thinking": "",
+        "has_calls": false,
+        "eligible": false,
+        "can_handoff": false,
+        "unsafe_reason": "refusal"
+      },
+      "closing_events": [],
+      "usage": {
+        "input_tokens": 11,
+        "output_tokens": 21,
+        "total_tokens": 32
+      },
+      "output_tokens": 21,
+      "can_handoff": false
+    },
+    {
+      "name": "responses_unsafe_kinds",
+      "wire": "responses",
+      "limit": 1048576,
+      "events": [
+        {
+          "type": "response.created",
+          "sequence_number": 0,
+          "response": {
+            "id": "resp_prefix",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 11,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.something_unexpected",
+          "output_index": 0
+        },
+        {
+          "type": "response.function_call_arguments.delta",
+          "output_index": 0,
+          "delta": "{}"
+        },
+        {
+          "type": "response.web_search.delta",
+          "output_index": 0,
+          "delta": "x"
+        }
+      ],
+      "trace": [
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 0,
+          "limited": false
+        },
+        {
+          "progress": 0,
+          "unsafe": "unknown_event",
+          "retained": 0,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": "unknown_event",
+          "retained": 0,
+          "limited": false
+        },
+        {
+          "progress": 2,
+          "unsafe": "native_delta",
+          "retained": 0,
+          "limited": false
+        }
+      ],
+      "items": {},
+      "closed": [],
+      "text_closed": [],
+      "part_closed": [],
+      "header": {
+        "id": "resp_prefix",
+        "created_at": 1700000000,
+        "status": "in_progress",
+        "usage": {
+          "input_tokens": 11,
+          "output_tokens": 0
+        }
+      },
+      "sequence": 0,
+      "text_constraint": null,
+      "snapshot": {
+        "text": "",
+        "thinking": "",
+        "has_calls": false,
+        "eligible": false,
+        "can_handoff": false,
+        "unsafe_reason": "native_delta"
+      },
+      "closing_events": [],
+      "usage": {
+        "input_tokens": 11,
+        "output_tokens": 1,
+        "total_tokens": 12
+      },
+      "output_tokens": 1,
+      "can_handoff": false
+    },
+    {
+      "name": "responses_client_calls",
+      "wire": "responses",
+      "limit": 1048576,
+      "events": [
+        {
+          "type": "response.created",
+          "sequence_number": 0,
+          "response": {
+            "id": "resp_prefix",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 11,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "item": {
+            "id": "fc_0",
+            "type": "function_call",
+            "name": "shell",
+            "arguments": "{}"
+          }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "id": "fc_0",
+            "type": "function_call",
+            "name": "shell",
+            "arguments": "{}"
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 1,
+          "item": {
+            "id": "ts_0",
+            "type": "tool_search_call",
+            "execution": "client"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 0,
+          "limited": false
+        },
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 69,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 138,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 199,
+          "limited": false
+        }
+      ],
+      "items": {
+        "0": {
+          "id": "fc_0",
+          "type": "function_call",
+          "name": "shell",
+          "arguments": "{}"
+        },
+        "1": {
+          "id": "ts_0",
+          "type": "tool_search_call",
+          "execution": "client"
+        }
+      },
+      "closed": [
+        0
+      ],
+      "text_closed": [],
+      "part_closed": [],
+      "header": {
+        "id": "resp_prefix",
+        "created_at": 1700000000,
+        "status": "in_progress",
+        "usage": {
+          "input_tokens": 11,
+          "output_tokens": 0
+        }
+      },
+      "sequence": 0,
+      "text_constraint": null,
+      "snapshot": {
+        "text": "",
+        "thinking": "",
+        "has_calls": true,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "closing_events": [
+        {
+          "type": "response.output_item.done",
+          "output_index": 1,
+          "item": {
+            "id": "ts_0",
+            "type": "tool_search_call",
+            "execution": "client",
+            "status": "completed"
+          }
+        }
+      ],
+      "usage": {
+        "input_tokens": 11,
+        "output_tokens": 36,
+        "total_tokens": 47
+      },
+      "output_tokens": 36,
+      "can_handoff": true
+    },
+    {
+      "name": "responses_structured_constraint",
+      "wire": "responses",
+      "limit": 1048576,
+      "events": [
+        {
+          "type": "response.completed",
+          "response": {
+            "text": {
+              "format": {
+                "type": "json_schema",
+                "name": "x"
+              }
+            },
+            "output": []
+          }
+        }
+      ],
+      "trace": [
+        {
+          "progress": 0,
+          "unsafe": "structured_output",
+          "retained": 0,
+          "limited": false
+        }
+      ],
+      "items": {},
+      "closed": [],
+      "text_closed": [],
+      "part_closed": [],
+      "header": {},
+      "sequence": -1,
+      "text_constraint": "structured_output",
+      "snapshot": {
+        "text": "",
+        "thinking": "",
+        "has_calls": false,
+        "eligible": false,
+        "can_handoff": false,
+        "unsafe_reason": "structured_output"
+      },
+      "closing_events": [],
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 1,
+        "total_tokens": 1
+      },
+      "output_tokens": 1,
+      "can_handoff": false
+    },
+    {
+      "name": "responses_logprobs_constraint",
+      "wire": "responses",
+      "limit": 1048576,
+      "events": [
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "lp_0",
+          "part": {
+            "type": "output_text",
+            "text": "",
+            "logprobs": []
+          }
+        }
+      ],
+      "trace": [
+        {
+          "progress": 0,
+          "unsafe": "missing_item",
+          "retained": 47,
+          "limited": false
+        }
+      ],
+      "items": {},
+      "closed": [],
+      "text_closed": [],
+      "part_closed": [],
+      "header": {},
+      "sequence": -1,
+      "text_constraint": null,
+      "snapshot": {
+        "text": "",
+        "thinking": "",
+        "has_calls": false,
+        "eligible": false,
+        "can_handoff": false,
+        "unsafe_reason": "missing_item"
+      },
+      "closing_events": [],
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 1,
+        "total_tokens": 1
+      },
+      "output_tokens": 1,
+      "can_handoff": false
+    },
+    {
+      "name": "responses_retention_limit",
+      "wire": "responses",
+      "limit": 400,
+      "events": [
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "sequence_number": 1,
+          "item": {
+            "id": "big_0",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "big_0",
+          "part": {
+            "type": "output_text",
+            "text": "",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_text.delta",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "big_0",
+          "delta": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "type": "response.output_text.delta",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "big_0",
+          "delta": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "type": "response.output_text.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "big_0",
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "type": "response.content_part.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "big_0",
+          "part": {
+            "type": "output_text",
+            "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "sequence_number": 9,
+          "item": {
+            "id": "big_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                "annotations": []
+              }
+            ]
+          }
+        }
+      ],
+      "trace": [
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 138,
+          "limited": false
+        },
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 188,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": "retention_limit",
+          "retained": 1190,
+          "limited": true
+        },
+        {
+          "progress": 2,
+          "unsafe": "retention_limit",
+          "retained": 1190,
+          "limited": true
+        },
+        {
+          "progress": 3,
+          "unsafe": "retention_limit",
+          "retained": 1190,
+          "limited": true
+        },
+        {
+          "progress": 4,
+          "unsafe": "retention_limit",
+          "retained": 1190,
+          "limited": true
+        },
+        {
+          "progress": 5,
+          "unsafe": "retention_limit",
+          "retained": 1190,
+          "limited": true
+        }
+      ],
+      "items": {},
+      "closed": [],
+      "text_closed": [],
+      "part_closed": [],
+      "header": {},
+      "sequence": 9,
+      "text_constraint": null,
+      "snapshot": {
+        "text": "",
+        "thinking": "",
+        "has_calls": false,
+        "eligible": false,
+        "can_handoff": false,
+        "unsafe_reason": "retention_limit"
+      },
+      "closing_events": [],
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 537,
+        "total_tokens": 537
+      },
+      "output_tokens": 537,
+      "can_handoff": false
+    },
+    {
+      "name": "gemini_mixed_parts",
+      "wire": "gemini",
+      "limit": 1048576,
+      "events": [
+        {
+          "responseId": "gem-1",
+          "modelVersion": "gem-1.5",
+          "candidates": [
+            {
+              "index": 0,
+              "content": {
+                "parts": [
+                  {
+                    "text": "Hel"
+                  },
+                  {
+                    "text": "lo"
+                  },
+                  {
+                    "text": "secret",
+                    "thought": true
+                  },
+                  {
+                    "functionCall": {
+                      "name": "shell",
+                      "args": {}
+                    }
+                  },
+                  {
+                    "text": "opaque",
+                    "thoughtSignature": "sig"
+                  },
+                  {
+                    "text": "weird",
+                    "exoticKey": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "responseId": "gem-1",
+          "modelVersion": "gem-1.5",
+          "candidates": [
+            {
+              "index": 0,
+              "finishReason": "STOP",
+              "content": {
+                "parts": [
+                  {
+                    "text": ""
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "trace": [
+        {
+          "progress": 1,
+          "unsafe": "unsupported_output",
+          "retained": 181,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": "unsupported_output",
+          "retained": 193,
+          "limited": false
+        }
+      ],
+      "items": {
+        "0": {
+          "text": "Hello"
+        },
+        "1": {
+          "text": "secret",
+          "thought": true
+        },
+        "2": {
+          "functionCall": {
+            "name": "shell",
+            "args": {}
+          }
+        },
+        "3": {
+          "text": "opaque",
+          "thoughtSignature": "sig"
+        },
+        "4": {
+          "text": "weird",
+          "exoticKey": 1
+        },
+        "5": {
+          "text": ""
+        }
+      },
+      "closed": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "text_closed": [],
+      "part_closed": [],
+      "header": {
+        "responseId": "gem-1",
+        "modelVersion": "gem-1.5"
+      },
+      "sequence": -1,
+      "text_constraint": null,
+      "snapshot": {
+        "text": "Helloopaqueweird",
+        "thinking": "secret",
+        "has_calls": true,
+        "eligible": false,
+        "can_handoff": false,
+        "unsafe_reason": "unsupported_output"
+      },
+      "closing_events": [],
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 50,
+        "total_tokens": 50
+      },
+      "output_tokens": 50,
+      "can_handoff": false
+    },
+    {
+      "name": "messages_smoke",
+      "wire": "messages",
+      "limit": 1048576,
+      "events": [
+        {
+          "type": "message_start",
+          "message": {
+            "id": "msg_start",
+            "usage": {}
+          }
+        },
+        {
+          "type": "content_block_start",
+          "index": 0,
+          "content_block": {
+            "type": "text",
+            "text": ""
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "hi"
+          }
+        },
+        {
+          "type": "content_block_stop",
+          "index": 0
+        },
+        {
+          "type": "message_delta",
+          "delta": {
+            "stop_reason": "end_turn"
+          },
+          "usage": {
+            "output_tokens": 1
+          }
+        },
+        {
+          "type": "message_stop"
+        }
+      ],
+      "trace": [
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 0,
+          "limited": false
+        },
+        {
+          "progress": 0,
+          "unsafe": null,
+          "retained": 26,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 60,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 60,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 60,
+          "limited": false
+        },
+        {
+          "progress": 1,
+          "unsafe": null,
+          "retained": 60,
+          "limited": false
+        }
+      ],
+      "items": {
+        "0": {
+          "type": "text",
+          "text": "hi"
+        }
+      },
+      "closed": [
+        0
+      ],
+      "text_closed": [],
+      "part_closed": [],
+      "header": {
+        "id": "msg_start",
+        "usage": {}
+      },
+      "sequence": -1,
+      "text_constraint": null,
+      "snapshot": {
+        "text": "hi",
+        "thinking": "",
+        "has_calls": false,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "closing_events": [],
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 8,
+        "total_tokens": 8
+      },
+      "output_tokens": 8,
+      "can_handoff": true
+    }
+  ]
+}

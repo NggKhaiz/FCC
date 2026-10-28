@@ -2,6 +2,14 @@ package delivery
 
 import "encoding/json"
 
+// DeepCopy duplicates the JSON-shaped values Python's deepcopy protects:
+// maps and slices are rebuilt recursively, while immutable scalars (strings,
+// json.Number, bools, nil) are safe to share. Cached payloads must never be
+// mutated in place, exactly as in the Python implementation.
+func DeepCopy(value any) any {
+	return deepCopy(value)
+}
+
 // deepCopy duplicates the JSON-shaped values Python's deepcopy protects:
 // maps and slices are rebuilt recursively, while immutable scalars (strings,
 // json.Number, bools, nil) are safe to share. Cached payloads must never be
