@@ -161,6 +161,16 @@ branch via an RFC1123Z fallback), exception status precedence and the
 failure-label wording matrix, all golden-driven against the live
 controller with a frozen clock.
 
+Step 4c-3a (complete): the `ProviderExecution` budget state machine in
+`admission/execution.go` — attempt claims with the reference's exact
+guard errors, terminal succeed/fail/abandon transitions and idempotency,
+record-failure-while-active semantics, attempt-remaining math, UUID4
+identity and the termination hook contract (including the subtle
+`_close_attempt(None)` None==None re-fire and stale-claim no-op). Nine
+scenarios, 45 golden steps, replay identically; a latent non-canonical
+`wireuuid.String` layout was found and fixed to 8-4-4-4-12 with its own
+parity tests.
+
 ### Phase 5 — Catalog, config, and storage
 
 Provider catalog and settings move as data-driven tables. SQLite schemas
@@ -225,12 +235,18 @@ it is off the hot path.
 
 ## Immediate work
 
-Phase 4c-3: the `ProviderAdmissionController` state machine — executions,
-attempt claims, recovery episodes, probe permits and idle expiry — ported
-behind golden scripts generated from the live asyncio controller with a
-virtual clock. Then the blocking transport loop (timeouts, wake/event
-wiring over the 4c-1/4c-2 primitives) and the provider adapters in traffic
-order (OpenAI-compatible family first, then Anthropic-native and
-Responses-API mappers, Gemini and the long tail). Phases 4a, 4b, 4c-1 and
-4c-2 and phase 3 (`continuation/` plus the responses/gemini branches of
-`delivery`) are complete.
+Phase 4c-3b: the `ProviderAdmissionController` recovery core — gate
+permits, recovery episodes (open/probe/coalesce/exhaust), leader/waiter
+coordination and idle expiry — behind golden scripts driven from the live
+asyncio controller with a virtual clock. Then the blocking transport loop
+(timeouts, wake/event wiring over the 4c-1/4c-2 primitives) and the
+provider adapters in traffic order (OpenAI-compatible family first, then
+Anthropic-native and Responses-API mappers, Gemini and the long tail).
+Phases 4a, 4b, 4c-1, 4c-2, 4c-3a and phase 3 (`continuation/` plus the
+responses/gemini branches of `delivery`) are complete.
+
+Toolchain note: sandbox resets wipe the local Go and Python toolchains;
+`bench_local/bootstrap_go.sh` (go1.4.3 → 1.16 → 1.17.13 → 1.20 → 1.22.12
+from codeload) and `bench_local/bootstrap_python.sh` (PIC static zlib,
+static OpenSSL 3.0.15, CPython 3.14.10) rebuild both reproducibly inside
+the network allowlist.

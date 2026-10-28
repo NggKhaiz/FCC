@@ -70,12 +70,12 @@ func (u UUID) Hex() string {
 	return hex.EncodeToString(u[:])
 }
 
-// String renders the canonical hyphenated form.
+// String renders the canonical 8-4-4-4-12 hyphenated form.
 func (u UUID) String() string {
 	hexText := u.Hex()
 	out := make([]byte, 0, 36)
-	bounds := [5]int{0, 4, 6, 8, 10}
-	ends := [5]int{4, 6, 8, 10, 16}
+	bounds := [5]int{0, 8, 12, 16, 20}
+	ends := [5]int{8, 12, 16, 20, 32}
 	for i := 0; i < 5; i++ {
 		if i > 0 {
 			out = append(out, '-')

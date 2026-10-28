@@ -1,0 +1,919 @@
+{
+  "schema": "phase4c3a-execution-v1",
+  "enums": {
+    "operation_kinds": [
+      "model_discovery",
+      "generation",
+      "continuation",
+      "tool_repair"
+    ],
+    "execution_states": [
+      "active",
+      "succeeded",
+      "failed",
+      "abandoned"
+    ]
+  },
+  "identity_contract": {
+    "unique_ids": true,
+    "all_uuid4": true,
+    "sample_id": "71857a2b-43e5-4601-964b-5140931c0be0",
+    "python_uuid_version": 4
+  },
+  "scenarios": {
+    "happy_success": {
+      "max_attempts": 3,
+      "steps": [
+        {
+          "label": "first_claim",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 1,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 2,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "first_close",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 2,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": []
+        },
+        {
+          "label": "second_claim",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 2,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 2,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": 2,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "continuation"
+        },
+        {
+          "label": "succeed_while_open",
+          "op": "succeed",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "succeeded",
+          "attempts_started": 2,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": 2,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [
+            "succeeded"
+          ]
+        },
+        {
+          "label": "close_after_succeed",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "succeeded",
+          "attempts_started": 2,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [
+            "succeeded",
+            "succeeded"
+          ]
+        },
+        {
+          "label": "fail_after_terminal",
+          "op": "fail",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": {
+            "kind": "LateError",
+            "message": "late"
+          },
+          "stale_ordinal": null,
+          "state": "succeeded",
+          "attempts_started": 2,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [
+            "succeeded",
+            "succeeded"
+          ]
+        },
+        {
+          "label": "abandon_after_terminal",
+          "op": "abandon",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "succeeded",
+          "attempts_started": 2,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [
+            "succeeded",
+            "succeeded"
+          ]
+        },
+        {
+          "label": "succeed_again",
+          "op": "succeed",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "succeeded",
+          "attempts_started": 2,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [
+            "succeeded",
+            "succeeded"
+          ]
+        }
+      ]
+    },
+    "fail_after_close": {
+      "max_attempts": 2,
+      "steps": [
+        {
+          "label": "open_attempt",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 1,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "record_transient",
+          "op": "record_failure",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": {
+            "kind": "ConnectError",
+            "message": "reset"
+          },
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": 1,
+          "last_failure": {
+            "kind": "ConnectError",
+            "message": "reset"
+          },
+          "terminal_failure": null,
+          "termination_calls": []
+        },
+        {
+          "label": "close_while_active",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": null,
+          "last_failure": {
+            "kind": "ConnectError",
+            "message": "reset"
+          },
+          "terminal_failure": null,
+          "termination_calls": []
+        },
+        {
+          "label": "fail_execution",
+          "op": "fail",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": {
+            "kind": "RateLimitError",
+            "message": "429"
+          },
+          "stale_ordinal": null,
+          "state": "failed",
+          "attempts_started": 1,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": {
+            "kind": "RateLimitError",
+            "message": "429"
+          },
+          "terminal_failure": {
+            "kind": "RateLimitError",
+            "message": "429"
+          },
+          "termination_calls": [
+            "failed"
+          ]
+        },
+        {
+          "label": "close_without_claim",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "failed",
+          "attempts_started": 1,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": {
+            "kind": "RateLimitError",
+            "message": "429"
+          },
+          "terminal_failure": {
+            "kind": "RateLimitError",
+            "message": "429"
+          },
+          "termination_calls": [
+            "failed",
+            "failed"
+          ]
+        },
+        {
+          "label": "succeed_after_fail_noop",
+          "op": "succeed",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "failed",
+          "attempts_started": 1,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": {
+            "kind": "RateLimitError",
+            "message": "429"
+          },
+          "terminal_failure": {
+            "kind": "RateLimitError",
+            "message": "429"
+          },
+          "termination_calls": [
+            "failed",
+            "failed"
+          ]
+        }
+      ]
+    },
+    "exhaustion": {
+      "max_attempts": 2,
+      "steps": [
+        {
+          "label": "attempt_one",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 1,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "release_one",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": []
+        },
+        {
+          "label": "attempt_two",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 2,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 2,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": 2,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "release_two",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 2,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": []
+        },
+        {
+          "label": "third_claim_rejected",
+          "op": "claim",
+          "error": "provider execution is terminal or exhausted",
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 2,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "fail_when_exhausted",
+          "op": "fail",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": {
+            "kind": "InternalServerError",
+            "message": "500"
+          },
+          "stale_ordinal": null,
+          "state": "failed",
+          "attempts_started": 2,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": {
+            "kind": "InternalServerError",
+            "message": "500"
+          },
+          "terminal_failure": {
+            "kind": "InternalServerError",
+            "message": "500"
+          },
+          "termination_calls": [
+            "failed"
+          ]
+        }
+      ]
+    },
+    "double_claim": {
+      "max_attempts": 2,
+      "steps": [
+        {
+          "label": "first_claim",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 1,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "tool_repair"
+        },
+        {
+          "label": "second_claim_rejected",
+          "op": "claim",
+          "error": "provider execution already has an active attempt",
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "tool_repair"
+        },
+        {
+          "label": "release",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": []
+        }
+      ]
+    },
+    "abandon_open": {
+      "max_attempts": 2,
+      "steps": [
+        {
+          "label": "open_attempt",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 1,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "model_discovery"
+        },
+        {
+          "label": "abandon_while_open",
+          "op": "abandon",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "abandoned",
+          "attempts_started": 1,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [
+            "abandoned"
+          ]
+        },
+        {
+          "label": "close_after_abandon",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "abandoned",
+          "attempts_started": 1,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [
+            "abandoned",
+            "abandoned"
+          ]
+        },
+        {
+          "label": "fail_after_abandon_noop",
+          "op": "fail",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": {
+            "kind": "LateError",
+            "message": "late"
+          },
+          "stale_ordinal": null,
+          "state": "abandoned",
+          "attempts_started": 1,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [
+            "abandoned",
+            "abandoned"
+          ]
+        }
+      ]
+    },
+    "record_failure_after_terminal": {
+      "max_attempts": 2,
+      "steps": [
+        {
+          "label": "open_attempt",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 1,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "fail_first",
+          "op": "fail",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": {
+            "kind": "ConnectError",
+            "message": "dns"
+          },
+          "stale_ordinal": null,
+          "state": "failed",
+          "attempts_started": 1,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": 1,
+          "last_failure": {
+            "kind": "ConnectError",
+            "message": "dns"
+          },
+          "terminal_failure": {
+            "kind": "ConnectError",
+            "message": "dns"
+          },
+          "termination_calls": [
+            "failed"
+          ]
+        },
+        {
+          "label": "record_after_terminal_ignored",
+          "op": "record_failure",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": {
+            "kind": "SSLWantReadError",
+            "message": "read"
+          },
+          "stale_ordinal": null,
+          "state": "failed",
+          "attempts_started": 1,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": 1,
+          "last_failure": {
+            "kind": "ConnectError",
+            "message": "dns"
+          },
+          "terminal_failure": {
+            "kind": "ConnectError",
+            "message": "dns"
+          },
+          "termination_calls": [
+            "failed"
+          ]
+        },
+        {
+          "label": "close",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "failed",
+          "attempts_started": 1,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": {
+            "kind": "ConnectError",
+            "message": "dns"
+          },
+          "terminal_failure": {
+            "kind": "ConnectError",
+            "message": "dns"
+          },
+          "termination_calls": [
+            "failed",
+            "failed"
+          ]
+        }
+      ]
+    },
+    "claim_without_attempts": {
+      "max_attempts": 1,
+      "steps": [
+        {
+          "label": "succeed_before_any_claim",
+          "op": "succeed",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "succeeded",
+          "attempts_started": 0,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [
+            "succeeded"
+          ]
+        },
+        {
+          "label": "claim_after_succeed_rejected",
+          "op": "claim",
+          "error": "provider execution is terminal or exhausted",
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "succeeded",
+          "attempts_started": 0,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [
+            "succeeded"
+          ],
+          "operation_kind": "generation"
+        }
+      ]
+    },
+    "ordinal_progress": {
+      "max_attempts": 4,
+      "steps": [
+        {
+          "label": "claim_1",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 1,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 3,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "close_1",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 3,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": []
+        },
+        {
+          "label": "claim_2",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 2,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 2,
+          "can_attempt": true,
+          "attempts_remaining": 2,
+          "active_claim": 2,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "close_2",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 2,
+          "can_attempt": true,
+          "attempts_remaining": 2,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": []
+        },
+        {
+          "label": "claim_3",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 3,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 3,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": 3,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "close_3",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 3,
+          "can_attempt": true,
+          "attempts_remaining": 1,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": []
+        },
+        {
+          "label": "claim_4",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 4,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 4,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": 4,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "close_4",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 4,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": []
+        },
+        {
+          "label": "fifth_claim_rejected",
+          "op": "claim",
+          "error": "provider execution is terminal or exhausted",
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 4,
+          "can_attempt": false,
+          "attempts_remaining": 0,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        }
+      ]
+    },
+    "stale_claim_close": {
+      "max_attempts": 3,
+      "steps": [
+        {
+          "label": "open_claim",
+          "op": "claim",
+          "error": null,
+          "returned_ordinal": 1,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 2,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": [],
+          "operation_kind": "generation"
+        },
+        {
+          "label": "stale_close_ignored",
+          "op": "close_stale",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": 99,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 2,
+          "active_claim": 1,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": []
+        },
+        {
+          "label": "real_close",
+          "op": "close",
+          "error": null,
+          "returned_ordinal": null,
+          "error_input": null,
+          "stale_ordinal": null,
+          "state": "active",
+          "attempts_started": 1,
+          "can_attempt": true,
+          "attempts_remaining": 2,
+          "active_claim": null,
+          "last_failure": null,
+          "terminal_failure": null,
+          "termination_calls": []
+        }
+      ]
+    }
+  }
+}
