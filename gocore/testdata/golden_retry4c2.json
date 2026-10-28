@@ -1,0 +1,287 @@
+{
+  "schema": "phase4c2-retry-v1",
+  "constants": {
+    "upstream_transient_total_attempts": 10,
+    "default_base_delay": 2.0,
+    "default_max_delay": 60.0,
+    "default_jitter": 1.0
+  },
+  "config_cases": [
+    {
+      "label": "max_attempts_zero",
+      "error": "max_attempts must be > 0",
+      "expected": "max_attempts must be > 0"
+    },
+    {
+      "label": "max_attempts_negative",
+      "error": "max_attempts must be > 0",
+      "expected": "max_attempts must be > 0"
+    },
+    {
+      "label": "negative_base_delay",
+      "error": "base_delay must be >= 0",
+      "expected": "base_delay must be >= 0"
+    },
+    {
+      "label": "max_below_base",
+      "error": "max_delay must be >= base_delay",
+      "expected": "max_delay must be >= base_delay"
+    },
+    {
+      "label": "negative_jitter",
+      "error": "jitter must be >= 0",
+      "expected": "jitter must be >= 0"
+    },
+    {
+      "label": "defaults",
+      "max_attempts": 10,
+      "base_delay": 2.0,
+      "max_delay": 60.0,
+      "jitter": 1.0,
+      "observed": {
+        "max_attempts": 10,
+        "base_delay": 2.0,
+        "max_delay": 60.0,
+        "jitter": 1.0
+      }
+    }
+  ],
+  "retry_after_cases": [
+    {
+      "label": "no_response",
+      "response_present": false,
+      "retry_after_header": null,
+      "observed": null,
+      "expected": null
+    },
+    {
+      "label": "response_without_headers",
+      "response_present": true,
+      "retry_after_header": null,
+      "observed": null,
+      "expected": null
+    },
+    {
+      "label": "header_absent",
+      "response_present": true,
+      "retry_after_header": null,
+      "observed": null,
+      "expected": null
+    },
+    {
+      "label": "blank_header",
+      "response_present": true,
+      "retry_after_header": "   ",
+      "observed": null,
+      "expected": null
+    },
+    {
+      "label": "integer_seconds",
+      "response_present": true,
+      "retry_after_header": "12",
+      "observed": 12.0,
+      "expected": 12.0
+    },
+    {
+      "label": "float_seconds",
+      "response_present": true,
+      "retry_after_header": "2.5",
+      "observed": 2.5,
+      "expected": 2.5
+    },
+    {
+      "label": "negative_floored",
+      "response_present": true,
+      "retry_after_header": "-7",
+      "observed": 0.0,
+      "expected": 0.0
+    },
+    {
+      "label": "infinite_rejected",
+      "response_present": true,
+      "retry_after_header": "inf",
+      "observed": null,
+      "expected": null
+    },
+    {
+      "label": "nan_rejected",
+      "response_present": true,
+      "retry_after_header": "nan",
+      "observed": null,
+      "expected": null
+    },
+    {
+      "label": "http_date_future",
+      "response_present": true,
+      "retry_after_header": "Wed, 28 Oct 2026 08:00:30 GMT",
+      "observed": 30.0,
+      "expected": 30.0
+    },
+    {
+      "label": "http_date_past_floored",
+      "response_present": true,
+      "retry_after_header": "Wed, 28 Oct 2026 07:58:30 GMT",
+      "observed": 0.0,
+      "expected": 0.0
+    },
+    {
+      "label": "unparseable",
+      "response_present": true,
+      "retry_after_header": "soon please",
+      "observed": null,
+      "expected": null
+    },
+    {
+      "label": "naive_http_date",
+      "response_present": true,
+      "retry_after_header": "Wed, 28 Oct 2026 08:00:12 -0000",
+      "observed": 12.0,
+      "expected": 12.0
+    }
+  ],
+  "delay_cases": [
+    {
+      "label": "backoff_attempt_1",
+      "attempt": 1,
+      "retry_after": null,
+      "jitter_draw": 0.0,
+      "observed": 2.0
+    },
+    {
+      "label": "backoff_attempt_2",
+      "attempt": 2,
+      "retry_after": null,
+      "jitter_draw": 0.25,
+      "observed": 4.25
+    },
+    {
+      "label": "backoff_attempt_3",
+      "attempt": 3,
+      "retry_after": null,
+      "jitter_draw": 1.0,
+      "observed": 9.0
+    },
+    {
+      "label": "backoff_attempt_4",
+      "attempt": 4,
+      "retry_after": null,
+      "jitter_draw": 0.5,
+      "observed": 16.5
+    },
+    {
+      "label": "backoff_attempt_5",
+      "attempt": 5,
+      "retry_after": null,
+      "jitter_draw": 0.75,
+      "observed": 20.75
+    },
+    {
+      "label": "backoff_attempt_6",
+      "attempt": 6,
+      "retry_after": null,
+      "jitter_draw": 0.1,
+      "observed": 20.1
+    },
+    {
+      "label": "retry_after_dominates",
+      "attempt": 2,
+      "retry_after": 15.0,
+      "jitter_draw": 0.0,
+      "observed": 15.0
+    },
+    {
+      "label": "zero_base_no_header",
+      "attempt": 4,
+      "retry_after": null,
+      "jitter_draw": 0.0,
+      "observed": 0.0
+    },
+    {
+      "label": "uniform_bounds",
+      "observed_low_high": [
+        0,
+        1.0
+      ],
+      "all_bounds_match": true
+    }
+  ],
+  "status_and_label_cases": [
+    {
+      "label": "status_attr",
+      "status_code": 502,
+      "response_status": null,
+      "observed_status": 502,
+      "expected_status": 502,
+      "failure_label": "Upstream server error (502)",
+      "error_kind": "APIStatusError"
+    },
+    {
+      "label": "response_status",
+      "status_code": null,
+      "response_status": 503,
+      "observed_status": 503,
+      "expected_status": 503,
+      "failure_label": "Upstream server error (503)",
+      "error_kind": "HTTPStatusError"
+    },
+    {
+      "label": "status_attr_wins",
+      "status_code": 429,
+      "response_status": 500,
+      "observed_status": 429,
+      "expected_status": 429,
+      "failure_label": "Rate limited (429)",
+      "error_kind": "APIStatusError"
+    },
+    {
+      "label": "neither",
+      "status_code": null,
+      "response_status": null,
+      "observed_status": null,
+      "expected_status": null,
+      "failure_label": "Provider transient error (ConnectError)",
+      "error_kind": "ConnectError"
+    },
+    {
+      "label": "none_like",
+      "status_code": null,
+      "response_status": null,
+      "observed_status": null,
+      "expected_status": null,
+      "failure_label": "Provider transient error (APIError)",
+      "error_kind": "APIError"
+    },
+    {
+      "label": "label_RateLimitError_429",
+      "status_code": 429,
+      "response_status": null,
+      "error_kind": "RateLimitError",
+      "observed_label": "Rate limited (429)",
+      "expected_label": "Rate limited (429)"
+    },
+    {
+      "label": "label_InternalServerError_500",
+      "status_code": 500,
+      "response_status": null,
+      "error_kind": "InternalServerError",
+      "observed_label": "Upstream server error (500)",
+      "expected_label": "Upstream server error (500)"
+    },
+    {
+      "label": "label_APIError_503",
+      "status_code": 503,
+      "response_status": null,
+      "error_kind": "APIError",
+      "observed_label": "Upstream server error (503)",
+      "expected_label": "Upstream server error (503)"
+    },
+    {
+      "label": "label_ConnectError_None",
+      "status_code": null,
+      "response_status": null,
+      "error_kind": "ConnectError",
+      "observed_label": "Provider transient error (ConnectError)",
+      "expected_label": "Provider transient error (ConnectError)"
+    }
+  ]
+}
