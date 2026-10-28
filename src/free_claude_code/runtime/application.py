@@ -222,7 +222,10 @@ class ApplicationRuntime:
             return
         self._http_ready.set()
         logging.getLogger("uvicorn.error").info(
-            "Admin UI: %s (local-only)", local_admin_url(self.settings)
+            "Admin UI: %s (listening on %s:%s)",
+            local_admin_url(self.settings),
+            self.settings.host,
+            self.settings.port,
         )
 
     def begin_shutdown(self) -> None:

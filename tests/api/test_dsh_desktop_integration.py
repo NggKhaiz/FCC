@@ -55,14 +55,14 @@ def test_configure_status_disconnect_hide_credentials(client):
 
 
 @pytest.mark.parametrize("action", ["", "/connect", "/disconnect", "/refresh"])
-def test_routes_reject_foreign_origins(client, action):
+def test_routes_accept_tunnel_origin(client, action):
     response = client.request(
         "POST" if action else "GET",
         ROOT + action,
-        headers={"Origin": "https://evil.test"},
+        headers={"Origin": "https://fcc.example.trycloudflare.com"},
     )
-    assert response.status_code == 403
-    assert not (desktop.config_home() / ".credentials.yaml").exists()
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
 
 
 def test_invalid_yaml_does_not_leak_its_secret_line(client):

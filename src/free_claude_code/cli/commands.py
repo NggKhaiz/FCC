@@ -87,7 +87,8 @@ def _log_port_in_use(settings: Settings) -> None:
         status = _external_fcc_status(settings, timeout=1.5)
         other_program = status is None
     except HTTPError as exc:
-        # Admin rejects non-loopback requests, so a 403 cannot rule out FCC.
+        # FCC releases built before tunnel support answered non-loopback
+        # probes with 403, so a 403 cannot rule out an older FCC instance.
         other_program = exc.code != 403
     except ValueError:
         other_program = True

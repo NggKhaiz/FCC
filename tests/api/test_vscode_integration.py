@@ -119,24 +119,29 @@ def test_invalid_file_returns_safe_uncached_error(integration, action, target):
 
 @pytest.mark.parametrize("action", ["", "/connect", "/disconnect", "/refresh"])
 @pytest.mark.parametrize(
-    "headers", [{"Host": "evil.test"}, {"Origin": "https://evil.test"}]
+    "headers",
+    [
+        {"Host": "fcc.example.trycloudflare.com"},
+        {"Origin": "https://fcc.example.trycloudflare.com"},
+    ],
 )
-def test_local_admin_security_applies(integration, action, headers):
-    client, path, _ = integration
+def test_admin_accepts_tunnel_headers(integration, action, headers):
+    client, _, _ = integration
     response = client.request(
         "GET" if not action else "POST", ROOT + action, headers=headers
     )
-    assert response.status_code == 403
-    assert not path.exists()
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
 
 
-def test_remote_client_is_rejected(integration):
-    client, path, _ = integration
+def test_remote_client_is_accepted(integration):
+    client, _, _ = integration
     with TestClient(
         client.app, base_url="http://127.0.0.1", client=("192.0.2.1", 50000)
     ) as remote:
-        assert remote.post(f"{ROOT}/connect").status_code == 403
-    assert not path.exists()
+        response = remote.post(f"{ROOT}/connect")
+        assert response.status_code == 200
+        assert response.json() == {"connected": True}
 
 
 def test_io_failure_returns_safe_error(integration, monkeypatch):

@@ -72,27 +72,31 @@ def test_invalid_onboarding_is_scoped_and_does_not_change_connection(
 
 @pytest.mark.parametrize("action", ["", "/complete"])
 @pytest.mark.parametrize(
-    "headers", [{"Host": "evil.test"}, {"Origin": "https://evil.test"}]
+    "headers",
+    [
+        {"Host": "fcc.example.trycloudflare.com"},
+        {"Origin": "https://fcc.example.trycloudflare.com"},
+    ],
 )
-def test_loopback_admin_guard(onboarding, action, headers):
+def test_admin_accepts_tunnel_headers(onboarding, action, headers):
     client, _, path = onboarding
-    assert (
-        client.request(
-            "POST" if action else "GET", ROOT + action, headers=headers
-        ).status_code
-        == 403
+    response = client.request(
+        "POST" if action else "GET", ROOT + action, headers=headers
     )
-    assert not path.exists()
+    assert response.status_code == 200
+    if action:
+        # The completion request is processed normally through the tunnel.
+        assert path.exists()
 
 
-def test_remote_client_is_rejected(onboarding):
+def test_remote_client_is_accepted(onboarding):
     client, _, path = onboarding
     with TestClient(
         client.app, base_url="http://127.0.0.1", client=("192.0.2.1", 50000)
     ) as remote:
-        assert remote.get(ROOT).status_code == 403
-        assert remote.post(f"{ROOT}/complete").status_code == 403
-    assert not path.exists()
+        assert remote.get(ROOT).status_code == 200
+        assert remote.post(f"{ROOT}/complete").status_code == 200
+    assert path.exists()
 
 
 def test_pending_restart_and_shutdown_do_not_write(onboarding):

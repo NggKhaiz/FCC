@@ -60,11 +60,13 @@ def test_api_connect_failure_retry_disconnect_and_safe_status(client):
 
 
 @pytest.mark.parametrize("action", ["", "/connect", "/disconnect", "/refresh"])
-def test_routes_reject_other_origins(client, action):
+def test_routes_accept_tunnel_origin(client, action):
     response = client.request(
         "POST" if action else "GET",
         ROOT + action,
-        headers={"Origin": "https://evil.test"},
+        headers={"Origin": "https://fcc.example.trycloudflare.com"},
     )
-    assert response.status_code == 403
-    assert not jb.config_path().exists()
+    # A clean registry makes connect a 400 application error; what matters
+    # is that the request reaches the handler instead of a 403 boundary.
+    assert response.status_code != 403
+    assert response.headers["cache-control"] == "no-store"

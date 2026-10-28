@@ -4,9 +4,14 @@
 # distro apt repos, so zlib and OpenSSL are built static from source too;
 # CPython then links them into its extension modules.
 #
-# Optional extensions without system dev headers (ctypes, sqlite, lzma,
-# bz2, readline) are skipped; add their libs and rerun if a later phase
-# needs them. Prefix: /home/user/py314
+# ctypes is enabled from the base image's libffi.so.8 runtime: the distro
+# ships no dev package (ffi.h / libffi.so symlink), so the libffi 3.4.8
+# headers are generated from the GitHub source tree without autotools and
+# the missing linker symlink points at the installed shared library.
+#
+# Optional extensions still without system libs (sqlite, lzma, bz2,
+# readline) are skipped; add their libs and rerun if a later phase needs
+# them. Prefix: /home/user/py314
 set -euo pipefail
 
 OPT=/home/user/.local/opt
@@ -50,15 +55,37 @@ if [[ ! -f "$OPT/openssl/lib/libssl.a" ]]; then
   echo "[py] openssl installed"
 fi
 
+# --- libffi headers (runtime libffi.so.8 comes from the base image) ---------
+# The GitHub tarball lacks a generated configure/ffi.h, and the sandbox has
+# no autotools; ffi.h.in only needs four substitutions on x86-64 glibc.
+if ! /home/user/py314/bin/python3.14 -c "import ctypes" 2>/dev/null; then
+  fetch libffi/libffi v3.4.8 libffi
+  mkdir -p "$OPT/libffi/include" "$OPT/libffi/lib"
+  sed \
+    -e 's/@VERSION@/3.4.8/g' \
+    -e 's/@TARGET@/X86_64/g' \
+    -e 's/@HAVE_LONG_DOUBLE@/1/g' \
+    -e 's/@FFI_EXEC_TRAMPOLINE_TABLE@/0/g' \
+    "$SRC/libffi/include/ffi.h.in" > "$OPT/libffi/include/ffi.h"
+  cp "$SRC/libffi/src/x86/ffitarget.h" "$OPT/libffi/include/ffitarget.h"
+  runtime_ffi="$(find /usr/lib /lib -name 'libffi.so.8*' -type f 2>/dev/null | head -1)"
+  if [[ -z "$runtime_ffi" ]]; then
+    echo "[py] libffi.so.8 runtime missing from base image" >&2
+    exit 1
+  fi
+  ln -sf "$runtime_ffi" "$OPT/libffi/lib/libffi.so"
+  echo "[py] libffi headers installed against $runtime_ffi"
+fi
+
 # --- CPython 3.14.10 ---------------------------------------------------------
 # 3.14 dropped --with-zlib; custom prefixes are exposed through CPPFLAGS so
-# the configure header checks find zlib.h, and LDFLAGS finds the static lib.
-if ! /home/user/py314/bin/python3.14 -c "import ssl, zlib" 2>/dev/null; then
+# the configure header checks find zlib.h / ffi.h, and LDFLAGS finds the libs.
+if ! /home/user/py314/bin/python3.14 -c "import ssl, zlib, ctypes" 2>/dev/null; then
   fetch python/cpython v3.14.10 cpython
   pushd "$SRC/cpython" >/dev/null
   make distclean >/dev/null 2>&1 || true
-  CPPFLAGS="-I$OPT/zlib/include -I$OPT/openssl/include" \
-  LDFLAGS="-L$OPT/zlib/lib -L$OPT/openssl/lib" \
+  CPPFLAGS="-I$OPT/zlib/include -I$OPT/openssl/include -I$OPT/libffi/include" \
+  LDFLAGS="-L$OPT/zlib/lib -L$OPT/openssl/lib -L$OPT/libffi/lib" \
   ./configure \
     --prefix=/home/user/py314 \
     --with-openssl="$OPT/openssl" \
@@ -71,7 +98,11 @@ fi
 
 export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 /home/user/py314/bin/python3.14 - <<'PY'
-import ssl, sys, zlib
-print("python", sys.version.split()[0], "ssl", ssl.OPENSSL_VERSION, "zlib ok")
+import ctypes, ssl, sys, zlib
+print(
+    "python", sys.version.split()[0],
+    "ssl", ssl.OPENSSL_VERSION,
+    "zlib ok, ctypes", ctypes.sizeof(ctypes.c_void_p) * 8, "bit",
+)
 PY
 echo "[py] bootstrap complete"

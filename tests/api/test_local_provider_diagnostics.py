@@ -152,13 +152,29 @@ def test_missing_local_url_has_no_network_probe_or_elapsed_time(provider_url):
     clock.assert_not_called()
 
 
-def test_remote_admin_cannot_trigger_a_local_provider_probe():
-    with patch.object(admin_routes.httpx, "AsyncClient") as client:
+def test_remote_admin_can_trigger_a_local_provider_probe(monkeypatch):
+    monkeypatch.setenv("LM_STUDIO_BASE_URL", "http://127.0.0.1:1234/v1")
+    requests: list[httpx.Request] = []
+    async_client = httpx.AsyncClient
+
+    def client(*args, **kwargs):
+        def reply(request):
+            requests.append(request)
+            return httpx.Response(200)
+
+        return async_client(
+            *args, transport=httpx.MockTransport(reply), **kwargs
+        )
+
+    with patch.object(admin_routes.httpx, "AsyncClient", client):
         response = TestClient(
             create_test_app(),
             base_url="http://127.0.0.1",
             client=("203.0.113.10", 50000),
         ).get("/admin/api/providers/lmstudio/local-status")
 
-    assert response.status_code == 403
-    client.assert_not_called()
+    assert response.status_code == 200
+    assert response.json()["status"] == "reachable"
+    assert [(request.method, str(request.url)) for request in requests] == [
+        ("GET", "http://127.0.0.1:1234/v1/models")
+    ]

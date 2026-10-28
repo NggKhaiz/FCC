@@ -337,9 +337,7 @@ async def test_codex_refresh_rechecks_catalog_generation_before_writing(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("integration", ["claude-vscode", "codex"])
-async def test_refresh_endpoint_is_local_only_and_does_not_connect(
-    runtime, integration
-):
+async def test_refresh_endpoint_accepts_remote_origin(runtime, integration):
     app = create_app(
         ApiServices(
             runtime.provider_manager, runtime, runtime, web_tools=StubWebToolsClient()
@@ -352,10 +350,13 @@ async def test_refresh_endpoint_is_local_only_and_does_not_connect(
             transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1"
         ) as client:
             path = f"/admin/api/integrations/{integration}"
-            blocked = await client.post(
-                path + "/refresh", headers={"Origin": "https://other.test"}
+            remote_origin = await client.post(
+                path + "/refresh",
+                headers={"Origin": "https://fcc.example.trycloudflare.com"},
             )
-            assert blocked.status_code == 403
+            assert remote_origin.status_code == 200
+            assert remote_origin.json()["update"]["state"] == "starting"
+            await finish(runtime)
             response = await client.post(path + "/refresh")
             assert response.status_code == 200
             assert response.json()["update"]["state"] == "starting"

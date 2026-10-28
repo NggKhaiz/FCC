@@ -218,18 +218,32 @@ async def test_code_commands_reject_unplanned_fields_and_other_harnesses(code_ap
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "headers", [{"host": "remote.example"}, {"origin": "https://remote.example"}]
+    "headers",
+    [
+        {"host": "fcc.example.trycloudflare.com"},
+        {"origin": "https://fcc.example.trycloudflare.com"},
+    ],
 )
-async def test_code_routes_share_admin_access_boundary(code_api, headers):
+async def test_code_routes_accept_tunnel_clients(code_api, headers):
+    from free_claude_code.api.code_sessions_routes import router as code_router
+
     client, _, harness, _, _ = code_api
     for path in (
         "/admin/code",
         "/admin/api/code/bootstrap",
         "/admin/api/code/sessions",
-        "/admin/api/code/events",
     ):
         response = await client.get(path, headers=headers)
-        assert response.status_code == 403
+        assert response.status_code == 200
+    # The SSE route shares the same router, which no longer carries the
+    # loopback dependency, so tunnel clients are not rejected there either.
+    events_route = next(
+        route
+        for route in code_router.routes
+        if getattr(route, "path", "") == "/admin/api/code/events"
+    )
+    assert not code_router.dependencies
+    assert not events_route.dependencies
     assert harness.connections == []
 
 
@@ -272,33 +286,18 @@ async def test_folder_picker_errors_use_admin_detail(code_api, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_folder_picker_only_opens_on_an_authorized_explicit_post(
+async def test_folder_picker_only_opens_on_an_explicit_post(
     code_api, monkeypatch
 ):
     client, _, _, _, app = code_api
 
     async def unexpected(_initial_path):
-        pytest.fail("Unauthorized or passive request opened a dialog")
+        pytest.fail("A passive or malformed request opened a dialog")
 
     monkeypatch.setattr(app.state.services.admin, "pick_folder", unexpected)
-    for headers in (
-        {"host": "remote.example"},
-        {"origin": "https://remote.example"},
-    ):
-        response = await client.post(
-            "/admin/api/code/folder-picker", json={}, headers=headers
-        )
-        assert response.status_code == 403
     for payload in ({"initial_path": "x" * 4097}, {"other": True}):
         response = await client.post("/admin/api/code/folder-picker", json=payload)
         assert response.status_code == 422
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app, client=("192.0.2.1", 1234)),
-        base_url="http://127.0.0.1",
-    ) as remote:
-        assert (
-            await remote.post("/admin/api/code/folder-picker", json={})
-        ).status_code == 403
     assert (await client.get("/admin/api/code/folder-picker")).status_code == 405
     assert (await client.get("/admin/code")).status_code == 200
     assert (await client.get("/admin/api/code/bootstrap")).status_code == 200

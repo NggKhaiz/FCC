@@ -83,10 +83,12 @@ async def test_runtime_startup_logs_admin_url_without_printed_server_banner(capl
 
     printed.assert_not_called()
     start_refresh.assert_called_once()
-    log_info.assert_called_once_with(
-        "Admin UI: %s (local-only)",
-        "http://127.0.0.1:9099/admin",
-    )
+    log_info.assert_called_once()
+    fmt, url, host, port = log_info.call_args.args
+    assert fmt == "Admin UI: %s (listening on %s:%s)"
+    assert url == "http://127.0.0.1:9099/admin"
+    assert isinstance(host, str) and host
+    assert port == 9099
     startup = [
         record
         for record in caplog.records

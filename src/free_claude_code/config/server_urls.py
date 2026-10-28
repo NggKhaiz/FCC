@@ -23,7 +23,7 @@ def local_proxy_root_url(settings: Settings) -> str:
 
 
 def local_admin_url(settings: Settings) -> str:
-    """Return a browser-friendly URL for the localhost-only admin UI."""
+    """Return a browser-friendly same-machine URL for the admin UI."""
 
     return f"{local_proxy_root_url(settings)}/admin"
 

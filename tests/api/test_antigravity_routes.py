@@ -79,24 +79,29 @@ def test_invalid_files_return_safe_errors_without_mutation(integration, action, 
 
 @pytest.mark.parametrize("action", ["", "/connect", "/disconnect"])
 @pytest.mark.parametrize(
-    "headers", [{"Host": "evil.test"}, {"Origin": "https://evil.test"}]
+    "headers",
+    [
+        {"Host": "fcc.example.trycloudflare.com"},
+        {"Origin": "https://fcc.example.trycloudflare.com"},
+    ],
 )
-def test_local_admin_security(integration, action, headers):
+def test_admin_accepts_tunnel_headers(integration, action, headers):
     client, _ = integration
     response = client.request(
         "POST" if action else "GET", ROOT + action, headers=headers
     )
-    assert response.status_code == 403
-    assert not native.state_path().exists()
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
 
 
-def test_remote_admin_rejected(integration):
+def test_remote_admin_accepted(integration):
     client, _ = integration
     with TestClient(
         client.app, base_url="http://127.0.0.1", client=("192.0.2.1", 50000)
     ) as remote:
-        assert remote.post(ROOT + "/connect").status_code == 403
-    assert not native.state_path().exists()
+        response = remote.post(ROOT + "/connect")
+        assert response.status_code == 200
+        assert response.json()["connected"] is True
 
 
 def test_io_error_is_safe_and_retryable(integration, monkeypatch):

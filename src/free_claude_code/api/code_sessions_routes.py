@@ -1,4 +1,4 @@
-"""Local Admin commands, snapshots and SSE for coding conversations."""
+"""Admin commands, snapshots and SSE for coding conversations."""
 
 import base64
 import json
@@ -26,12 +26,11 @@ from free_claude_code.config.model_refs import split_provider_model_ref
 from free_claude_code.core.json_types import JsonObject, JsonValue
 
 from .admin_routes import admin_page_response
-from .admin_security import require_loopback_admin
 from .dependencies import get_services
 from .markdown import render_markdown
 from .ports import ApiServices
 
-router = APIRouter(dependencies=[Depends(require_loopback_admin)])
+router = APIRouter()
 
 
 class CommandPayload(BaseModel):
