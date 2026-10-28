@@ -1,0 +1,1356 @@
+{
+  "namespaces": [
+    "11111111-1111-4111-8111-111111111111",
+    "22222222-2222-4222-8222-222222222222",
+    "33333333-3333-4333-8333-333333333333",
+    "44444444-4444-4444-8444-444444444444",
+    "55555555-5555-4555-8555-555555555555",
+    "66666666-6666-4666-8666-666666666666"
+  ],
+  "uuid5_probes": [
+    {
+      "namespace": "11111111-1111-4111-8111-111111111111",
+      "name": "msg_new_0",
+      "hex": "6f97c78a711f59a78f4efba428b79efc"
+    },
+    {
+      "namespace": "11111111-1111-4111-8111-111111111111",
+      "name": "msg_retry_0",
+      "hex": "d3c146545dc25b6ea4dd0e8d9d936f4e"
+    },
+    {
+      "namespace": "11111111-1111-4111-8111-111111111111",
+      "name": "plain",
+      "hex": "fc3189da7f4b5cc1a1359166a23c5c29"
+    },
+    {
+      "namespace": "22222222-2222-4222-8222-222222222222",
+      "name": "msg_new_0",
+      "hex": "3e019c7e00cf52cfb1764477dfe0778f"
+    },
+    {
+      "namespace": "22222222-2222-4222-8222-222222222222",
+      "name": "msg_retry_0",
+      "hex": "c7b2638a634a591094d5c582174cb656"
+    },
+    {
+      "namespace": "22222222-2222-4222-8222-222222222222",
+      "name": "plain",
+      "hex": "8556182065d950cda0b73e9cac9252f8"
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "responses_overlap_mapping",
+      "wire": "responses",
+      "seed_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_seed",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 9,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_text.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "text": "Hello "
+        },
+        {
+          "type": "response.content_part.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 1,
+          "item": {
+            "id": "msg_seed_1",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "world",
+                "annotations": []
+              }
+            ]
+          }
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": false
+        },
+        {
+          "op": "boundary",
+          "events": [
+            {
+              "type": "response.output_text.done",
+              "item_id": "msg_seed_1",
+              "output_index": 1,
+              "content_index": 0,
+              "text": "world",
+              "sequence_number": 0
+            },
+            {
+              "type": "response.content_part.done",
+              "item_id": "msg_seed_1",
+              "output_index": 1,
+              "content_index": 0,
+              "part": {
+                "type": "output_text",
+                "text": "world",
+                "annotations": []
+              },
+              "sequence_number": 1
+            },
+            {
+              "type": "response.output_item.done",
+              "output_index": 1,
+              "item": {
+                "id": "msg_seed_1",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "world",
+                    "annotations": []
+                  }
+                ]
+              },
+              "sequence_number": 2
+            }
+          ]
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "response.created"
+          },
+          "events": []
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "response.in_progress"
+          },
+          "events": []
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "response.output_text.delta",
+            "output_index": 0,
+            "content_index": 0,
+            "item_id": "msg_new_0",
+            "delta": "Hello again"
+          },
+          "events": [
+            {
+              "type": "response.output_text.delta",
+              "output_index": 2,
+              "content_index": 0,
+              "item_id": "msg_3e019c7e00cf52cfb1764477dfe0778f",
+              "delta": "Hello again",
+              "sequence_number": 3
+            }
+          ]
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "response.output_item.done",
+            "output_index": 0,
+            "item": {
+              "id": "msg_new_0",
+              "type": "message",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Hello again",
+                  "annotations": []
+                }
+              ]
+            }
+          },
+          "events": [
+            {
+              "type": "response.output_item.done",
+              "output_index": 2,
+              "item": {
+                "id": "msg_3e019c7e00cf52cfb1764477dfe0778f",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "Hello again",
+                    "annotations": []
+                  }
+                ]
+              },
+              "sequence_number": 4
+            }
+          ]
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "response.completed",
+            "response_id": "resp_continuation",
+            "response": {
+              "id": "resp_continuation",
+              "status": "completed",
+              "output": [
+                {
+                  "id": "msg_new_0",
+                  "type": "message",
+                  "content": [
+                    {
+                      "type": "output_text",
+                      "text": "Hello again"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "events": [
+            {
+              "type": "response.completed",
+              "response_id": "resp_seed",
+              "response": {
+                "id": "resp_seed",
+                "status": "completed",
+                "output": [
+                  {
+                    "id": "msg_3e019c7e00cf52cfb1764477dfe0778f",
+                    "type": "message",
+                    "content": [
+                      {
+                        "type": "output_text",
+                        "text": "Hello again"
+                      }
+                    ]
+                  }
+                ],
+                "created_at": 1700000000
+              },
+              "sequence_number": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "responses_handoff_passthrough",
+      "wire": "responses",
+      "seed_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_seed",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 9,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_text.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "text": "Hello "
+        },
+        {
+          "type": "response.content_part.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 1,
+          "item": {
+            "id": "msg_seed_1",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "world",
+                "annotations": []
+              }
+            ]
+          }
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": true
+        },
+        {
+          "op": "boundary",
+          "events": [
+            {
+              "type": "response.output_text.done",
+              "item_id": "msg_seed_1",
+              "output_index": 1,
+              "content_index": 0,
+              "text": "world",
+              "sequence_number": 0
+            },
+            {
+              "type": "response.content_part.done",
+              "item_id": "msg_seed_1",
+              "output_index": 1,
+              "content_index": 0,
+              "part": {
+                "type": "output_text",
+                "text": "world",
+                "annotations": []
+              },
+              "sequence_number": 1
+            },
+            {
+              "type": "response.output_item.done",
+              "output_index": 1,
+              "item": {
+                "id": "msg_seed_1",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "world",
+                    "annotations": []
+                  }
+                ]
+              },
+              "sequence_number": 2
+            }
+          ]
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "response.output_text.delta",
+            "output_index": 0,
+            "content_index": 0,
+            "item_id": "msg_raw_0",
+            "delta": "raw"
+          },
+          "events": [
+            {
+              "type": "response.output_text.delta",
+              "output_index": 0,
+              "content_index": 0,
+              "item_id": "msg_raw_0",
+              "delta": "raw",
+              "sequence_number": 3
+            }
+          ]
+        },
+        {
+          "op": "finalize",
+          "payload": {
+            "type": "response.completed",
+            "response": {
+              "id": "resp_handoff",
+              "status": "completed",
+              "output": [
+                {
+                  "id": "msg_raw_0",
+                  "type": "message",
+                  "content": [
+                    {
+                      "type": "output_text",
+                      "text": "raw"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "event": {
+            "type": "response.completed",
+            "response": {
+              "id": "resp_handoff",
+              "status": "completed",
+              "output": [
+                {
+                  "id": "msg_seed_0",
+                  "type": "message",
+                  "status": "completed",
+                  "role": "assistant",
+                  "content": [
+                    {
+                      "type": "output_text",
+                      "text": "Hello ",
+                      "annotations": []
+                    }
+                  ]
+                },
+                {
+                  "id": "msg_seed_1",
+                  "type": "message",
+                  "status": "completed",
+                  "role": "assistant",
+                  "content": [
+                    {
+                      "type": "output_text",
+                      "text": "world",
+                      "annotations": []
+                    }
+                  ]
+                }
+              ],
+              "usage": {
+                "input_tokens": 9,
+                "output_tokens": 79,
+                "total_tokens": 88
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "responses_no_progress_failure",
+      "wire": "responses",
+      "seed_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_seed",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 9,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_text.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "text": "Hello "
+        },
+        {
+          "type": "response.content_part.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 1,
+          "item": {
+            "id": "msg_seed_1",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "world",
+                "annotations": []
+              }
+            ]
+          }
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": false
+        },
+        {
+          "op": "finalize",
+          "payload": {
+            "type": "response.completed",
+            "response": {
+              "id": "resp_empty",
+              "output": []
+            }
+          },
+          "failure": "The provider continuation completed without adding output."
+        }
+      ]
+    },
+    {
+      "name": "responses_text_constraint_failure",
+      "wire": "responses",
+      "seed_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_seed",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 9,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_text.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "text": "Hello "
+        },
+        {
+          "type": "response.content_part.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 1,
+          "item": {
+            "id": "msg_seed_1",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "world",
+                "annotations": []
+              }
+            ]
+          }
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": false
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "response.completed",
+            "response": {
+              "text": {
+                "format": {
+                  "type": "json_object"
+                }
+              },
+              "output": []
+            }
+          },
+          "failure": "The continuation returned text with a native output contract that cannot be reconstructed."
+        }
+      ]
+    },
+    {
+      "name": "responses_restart_new_namespace",
+      "wire": "responses",
+      "seed_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_seed",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 9,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_text.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "text": "Hello "
+        },
+        {
+          "type": "response.content_part.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 1,
+          "item": {
+            "id": "msg_seed_1",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "world",
+                "annotations": []
+              }
+            ]
+          }
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222",
+        "33333333-3333-4333-8333-333333333333"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": false
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "response.output_text.done",
+            "output_index": 0,
+            "content_index": 0,
+            "item_id": "msg_retry_0",
+            "text": "Hello again"
+          },
+          "events": [
+            {
+              "type": "response.output_text.done",
+              "output_index": 2,
+              "content_index": 0,
+              "item_id": "msg_c7b2638a634a591094d5c582174cb656",
+              "text": "Hello again",
+              "sequence_number": 0
+            }
+          ]
+        },
+        {
+          "op": "restart"
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "response.output_text.done",
+            "output_index": 0,
+            "content_index": 0,
+            "item_id": "msg_retry_0",
+            "text": "Hello again"
+          },
+          "events": [
+            {
+              "type": "response.output_text.done",
+              "output_index": 2,
+              "content_index": 0,
+              "item_id": "msg_ef6a1e4d01d65d3fa4c8a35dd64dff0f",
+              "text": "Hello again",
+              "sequence_number": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "gemini_passthrough",
+      "wire": "gemini",
+      "seed_events": [
+        {
+          "responseId": "gem_seed",
+          "modelVersion": "gem-1.5",
+          "candidates": [
+            {
+              "index": 0,
+              "content": {
+                "parts": [
+                  {
+                    "text": "Hello "
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": false
+        },
+        {
+          "op": "boundary",
+          "events": []
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "candidates": [
+              {
+                "index": 0,
+                "content": {
+                  "parts": [
+                    {
+                      "text": "Hello again"
+                    }
+                  ]
+                }
+              }
+            ],
+            "usageMetadata": {
+              "candidatesTokenCount": 2
+            }
+          },
+          "events": [
+            {
+              "candidates": [
+                {
+                  "index": 0,
+                  "content": {
+                    "parts": [
+                      {
+                        "text": "again"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "usageMetadata": {
+                "candidatesTokenCount": 2
+              },
+              "responseId": "gem_seed",
+              "modelVersion": "gem-1.5"
+            }
+          ]
+        },
+        {
+          "op": "finalize",
+          "payload": {
+            "candidates": [
+              {
+                "index": 0,
+                "finishReason": "STOP",
+                "content": {
+                  "parts": [
+                    {
+                      "text": "Hello again"
+                    }
+                  ]
+                }
+              }
+            ],
+            "usageMetadata": {
+              "candidatesTokenCount": 2
+            }
+          },
+          "failure": "The provider continuation completed without adding output."
+        }
+      ]
+    },
+    {
+      "name": "gemini_no_progress_failure",
+      "wire": "gemini",
+      "seed_events": [
+        {
+          "responseId": "gem_seed",
+          "modelVersion": "gem-1.5",
+          "candidates": [
+            {
+              "index": 0,
+              "content": {
+                "parts": [
+                  {
+                    "text": "Hello "
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": false
+        },
+        {
+          "op": "finalize",
+          "payload": {
+            "candidates": [
+              {
+                "index": 0,
+                "finishReason": "STOP",
+                "content": {
+                  "parts": [
+                    {
+                      "text": ""
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "failure": "The provider continuation completed without adding output."
+        }
+      ]
+    },
+    {
+      "name": "messages_offset_and_usage",
+      "wire": "messages",
+      "seed_events": [
+        {
+          "type": "message_start",
+          "message": {
+            "id": "msg_seed",
+            "usage": {
+              "input_tokens": 7
+            }
+          }
+        },
+        {
+          "type": "content_block_start",
+          "index": 0,
+          "content_block": {
+            "type": "text",
+            "text": "Hello "
+          }
+        },
+        {
+          "type": "content_block_stop",
+          "index": 0
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": false
+        },
+        {
+          "op": "boundary",
+          "events": []
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {
+              "type": "text",
+              "text": ""
+            }
+          },
+          "events": [
+            {
+              "type": "content_block_start",
+              "index": 1,
+              "content_block": {
+                "type": "text",
+                "text": ""
+              }
+            }
+          ]
+        },
+        {
+          "op": "prepare",
+          "payload": {
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "text_delta",
+              "text": "again"
+            }
+          },
+          "events": [
+            {
+              "type": "content_block_delta",
+              "index": 1,
+              "delta": {
+                "type": "text_delta",
+                "text": "again"
+              }
+            }
+          ]
+        },
+        {
+          "op": "finalize",
+          "payload": {
+            "type": "message_delta",
+            "delta": {
+              "stop_reason": "end_turn"
+            },
+            "usage": {
+              "output_tokens": 1
+            }
+          },
+          "failure": "The provider continuation completed without adding output."
+        }
+      ]
+    },
+    {
+      "name": "responses_progress_clears_gate",
+      "wire": "responses",
+      "seed_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_seed",
+            "created_at": 1700000000,
+            "status": "in_progress",
+            "usage": {
+              "input_tokens": 9,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.content_part.added",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_text.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "text": "Hello "
+        },
+        {
+          "type": "response.content_part.done",
+          "output_index": 0,
+          "content_index": 0,
+          "item_id": "msg_seed_0",
+          "part": {
+            "type": "output_text",
+            "text": "Hello ",
+            "annotations": []
+          }
+        },
+        {
+          "type": "response.output_item.done",
+          "output_index": 0,
+          "item": {
+            "id": "msg_seed_0",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello ",
+                "annotations": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "response.output_item.added",
+          "output_index": 1,
+          "item": {
+            "id": "msg_seed_1",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "world",
+                "annotations": []
+              }
+            ]
+          }
+        }
+      ],
+      "namespaces": [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "steps": [
+        {
+          "op": "begin",
+          "handoff": false
+        },
+        {
+          "op": "observe",
+          "payload": {
+            "type": "response.output_text.delta",
+            "output_index": 1,
+            "content_index": 0,
+            "item_id": "msg_seed_1",
+            "delta": "!"
+          }
+        },
+        {
+          "op": "finalize",
+          "payload": {
+            "type": "response.completed",
+            "response": {
+              "id": "resp_later",
+              "output": []
+            }
+          },
+          "event": {
+            "type": "response.completed",
+            "response": {
+              "id": "resp_later",
+              "output": [
+                {
+                  "id": "msg_seed_0",
+                  "type": "message",
+                  "status": "completed",
+                  "role": "assistant",
+                  "content": [
+                    {
+                      "type": "output_text",
+                      "text": "Hello ",
+                      "annotations": []
+                    }
+                  ]
+                },
+                {
+                  "id": "msg_seed_1",
+                  "type": "message",
+                  "status": "completed",
+                  "role": "assistant",
+                  "content": [
+                    {
+                      "type": "output_text",
+                      "text": "world",
+                      "annotations": []
+                    }
+                  ]
+                }
+              ],
+              "usage": {
+                "input_tokens": 9,
+                "output_tokens": 79,
+                "total_tokens": 88
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
