@@ -1,0 +1,2052 @@
+{
+  "schema": "phase4c4a-openaichat-leaf-v1",
+  "base_url": [
+    {
+      "input": "https://api.example.com",
+      "output": "https://api.example.com/v1"
+    },
+    {
+      "input": "https://api.example.com/",
+      "output": "https://api.example.com/v1"
+    },
+    {
+      "input": "https://api.example.com/v1",
+      "output": "https://api.example.com/v1"
+    },
+    {
+      "input": "https://api.example.com/v1/",
+      "output": "https://api.example.com/v1"
+    },
+    {
+      "input": "http://localhost:8080/proxy",
+      "output": "http://localhost:8080/proxy/v1"
+    },
+    {
+      "input": "http://localhost:8080/proxy//",
+      "output": "http://localhost:8080/proxy/v1"
+    }
+  ],
+  "extra_body": [
+    {
+      "name": "valid_unrelated",
+      "extra": {
+        "customer": "acme-123"
+      },
+      "canonical_error": null,
+      "reasoning_error": null
+    },
+    {
+      "name": "valid_empty",
+      "extra": {},
+      "canonical_error": null,
+      "reasoning_error": null
+    },
+    {
+      "name": "canonical_model",
+      "extra": {
+        "model": "m"
+      },
+      "canonical_error": "extra_body must not override canonical request fields: ['model']",
+      "reasoning_error": null
+    },
+    {
+      "name": "canonical_two_sorted",
+      "extra": {
+        "temperature": 0.2,
+        "stream": true
+      },
+      "canonical_error": "extra_body must not override canonical request fields: ['stream', 'temperature']",
+      "reasoning_error": null
+    },
+    {
+      "name": "reasoning_effort",
+      "extra": {
+        "reasoning_effort": "high"
+      },
+      "canonical_error": "extra_body must not override canonical request fields: ['reasoning_effort']",
+      "reasoning_error": "extra_body must not override reasoning fields: ['reasoning_effort']"
+    },
+    {
+      "name": "thinking_budget",
+      "extra": {
+        "thinking_budget_tokens": 4096
+      },
+      "canonical_error": "extra_body must not override canonical request fields: ['thinking_budget_tokens']",
+      "reasoning_error": "extra_body must not override reasoning fields: ['thinking_budget_tokens']"
+    }
+  ],
+  "stream_usage": {
+    "request": [
+      {
+        "name": "absent_option",
+        "body": {
+          "model": "m",
+          "stream_options": {
+            "include_usage": true
+          }
+        }
+      },
+      {
+        "name": "merges_sibling",
+        "body": {
+          "model": "m",
+          "stream_options": {
+            "foo": "bar",
+            "include_usage": true
+          }
+        }
+      },
+      {
+        "name": "non_dict_option_untouched",
+        "body": {
+          "model": "m",
+          "stream_options": [
+            "x"
+          ]
+        }
+      }
+    ],
+    "clone": [
+      {
+        "name": "removes_only_include_usage",
+        "input": {
+          "model": "m",
+          "stream_options": {
+            "foo": "bar",
+            "include_usage": true
+          }
+        },
+        "output": {
+          "model": "m",
+          "stream_options": {
+            "foo": "bar"
+          }
+        },
+        "input_unchanged": true
+      },
+      {
+        "name": "drops_empty_option",
+        "input": {
+          "model": "m",
+          "stream_options": {
+            "include_usage": true
+          }
+        },
+        "output": {
+          "model": "m"
+        },
+        "input_unchanged": true
+      },
+      {
+        "name": "absent_option",
+        "input": {
+          "model": "m"
+        },
+        "output": null,
+        "input_unchanged": true
+      },
+      {
+        "name": "non_dict_option",
+        "input": {
+          "model": "m",
+          "stream_options": [
+            "x"
+          ]
+        },
+        "output": null,
+        "input_unchanged": true
+      },
+      {
+        "name": "empty_option",
+        "input": {
+          "model": "m",
+          "stream_options": {}
+        },
+        "output": null,
+        "input_unchanged": true
+      }
+    ]
+  },
+  "usage_extraction": {
+    "usage_int": [
+      {
+        "name": "plain_int",
+        "usage": {
+          "prompt_tokens": 11
+        },
+        "key": "prompt_tokens",
+        "output": 11
+      },
+      {
+        "name": "zero",
+        "usage": {
+          "completion_tokens": 0
+        },
+        "key": "completion_tokens",
+        "output": 0
+      },
+      {
+        "name": "negative",
+        "usage": {
+          "prompt_tokens": -1
+        },
+        "key": "prompt_tokens",
+        "output": -1
+      },
+      {
+        "name": "bool_rejected",
+        "usage": {
+          "prompt_tokens": true
+        },
+        "key": "prompt_tokens",
+        "output": null
+      },
+      {
+        "name": "float_rejected",
+        "usage": {
+          "prompt_tokens": 22.0
+        },
+        "key": "prompt_tokens",
+        "output": null
+      },
+      {
+        "name": "string_rejected",
+        "usage": {
+          "prompt_tokens": "22"
+        },
+        "key": "prompt_tokens",
+        "output": null
+      },
+      {
+        "name": "none_value",
+        "usage": {
+          "prompt_tokens": null
+        },
+        "key": "prompt_tokens",
+        "output": null
+      },
+      {
+        "name": "missing_key",
+        "usage": {
+          "completion_tokens": 4
+        },
+        "key": "prompt_tokens",
+        "output": null
+      },
+      {
+        "name": "empty_mapping",
+        "usage": {},
+        "key": "prompt_tokens",
+        "output": null
+      }
+    ],
+    "nested_usage_int": [
+      {
+        "name": "plain_nested",
+        "usage": {
+          "prompt_tokens_details": {
+            "cache_write_tokens": 5
+          }
+        },
+        "parent": "prompt_tokens_details",
+        "key": "cache_write_tokens",
+        "output": 5
+      },
+      {
+        "name": "nested_zero",
+        "usage": {
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "parent": "prompt_tokens_details",
+        "key": "cached_tokens",
+        "output": 0
+      },
+      {
+        "name": "nested_negative",
+        "usage": {
+          "prompt_tokens_details": {
+            "cached_tokens": -1
+          }
+        },
+        "parent": "prompt_tokens_details",
+        "key": "cached_tokens",
+        "output": -1
+      },
+      {
+        "name": "nested_bool",
+        "usage": {
+          "prompt_tokens_details": {
+            "cached_tokens": true
+          }
+        },
+        "parent": "prompt_tokens_details",
+        "key": "cached_tokens",
+        "output": null
+      },
+      {
+        "name": "nested_float",
+        "usage": {
+          "prompt_tokens_details": {
+            "cached_tokens": 15.0
+          }
+        },
+        "parent": "prompt_tokens_details",
+        "key": "cached_tokens",
+        "output": null
+      },
+      {
+        "name": "nested_string",
+        "usage": {
+          "prompt_tokens_details": {
+            "cached_tokens": "15"
+          }
+        },
+        "parent": "prompt_tokens_details",
+        "key": "cached_tokens",
+        "output": null
+      },
+      {
+        "name": "parent_none",
+        "usage": {
+          "prompt_tokens_details": null
+        },
+        "parent": "prompt_tokens_details",
+        "key": "cached_tokens",
+        "output": null
+      },
+      {
+        "name": "parent_non_mapping",
+        "usage": {
+          "prompt_tokens_details": "invalid"
+        },
+        "parent": "prompt_tokens_details",
+        "key": "cached_tokens",
+        "output": null
+      },
+      {
+        "name": "parent_missing",
+        "usage": {
+          "prompt_tokens": 22
+        },
+        "parent": "prompt_tokens_details",
+        "key": "cached_tokens",
+        "output": null
+      },
+      {
+        "name": "empty_mapping",
+        "usage": {},
+        "parent": "prompt_tokens_details",
+        "key": "cached_tokens",
+        "output": null
+      }
+    ]
+  },
+  "usage_rejection": [
+    {
+      "name": "usage_option_400",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "Unrecognized request argument supplied: stream_options",
+        "status_code": 400,
+        "body": {
+          "error": {
+            "message": "stream_options is unsupported"
+          }
+        }
+      },
+      "expected": true,
+      "observed": true
+    },
+    {
+      "name": "unrelated_400",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "messages: invalid role",
+        "status_code": 400,
+        "body": {
+          "error": {
+            "message": "messages contains invalid role"
+          }
+        }
+      },
+      "expected": false,
+      "observed": false
+    },
+    {
+      "name": "usage_option_422",
+      "error": {
+        "kind": "APIStatusError",
+        "message": "unknown stream_options parameter",
+        "status_code": 422,
+        "body": null
+      },
+      "expected": true,
+      "observed": true
+    },
+    {
+      "name": "server_error_ignored",
+      "error": {
+        "kind": "InternalServerError",
+        "message": "stream_options is unsupported",
+        "status_code": 500,
+        "body": null
+      },
+      "expected": false,
+      "observed": false
+    },
+    {
+      "name": "message_only_400",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "stream_options not permitted",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": true,
+      "observed": true
+    },
+    {
+      "name": "include_usage_wording",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "include_usage is forbidden",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": true,
+      "observed": true
+    },
+    {
+      "name": "option_without_rejection_word",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "stream_options present in request",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": false,
+      "observed": false
+    },
+    {
+      "name": "response_status_fallback",
+      "error": {
+        "kind": "APIStatusError",
+        "message": "upstream rejected the request",
+        "status_code": null,
+        "body": null,
+        "response_status": 400,
+        "response_text": "stream_options invalid for this provider"
+      },
+      "expected": true,
+      "observed": true
+    },
+    {
+      "name": "string_body_400",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "bad request",
+        "status_code": 400,
+        "body": "stream_options is unsupported by this deployment"
+      },
+      "expected": true,
+      "observed": true
+    },
+    {
+      "name": "kind_without_status",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "stream_options is unsupported",
+        "status_code": null,
+        "body": null
+      },
+      "expected": true,
+      "observed": true
+    }
+  ],
+  "output_cap_parse": [
+    {
+      "name": "groq_long_message",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "`max_completion_tokens` must be less than or equal to `16384`, the maximum value for `max_completion_tokens` is less than the `context_window` for this model",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": 16384,
+      "observed": 16384
+    },
+    {
+      "name": "colon_maximum_value",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "max_tokens: maximum value is 8192",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": 8192,
+      "observed": 8192
+    },
+    {
+      "name": "must_not_exceed",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "max_tokens must not exceed 16000",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": 16000,
+      "observed": 16000
+    },
+    {
+      "name": "lte_comparator",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "`max_completion_tokens` <= 4096 required",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": 4096,
+      "observed": 4096
+    },
+    {
+      "name": "at_most",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "max_tokens at most 2048 allowed",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": 2048,
+      "observed": 2048
+    },
+    {
+      "name": "maximum_of_for",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "maximum allowed value of 32768 for max_tokens",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": 32768,
+      "observed": 32768
+    },
+    {
+      "name": "structured_comparator_only",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "invalid request",
+        "status_code": 400,
+        "body": {
+          "error": {
+            "param": "max_completion_tokens",
+            "message": "<= 12000"
+          }
+        }
+      },
+      "expected": 12000,
+      "observed": 12000
+    },
+    {
+      "name": "inclusive_range",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "Range of max_tokens should be [1, 32768]",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": 32768,
+      "observed": 32768
+    },
+    {
+      "name": "inclusive_range_quoted",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "range of max_completion_tokens should be [ 1 , `8192` ]",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": 8192,
+      "observed": 8192
+    },
+    {
+      "name": "range_wrong_field",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "Range of temperature should be [0, 2] for max_tokens requests",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "range_starts_at_zero",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "Range of max_tokens should be [0, 4096]",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "range_unlimited",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "Range of max_tokens should be [1, unlimited]",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "range_missing_should_be",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "Range of max_tokens is [1, 4096]",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "non_400_status",
+      "error": {
+        "kind": "InternalServerError",
+        "message": "max_tokens must be less than or equal to 40960",
+        "status_code": 500,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "unrelated_400",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "temperature must be <= 2",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "unrelated_comparator_text_first",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "temperature must be <= 2; max_tokens is invalid",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "unrelated_comparator_text_second",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "max_completion_tokens is invalid; temperature at most 2",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "unrelated_structured_value",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "max_tokens is invalid",
+        "status_code": 400,
+        "body": {
+          "errors": [
+            {
+              "param": "temperature",
+              "message": "must not exceed 2"
+            },
+            {
+              "param": "top_p",
+              "message": "<= 1"
+            }
+          ]
+        }
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "structured_non_output_parameter",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "Error code: 400 - {'param': 'temperature', 'message': 'max_tokens must not exceed 2'}",
+        "status_code": 400,
+        "body": {
+          "param": "temperature",
+          "message": "max_tokens must not exceed 2"
+        }
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "structured_scope_does_not_escape",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "invalid request",
+        "status_code": 400,
+        "body": {
+          "param": "temperature",
+          "details": {
+            "message": "max_tokens must not exceed 2"
+          }
+        }
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "text_outside_structured_schema",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "invalid request",
+        "status_code": 400,
+        "body": {
+          "request": {
+            "message": "max_tokens must not exceed 2"
+          }
+        }
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "unscoped_structured_message",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "invalid request",
+        "status_code": 400,
+        "body": {
+          "message": "max_tokens must not exceed 8192"
+        }
+      },
+      "expected": 8192,
+      "observed": 8192
+    },
+    {
+      "name": "structured_list_selects_output_parameter",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "invalid request",
+        "status_code": 400,
+        "body": {
+          "errors": [
+            {
+              "param": "temperature",
+              "message": "max_tokens must not exceed 2"
+            },
+            {
+              "param": "max_tokens",
+              "message": "<= 8192"
+            }
+          ]
+        }
+      },
+      "expected": 8192,
+      "observed": 8192
+    },
+    {
+      "name": "no_number_in_message",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "max_tokens is larger than allowed",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "string_body",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "invalid request",
+        "status_code": 400,
+        "body": "max_tokens at most 2048 allowed"
+      },
+      "expected": 2048,
+      "observed": 2048
+    },
+    {
+      "name": "list_body",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "invalid request",
+        "status_code": 400,
+        "body": [
+          "max_tokens <= 512"
+        ]
+      },
+      "expected": 512,
+      "observed": 512
+    },
+    {
+      "name": "kind_without_status",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "max_tokens must not exceed 40960",
+        "status_code": null,
+        "body": null
+      },
+      "expected": 40960,
+      "observed": 40960
+    },
+    {
+      "name": "glued_prefix_not_a_field",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "xmax_tokens must not exceed 100",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "glued_suffix_not_a_field",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "max_tokensx must not exceed 100",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": null
+    },
+    {
+      "name": "glued_quoted_prefix_not_a_field",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "x`max_completion_tokens` at most 5",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": null,
+      "observed": 5
+    },
+    {
+      "name": "field_at_message_start",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "max_tokens must not exceed 256",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": 256,
+      "observed": 256
+    },
+    {
+      "name": "field_at_message_end",
+      "error": {
+        "kind": "BadRequestError",
+        "message": "maximum allowed value of 512 for max_completion_tokens",
+        "status_code": 400,
+        "body": null
+      },
+      "expected": 512,
+      "observed": 512
+    }
+  ],
+  "output_cap_clamp": [
+    {
+      "name": "clamps_completion_field",
+      "input": {
+        "max_completion_tokens": 64000
+      },
+      "cap": 40960,
+      "output": {
+        "max_completion_tokens": 40960
+      },
+      "input_unchanged": true
+    },
+    {
+      "name": "clamps_tokens_field",
+      "input": {
+        "max_tokens": 100000
+      },
+      "cap": 8192,
+      "output": {
+        "max_tokens": 8192
+      },
+      "input_unchanged": true
+    },
+    {
+      "name": "within_cap_returns_none",
+      "input": {
+        "max_completion_tokens": 1000
+      },
+      "cap": 40960,
+      "output": null,
+      "input_unchanged": true
+    },
+    {
+      "name": "does_not_mutate_input",
+      "input": {
+        "max_tokens": 99999,
+        "model": "m"
+      },
+      "cap": 8192,
+      "output": {
+        "max_tokens": 8192,
+        "model": "m"
+      },
+      "input_unchanged": true
+    },
+    {
+      "name": "bool_value_ignored",
+      "input": {
+        "max_tokens": true
+      },
+      "cap": 8192,
+      "output": null,
+      "input_unchanged": true
+    },
+    {
+      "name": "float_value_ignored",
+      "input": {
+        "max_tokens": 4096.5
+      },
+      "cap": 8192,
+      "output": null,
+      "input_unchanged": true
+    },
+    {
+      "name": "both_fields_clamped",
+      "input": {
+        "max_tokens": 99999,
+        "max_completion_tokens": 88888,
+        "model": "m"
+      },
+      "cap": 4096,
+      "output": {
+        "max_tokens": 4096,
+        "max_completion_tokens": 4096,
+        "model": "m"
+      },
+      "input_unchanged": true
+    }
+  ],
+  "identity": [
+    {
+      "name": "two_id_only_calls",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_b",
+          "slot": 1,
+          "error": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "learn_index_then_id",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": null,
+          "slot": 0,
+          "error": null,
+          "tool_id": null,
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "learn_id_then_index",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 4,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            4,
+            0
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 4,
+          "tool_id": "call_a",
+          "order_key": [
+            4,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "index_then_fragment_without_id",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 2,
+          "id": "call_x",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_x",
+          "order_key": [
+            2,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 2,
+          "id": null,
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_x",
+          "order_key": [
+            2,
+            0
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 2,
+          "tool_id": "call_x",
+          "order_key": [
+            2,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "disjoint_partials_variant_a",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 1,
+          "id": null,
+          "slot": 1,
+          "error": null,
+          "tool_id": null,
+          "order_key": [
+            1,
+            1
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 1,
+          "id": "call_b",
+          "slot": 1,
+          "error": null,
+          "tool_id": "call_b",
+          "order_key": [
+            1,
+            1
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": 1,
+          "tool_id": "call_b",
+          "order_key": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "disjoint_partials_variant_b",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": null,
+          "slot": 0,
+          "error": null,
+          "tool_id": null,
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_b",
+          "slot": 1,
+          "error": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "new_index_does_not_attach_to_unindexed",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_b",
+          "slot": 1,
+          "error": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 3,
+          "id": null,
+          "slot": 2,
+          "error": null,
+          "tool_id": null,
+          "order_key": [
+            3,
+            2
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        },
+        {
+          "slot": 2,
+          "index": 3,
+          "tool_id": null,
+          "order_key": [
+            3,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sparse_numeric_order",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 8,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            8,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 2,
+          "id": "call_b",
+          "slot": 1,
+          "error": null,
+          "tool_id": "call_b",
+          "order_key": [
+            2,
+            1
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 8,
+          "tool_id": "call_a",
+          "order_key": [
+            8,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": 2,
+          "tool_id": "call_b",
+          "order_key": [
+            2,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "repeated_index_allocates_new_slot",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_b",
+          "slot": 1,
+          "error": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": 0,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unidentified_without_existing",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": null,
+          "id": null,
+          "slot": null,
+          "error": "AmbiguousToolCallIdentityError: Upstream tool-call fragment has neither a usable index nor an ID."
+        }
+      ],
+      "final_calls": []
+    },
+    {
+      "name": "unidentified_negative_index_blank_id",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": -1,
+          "id": "",
+          "slot": null,
+          "error": "AmbiguousToolCallIdentityError: Upstream tool-call fragment has neither a usable index nor an ID."
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unidentified_string_index_whitespace_id",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": "missing",
+          "id": "  ",
+          "slot": null,
+          "error": "AmbiguousToolCallIdentityError: Upstream tool-call fragment has neither a usable index nor an ID."
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unidentified_bool_index",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": false,
+          "id": null,
+          "slot": null,
+          "error": "AmbiguousToolCallIdentityError: Upstream tool-call fragment has neither a usable index nor an ID."
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ambiguous_shared_index",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_b",
+          "slot": 1,
+          "error": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": null,
+          "slot": null,
+          "error": "AmbiguousToolCallIdentityError: Upstream tool-call fragment has ambiguous identity."
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": 0,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ambiguous_shared_id",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "same",
+          "slot": 0,
+          "error": null,
+          "tool_id": "same",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 1,
+          "id": "same",
+          "slot": 1,
+          "error": null,
+          "tool_id": "same",
+          "order_key": [
+            1,
+            1
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "same",
+          "slot": null,
+          "error": "AmbiguousToolCallIdentityError: Upstream tool-call fragment has ambiguous identity."
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": "same",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": 1,
+          "tool_id": "same",
+          "order_key": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "both_missing_after_index_only_calls",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": null,
+          "slot": 0,
+          "error": null,
+          "tool_id": null,
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 1,
+          "id": null,
+          "slot": 1,
+          "error": null,
+          "tool_id": null,
+          "order_key": [
+            1,
+            1
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": null,
+          "id": null,
+          "slot": null,
+          "error": "AmbiguousToolCallIdentityError: Upstream tool-call fragment has neither a usable index nor an ID."
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": null,
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": 1,
+          "tool_id": null,
+          "order_key": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ambiguous_unindexed_neighbour",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_b",
+          "slot": 1,
+          "error": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": null,
+          "slot": null,
+          "error": "AmbiguousToolCallIdentityError: Upstream tool-call fragment has ambiguous identity."
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ambiguous_id_with_indexed_neighbour",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 1,
+          "id": null,
+          "slot": 1,
+          "error": null,
+          "tool_id": null,
+          "order_key": [
+            1,
+            1
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_a",
+          "slot": null,
+          "error": "AmbiguousToolCallIdentityError: Upstream tool-call fragment has ambiguous identity."
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": 1,
+          "tool_id": null,
+          "order_key": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ambiguous_two_linked_calls",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": null,
+          "slot": 0,
+          "error": null,
+          "tool_id": null,
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_a",
+          "slot": 1,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_a",
+          "slot": null,
+          "error": "AmbiguousToolCallIdentityError: Upstream tool-call fragment has ambiguous identity."
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 0,
+          "tool_id": null,
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "allocate_then_unknown_identifier",
+      "steps": [
+        {
+          "op": "allocate",
+          "index": null,
+          "id": null,
+          "slot": 0,
+          "error": null
+        },
+        {
+          "op": "allocate",
+          "index": null,
+          "id": null,
+          "slot": 1,
+          "error": null
+        },
+        {
+          "op": "resolve",
+          "index": 5,
+          "id": "z",
+          "slot": 2,
+          "error": null,
+          "tool_id": "z",
+          "order_key": [
+            5,
+            2
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": null,
+          "tool_id": null,
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": null,
+          "tool_id": null,
+          "order_key": [
+            0,
+            1
+          ]
+        },
+        {
+          "slot": 2,
+          "index": 5,
+          "tool_id": "z",
+          "order_key": [
+            5,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "order_key_missing_index_uses_zero",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": null,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "resolve",
+          "index": 0,
+          "id": "call_b",
+          "slot": 1,
+          "error": null,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        },
+        {
+          "slot": 1,
+          "index": 0,
+          "tool_id": "call_b",
+          "order_key": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "whitespace_id_treated_as_missing",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 1,
+          "id": "  ",
+          "slot": 0,
+          "error": null,
+          "tool_id": null,
+          "order_key": [
+            1,
+            0
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": 1,
+          "tool_id": null,
+          "order_key": [
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bool_index_falls_back_to_id",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": false,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "float_index_falls_back_to_id",
+      "steps": [
+        {
+          "op": "resolve",
+          "index": 1.5,
+          "id": "call_a",
+          "slot": 0,
+          "error": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        }
+      ],
+      "final_calls": [
+        {
+          "slot": 0,
+          "index": null,
+          "tool_id": "call_a",
+          "order_key": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}

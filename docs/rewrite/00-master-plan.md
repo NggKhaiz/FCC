@@ -263,7 +263,14 @@ it is off the hot path.
 Phase 4c-4: port the provider adapters in traffic order (OpenAI-compatible
 family first, then Anthropic-native and Responses-API mappers, Gemini and
 the long tail), reusing the 4c-3c `RunCall`/`Attempt` transport behind
-each adapter's request/response mapping. Phases 4a, 4b, 4c-1, 4c-2,
+each adapter's request/response mapping. Sub-phase 4c-4a is complete:
+the transport-free leaf utilities of the OpenAI-chat family (`/v1` base
+URL policy, `extra_body` guards, streamed-usage helpers and rejection
+classification, output-token cap parsing/clamping, per-attempt tool-call
+identity resolution) now live in `gocore/openaichat/` with golden parity
+under `gocore/testdata/golden_openaichat4c4a.json`. Next are 4c-4b
+(stream/tool-call output assembly) and 4c-4c (transport and runner
+integration behind `RunCall`/`Attempt`). Phases 4a, 4b, 4c-1, 4c-2,
 4c-3a, 4c-3b, 4c-3c and phase 3 (`continuation/` plus the
 responses/gemini branches of `delivery`) are complete.
 
