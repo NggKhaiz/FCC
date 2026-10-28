@@ -9,9 +9,14 @@
 # headers are generated from the GitHub source tree without autotools and
 # the missing linker symlink points at the installed shared library.
 #
-# Optional extensions still without system libs (sqlite, lzma, bz2,
-# readline) are skipped; add their libs and rerun if a later phase needs
-# them. Prefix: /home/user/py314
+# sqlite3 is built static from the 3.47.0 amalgamation: the base image
+# ships libsqlite3.so.0 but no sqlite3.h, and the canonical sqlite mirror
+# needs tclsh to generate the amalgamation, so a pre-generated mirror is
+# used and compiled directly with gcc.
+#
+# Optional extensions still without system libs (lzma, bz2, readline) are
+# skipped; add their libs and rerun if a later phase needs them.
+# Prefix: /home/user/py314
 set -euo pipefail
 
 OPT=/home/user/.local/opt
@@ -77,15 +82,29 @@ if ! /home/user/py314/bin/python3.14 -c "import ctypes" 2>/dev/null; then
   echo "[py] libffi headers installed against $runtime_ffi"
 fi
 
+# --- sqlite 3.47.0 (static amalgamation, no tclsh required) -----------------
+if [[ ! -f "$OPT/sqlite/lib/libsqlite3.a" ]]; then
+  fetch litalidev/sqlite.amalgamation version-3.47.0 sqlite-amalg
+  mkdir -p "$OPT/sqlite/include" "$OPT/sqlite/lib"
+  cp "$SRC/sqlite-amalg/sqlite3.h" "$SRC/sqlite-amalg/sqlite3ext.h" \
+    "$OPT/sqlite/include/"
+  gcc -O2 -fPIC -I"$OPT/sqlite/include" \
+    -c "$SRC/sqlite-amalg/sqlite3.c" -o /tmp/sqlite3.o
+  ar rcs "$OPT/sqlite/lib/libsqlite3.a" /tmp/sqlite3.o
+  rm -f /tmp/sqlite3.o
+  echo "[py] sqlite installed"
+fi
+
 # --- CPython 3.14.10 ---------------------------------------------------------
 # 3.14 dropped --with-zlib; custom prefixes are exposed through CPPFLAGS so
-# the configure header checks find zlib.h / ffi.h, and LDFLAGS finds the libs.
-if ! /home/user/py314/bin/python3.14 -c "import ssl, zlib, ctypes" 2>/dev/null; then
+# the configure header checks find zlib.h / ffi.h / sqlite3.h, and LDFLAGS
+# finds the libs.
+if ! /home/user/py314/bin/python3.14 -c "import ssl, zlib, ctypes, sqlite3" 2>/dev/null; then
   fetch python/cpython v3.14.10 cpython
   pushd "$SRC/cpython" >/dev/null
   make distclean >/dev/null 2>&1 || true
-  CPPFLAGS="-I$OPT/zlib/include -I$OPT/openssl/include -I$OPT/libffi/include" \
-  LDFLAGS="-L$OPT/zlib/lib -L$OPT/openssl/lib -L$OPT/libffi/lib" \
+  CPPFLAGS="-I$OPT/zlib/include -I$OPT/openssl/include -I$OPT/libffi/include -I$OPT/sqlite/include" \
+  LDFLAGS="-L$OPT/zlib/lib -L$OPT/openssl/lib -L$OPT/libffi/lib -L$OPT/sqlite/lib" \
   ./configure \
     --prefix=/home/user/py314 \
     --with-openssl="$OPT/openssl" \
@@ -98,11 +117,12 @@ fi
 
 export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 /home/user/py314/bin/python3.14 - <<'PY'
-import ctypes, ssl, sys, zlib
+import ctypes, sqlite3, ssl, sys, zlib
 print(
     "python", sys.version.split()[0],
     "ssl", ssl.OPENSSL_VERSION,
-    "zlib ok, ctypes", ctypes.sizeof(ctypes.c_void_p) * 8, "bit",
+    "zlib ok, ctypes", ctypes.sizeof(ctypes.c_void_p) * 8, "bit,",
+    "sqlite", sqlite3.sqlite_version,
 )
 PY
 echo "[py] bootstrap complete"
