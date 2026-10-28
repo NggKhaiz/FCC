@@ -123,6 +123,18 @@ ships recorded request/response fixtures. The Go process exposes the frame
 pipeline over a local Unix-socket RPC; Python delegates per request behind
 a flag with instant fallback.
 
+Step 4a (complete): `providerpolicy/` ports the provider failure decision
+core — retry qualification for opening and streaming paths, transient
+status/overload inference from statuses, bodies and prose markers,
+authentication discrimination, context-window recognition, and the
+canonical failure classifier with stable customer wording. httpx/openai
+exception hierarchies become reconstructable data descriptors (the
+installed httpx MRO makes RemoteProtocolError a ProtocolError rather than
+a NetworkError, which the fixture locks explicitly). 66 failure cases plus
+context-window terminal events replay identically in Go; race detector
+clean. Next: diagnostics redaction/formatting (4b), then the HTTP transport
+and adapters (4c+).
+
 ### Phase 5 — Catalog, config, and storage
 
 Provider catalog and settings move as data-driven tables. SQLite schemas
@@ -187,9 +199,10 @@ it is off the hot path.
 
 ## Immediate work
 
-Phase 4: transport and provider adapters — Go upstream HTTP client with
-the same timeout/retry/admission behavior, followed by the OpenAI-
-compatible provider family, Anthropic-native and Responses-API mappers,
-Gemini and the long tail, each behind recorded request/response fixtures.
-Phase 3 (`continuation/`, deterministic UUID injection, golden recovery
-replays, and the responses/gemini branches of `delivery`) is complete.
+Phase 4b: diagnostics — credential redaction, upstream body extraction and
+truncation, and the full `format_execution_failure_message` envelope with
+request-id lines. Then 4c moves the upstream HTTP transport (timeout,
+retry, backoff, admission) and the provider adapters in traffic order.
+Phase 4a (`providerpolicy/` decision core, 66 golden failure cases) and
+phase 3 (`continuation/` plus the responses/gemini branches of
+`delivery`) are complete.

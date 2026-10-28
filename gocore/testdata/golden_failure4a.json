@@ -1,0 +1,1630 @@
+{
+  "canonical_messages": {
+    "authentication": "Provider authentication failed. Check API key.",
+    "permission": "Provider denied access. Check credential permissions and model access.",
+    "billing": "Provider requires payment or additional credits. Add credits or resolve billing.",
+    "rate_limit": "Provider rate limit reached. Please retry shortly.",
+    "invalid_request": "Invalid request sent to provider.",
+    "request_too_large": "Provider rejected the request as too large.",
+    "context_window": "Provider input exceeds the model context window.",
+    "overloaded": "Provider is currently overloaded. Please retry.",
+    "unavailable_502_503_504": "Provider is temporarily unavailable. Please retry.",
+    "generic_upstream": "Provider API request failed."
+  },
+  "failure_kinds": [
+    "authentication",
+    "context_window_exceeded",
+    "invalid_request",
+    "overloaded",
+    "permission",
+    "rate_limit",
+    "timeout",
+    "unavailable",
+    "upstream"
+  ],
+  "cases": [
+    {
+      "name": "http_status_400",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 400 body",
+        "response_status": 400,
+        "response_text": "{\"error\":{\"message\":\"status 400 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 400 body",
+      "classification": {
+        "kind": "invalid_request",
+        "status_code": 400,
+        "retryable": false
+      }
+    },
+    {
+      "name": "http_status_401",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 401 body",
+        "response_status": 401,
+        "response_text": "{\"error\":{\"message\":\"status 401 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": 401,
+      "provider_error_message": "status 401 body",
+      "classification": {
+        "kind": "authentication",
+        "status_code": 401,
+        "retryable": false
+      }
+    },
+    {
+      "name": "http_status_402",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 402 body",
+        "response_status": 402,
+        "response_text": "{\"error\":{\"message\":\"status 402 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 402 body",
+      "classification": {
+        "kind": "permission",
+        "status_code": 402,
+        "retryable": false
+      }
+    },
+    {
+      "name": "http_status_403",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 403 body",
+        "response_status": 403,
+        "response_text": "{\"error\":{\"message\":\"status 403 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": 403,
+      "provider_error_message": "status 403 body",
+      "classification": {
+        "kind": "permission",
+        "status_code": 403,
+        "retryable": false
+      }
+    },
+    {
+      "name": "http_status_404",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 404 body",
+        "response_status": 404,
+        "response_text": "{\"error\":{\"message\":\"status 404 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 404 body",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 404,
+        "retryable": false
+      }
+    },
+    {
+      "name": "http_status_405",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 405 body",
+        "response_status": 405,
+        "response_text": "{\"error\":{\"message\":\"status 405 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 405 body",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 405,
+        "retryable": false
+      }
+    },
+    {
+      "name": "http_status_408",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 408 body",
+        "response_status": 408,
+        "response_text": "{\"error\":{\"message\":\"status 408 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 408 body",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 408,
+        "retryable": false
+      }
+    },
+    {
+      "name": "http_status_409",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 409 body",
+        "response_status": 409,
+        "response_text": "{\"error\":{\"message\":\"status 409 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 409 body",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 409,
+        "retryable": false
+      }
+    },
+    {
+      "name": "http_status_413",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 413 body",
+        "response_status": 413,
+        "response_text": "{\"error\":{\"message\":\"status 413 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 413 body",
+      "classification": {
+        "kind": "invalid_request",
+        "status_code": 413,
+        "retryable": false
+      }
+    },
+    {
+      "name": "http_status_422",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 422 body",
+        "response_status": 422,
+        "response_text": "{\"error\":{\"message\":\"status 422 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 422 body",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 422,
+        "retryable": false
+      }
+    },
+    {
+      "name": "http_status_429",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 429 body",
+        "response_status": 429,
+        "response_text": "{\"error\":{\"message\":\"status 429 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 429,
+      "retryable_upstream_status": 429,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 429 body",
+      "classification": {
+        "kind": "rate_limit",
+        "status_code": 429,
+        "retryable": true
+      }
+    },
+    {
+      "name": "http_status_500",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 500 body",
+        "response_status": 500,
+        "response_text": "{\"error\":{\"message\":\"status 500 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 500,
+      "retryable_upstream_status": 500,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 500 body",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 500,
+        "retryable": true
+      }
+    },
+    {
+      "name": "http_status_502",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 502 body",
+        "response_status": 502,
+        "response_text": "{\"error\":{\"message\":\"status 502 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 502,
+      "retryable_upstream_status": 502,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 502 body",
+      "classification": {
+        "kind": "overloaded",
+        "status_code": 529,
+        "retryable": true
+      }
+    },
+    {
+      "name": "http_status_503",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 503 body",
+        "response_status": 503,
+        "response_text": "{\"error\":{\"message\":\"status 503 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 503,
+      "retryable_upstream_status": 503,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 503 body",
+      "classification": {
+        "kind": "overloaded",
+        "status_code": 529,
+        "retryable": true
+      }
+    },
+    {
+      "name": "http_status_504",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 504 body",
+        "response_status": 504,
+        "response_text": "{\"error\":{\"message\":\"status 504 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 504,
+      "retryable_upstream_status": 504,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 504 body",
+      "classification": {
+        "kind": "overloaded",
+        "status_code": 529,
+        "retryable": true
+      }
+    },
+    {
+      "name": "http_status_529",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "status 529 body",
+        "response_status": 529,
+        "response_text": "{\"error\":{\"message\":\"status 529 body\",\"api_key\":\"SECRET\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 529,
+      "retryable_upstream_status": 529,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "status 529 body",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 529,
+        "retryable": true
+      }
+    },
+    {
+      "name": "openai_rate_limit",
+      "descriptor": {
+        "kind": "RateLimitError",
+        "module": "openai",
+        "message": "Rate limit reached",
+        "status_code": 429,
+        "body": {
+          "error": {
+            "message": "Rate limit reached"
+          }
+        },
+        "response_status": 429,
+        "response_text": ""
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 429,
+      "retryable_upstream_status": 429,
+      "transient_overload": true,
+      "authentication_status": null,
+      "provider_error_message": "Provider rate limit reached. Please retry shortly.",
+      "classification": {
+        "kind": "rate_limit",
+        "status_code": 429,
+        "retryable": true
+      }
+    },
+    {
+      "name": "openai_authentication",
+      "descriptor": {
+        "kind": "AuthenticationError",
+        "module": "openai",
+        "message": "Bad key",
+        "status_code": 401,
+        "body": {
+          "error": {
+            "message": "Bad key"
+          }
+        },
+        "response_status": 401,
+        "response_text": ""
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": 401,
+      "provider_error_message": "Provider authentication failed. Check API key.",
+      "classification": {
+        "kind": "authentication",
+        "status_code": 401,
+        "retryable": false
+      }
+    },
+    {
+      "name": "openai_permission_denied",
+      "descriptor": {
+        "kind": "PermissionDeniedError",
+        "module": "openai",
+        "message": "Forbidden",
+        "status_code": 403,
+        "body": {
+          "error": {
+            "message": "Forbidden"
+          }
+        },
+        "response_status": 403,
+        "response_text": ""
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": 403,
+      "provider_error_message": "Provider denied access. Check credential permissions and model access.",
+      "classification": {
+        "kind": "permission",
+        "status_code": 403,
+        "retryable": false
+      }
+    },
+    {
+      "name": "openai_bad_request",
+      "descriptor": {
+        "kind": "BadRequestError",
+        "module": "openai",
+        "message": "Bad input",
+        "status_code": 400,
+        "body": {
+          "error": {
+            "message": "Bad input"
+          }
+        },
+        "response_status": 400,
+        "response_text": ""
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Invalid request sent to provider.",
+      "classification": {
+        "kind": "invalid_request",
+        "status_code": 400,
+        "retryable": false
+      }
+    },
+    {
+      "name": "openai_billing_402",
+      "descriptor": {
+        "kind": "APIStatusError",
+        "module": "openai",
+        "message": "Payment required",
+        "status_code": 402,
+        "body": {
+          "error": {
+            "message": "Payment required"
+          }
+        },
+        "response_status": 402,
+        "response_text": ""
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Payment required",
+      "classification": {
+        "kind": "permission",
+        "status_code": 402,
+        "retryable": false
+      }
+    },
+    {
+      "name": "openai_internal_500",
+      "descriptor": {
+        "kind": "InternalServerError",
+        "module": "openai",
+        "message": "boom",
+        "status_code": 500,
+        "body": {
+          "error": {
+            "message": "boom"
+          }
+        },
+        "response_status": 500,
+        "response_text": ""
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 500,
+      "retryable_upstream_status": 500,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "boom",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 500,
+        "retryable": true
+      }
+    },
+    {
+      "name": "openai_internal_overloaded_503",
+      "descriptor": {
+        "kind": "InternalServerError",
+        "module": "openai",
+        "message": "model overloaded",
+        "status_code": 503,
+        "body": {
+          "error": {
+            "message": "capacity exhausted"
+          }
+        },
+        "response_status": 503,
+        "response_text": ""
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 503,
+      "retryable_upstream_status": 503,
+      "transient_overload": true,
+      "authentication_status": null,
+      "provider_error_message": "model overloaded",
+      "classification": {
+        "kind": "overloaded",
+        "status_code": 529,
+        "retryable": true
+      }
+    },
+    {
+      "name": "openai_timeout",
+      "descriptor": {
+        "kind": "APITimeoutError",
+        "module": "openai",
+        "message": "Request timed out."
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Request timed out.",
+      "classification": {
+        "kind": "timeout",
+        "status_code": 500,
+        "retryable": true
+      }
+    },
+    {
+      "name": "openai_connection",
+      "descriptor": {
+        "kind": "APIConnectionError",
+        "module": "openai",
+        "message": "Connection error."
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Connection error.",
+      "classification": {
+        "kind": "unavailable",
+        "status_code": 500,
+        "retryable": true
+      }
+    },
+    {
+      "name": "openai_statusless_api_error",
+      "descriptor": {
+        "kind": "APIError",
+        "module": "openai",
+        "message": "generic failure"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "generic failure",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 500,
+        "retryable": false
+      }
+    },
+    {
+      "name": "httpx_read_timeout",
+      "descriptor": {
+        "kind": "ReadTimeout",
+        "module": "httpx",
+        "message": "read timed out"
+      },
+      "read_timeout_s": 45.0,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Provider request timed out after 45s.",
+      "classification": {
+        "kind": "timeout",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx_read_timeout_no_hint",
+      "descriptor": {
+        "kind": "ReadTimeout",
+        "module": "httpx",
+        "message": "read timed out"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Provider request timed out.",
+      "classification": {
+        "kind": "timeout",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx_connect_timeout",
+      "descriptor": {
+        "kind": "ConnectTimeout",
+        "module": "httpx",
+        "message": "connect timed out"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Could not connect to provider.",
+      "classification": {
+        "kind": "timeout",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx_connect_error",
+      "descriptor": {
+        "kind": "ConnectError",
+        "module": "httpx",
+        "message": "connection refused"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Could not connect to provider.",
+      "classification": {
+        "kind": "unavailable",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx_remote_protocol",
+      "descriptor": {
+        "kind": "RemoteProtocolError",
+        "module": "httpx",
+        "message": "server disconnected"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Provider connection was interrupted before a response was received.",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx_network_error",
+      "descriptor": {
+        "kind": "NetworkError",
+        "module": "httpx",
+        "message": "network down"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "network down",
+      "classification": {
+        "kind": "unavailable",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx2_read_timeout",
+      "descriptor": {
+        "kind": "ReadTimeout",
+        "module": "httpx2",
+        "message": "read timed out"
+      },
+      "read_timeout_s": 45.0,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Provider request timed out after 45s.",
+      "classification": {
+        "kind": "timeout",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx2_read_timeout_no_hint",
+      "descriptor": {
+        "kind": "ReadTimeout",
+        "module": "httpx2",
+        "message": "read timed out"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Provider request timed out.",
+      "classification": {
+        "kind": "timeout",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx2_connect_timeout",
+      "descriptor": {
+        "kind": "ConnectTimeout",
+        "module": "httpx2",
+        "message": "connect timed out"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Could not connect to provider.",
+      "classification": {
+        "kind": "timeout",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx2_connect_error",
+      "descriptor": {
+        "kind": "ConnectError",
+        "module": "httpx2",
+        "message": "connection refused"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Could not connect to provider.",
+      "classification": {
+        "kind": "unavailable",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx2_remote_protocol",
+      "descriptor": {
+        "kind": "RemoteProtocolError",
+        "module": "httpx2",
+        "message": "server disconnected"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Provider connection was interrupted before a response was received.",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "httpx2_network_error",
+      "descriptor": {
+        "kind": "NetworkError",
+        "module": "httpx2",
+        "message": "network down"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "network down",
+      "classification": {
+        "kind": "unavailable",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "builtin_timeout",
+      "descriptor": {
+        "kind": "TimeoutError",
+        "module": "builtins",
+        "message": "generic timeout"
+      },
+      "read_timeout_s": 12.5,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Provider request timed out after 12.5s.",
+      "classification": {
+        "kind": "timeout",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "ssl_want_read",
+      "descriptor": {
+        "kind": "SSLWantReadError",
+        "module": "ssl",
+        "message": "()"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Could not read the provider response.",
+      "classification": {
+        "kind": "unavailable",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "coded_context_length",
+      "descriptor": {
+        "kind": "CodedError",
+        "module": "__main__",
+        "message": "provider request failed",
+        "code": "context_length_exceeded"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "provider request failed",
+      "classification": {
+        "kind": "context_window_exceeded",
+        "status_code": 400,
+        "retryable": false
+      }
+    },
+    {
+      "name": "body_context_length",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "bad request",
+        "status_code": 400,
+        "body": {
+          "error": {
+            "code": "context_length_exceeded",
+            "message": "too long"
+          }
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "bad request",
+      "classification": {
+        "kind": "context_window_exceeded",
+        "status_code": 400,
+        "retryable": false
+      }
+    },
+    {
+      "name": "body_context_type_field",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "bad request",
+        "body": {
+          "error": {
+            "type": "context_length_exceeded"
+          }
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "bad request",
+      "classification": {
+        "kind": "context_window_exceeded",
+        "status_code": 400,
+        "retryable": false
+      }
+    },
+    {
+      "name": "ambiguous_large_not_context",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "request too large",
+        "status_code": 413,
+        "body": {
+          "error": {
+            "code": "request_too_large",
+            "message": "payload big"
+          }
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "request too large",
+      "classification": {
+        "kind": "invalid_request",
+        "status_code": 413,
+        "retryable": false
+      }
+    },
+    {
+      "name": "coded_invalid_api_key",
+      "descriptor": {
+        "kind": "CodedError",
+        "module": "__main__",
+        "message": "provider request failed",
+        "code": "invalid_api_key"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": 401,
+      "provider_error_message": "provider request failed",
+      "classification": {
+        "kind": "authentication",
+        "status_code": 401,
+        "retryable": false
+      }
+    },
+    {
+      "name": "coded_unauthorized",
+      "descriptor": {
+        "kind": "CodedError",
+        "module": "__main__",
+        "message": "provider request failed",
+        "code": "unauthorized"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": 401,
+      "provider_error_message": "provider request failed",
+      "classification": {
+        "kind": "authentication",
+        "status_code": 401,
+        "retryable": false
+      }
+    },
+    {
+      "name": "coded_permission_denied",
+      "descriptor": {
+        "kind": "CodedError",
+        "module": "__main__",
+        "message": "provider request failed",
+        "code": "permission_denied"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": 403,
+      "provider_error_message": "provider request failed",
+      "classification": {
+        "kind": "permission",
+        "status_code": 403,
+        "retryable": false
+      }
+    },
+    {
+      "name": "coded_forbidden",
+      "descriptor": {
+        "kind": "CodedError",
+        "module": "__main__",
+        "message": "provider request failed",
+        "code": "forbidden"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": 403,
+      "provider_error_message": "provider request failed",
+      "classification": {
+        "kind": "permission",
+        "status_code": 403,
+        "retryable": false
+      }
+    },
+    {
+      "name": "anthropic_auth_type",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "auth",
+        "body": {
+          "error": {
+            "type": "authentication_error"
+          }
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": 401,
+      "provider_error_message": "auth",
+      "classification": {
+        "kind": "authentication",
+        "status_code": 401,
+        "retryable": false
+      }
+    },
+    {
+      "name": "anthropic_permission_type",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "perm",
+        "body": {
+          "error": {
+            "type": "permission_error"
+          }
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": 403,
+      "provider_error_message": "perm",
+      "classification": {
+        "kind": "permission",
+        "status_code": 403,
+        "retryable": false
+      }
+    },
+    {
+      "name": "body_status_field",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "upstream",
+        "body": {
+          "status": 503,
+          "error": {
+            "message": "down"
+          }
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 503,
+      "retryable_upstream_status": 503,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "upstream",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "body_nested_status_code",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "upstream",
+        "body": {
+          "error": {
+            "status_code": "500"
+          }
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 500,
+      "retryable_upstream_status": 500,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "upstream",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "type_marker_rate_limit",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "upstream",
+        "body": {
+          "error": {
+            "type": "rate_limit_error"
+          }
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 429,
+      "retryable_upstream_status": 429,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "upstream",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "type_marker_overloaded",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "upstream",
+        "body": {
+          "error": {
+            "type": "overloaded_error"
+          }
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 503,
+      "retryable_upstream_status": 503,
+      "transient_overload": true,
+      "authentication_status": null,
+      "provider_error_message": "upstream",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "type_marker_internal",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "upstream",
+        "body": {
+          "error": {
+            "type": "internal_server_error"
+          }
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 500,
+      "retryable_upstream_status": 500,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "upstream",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "prose_rate_limit",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "Provider returned: too many requests, slow down"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 429,
+      "retryable_upstream_status": 429,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Provider returned: too many requests, slow down",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "prose_resource_exhausted",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "grpc ResourceExhausted backing off"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 503,
+      "retryable_upstream_status": 503,
+      "transient_overload": true,
+      "authentication_status": null,
+      "provider_error_message": "grpc ResourceExhausted backing off",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "prose_internal_server",
+      "descriptor": {
+        "kind": "BodyError",
+        "module": "__main__",
+        "message": "internal server error in edge"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 500,
+      "retryable_upstream_status": 500,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "internal server error in edge",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "http_413_beats_rate_marker",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "too many requests but rejected",
+        "response_status": 413,
+        "response_text": "{\"error\":{\"message\":\"rate limit\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "too many requests but rejected",
+      "classification": {
+        "kind": "invalid_request",
+        "status_code": 413,
+        "retryable": false
+      }
+    },
+    {
+      "name": "nonstandard_capacity_529",
+      "descriptor": {
+        "kind": "HTTPStatusError",
+        "module": "httpx",
+        "message": "capacity",
+        "response_status": 529,
+        "response_text": "{\"error\":{\"message\":\"overloaded\"}}"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 529,
+      "retryable_upstream_status": 529,
+      "transient_overload": true,
+      "authentication_status": null,
+      "provider_error_message": "capacity",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 529,
+        "retryable": true
+      }
+    },
+    {
+      "name": "retryable_protocol",
+      "descriptor": {
+        "kind": "RetryableProviderProtocolError",
+        "module": "free_claude_code.providers.failure_policy",
+        "message": "malformed sse frame"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "malformed sse frame",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "retryable_tool_protocol",
+      "descriptor": {
+        "kind": "RetryableToolProtocolError",
+        "module": "free_claude_code.providers.failure_policy",
+        "message": "tool frame malformed"
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "tool frame malformed",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": true
+      }
+    },
+    {
+      "name": "recovery_exhausted",
+      "descriptor": {
+        "kind": "ProviderRecoveryExhausted",
+        "module": "free_claude_code.providers.failure_policy",
+        "message": "Provider recovery retry budget was exhausted.",
+        "last_error": {
+          "kind": "RetryableProviderProtocolError",
+          "module": "free_claude_code.providers.failure_policy",
+          "message": "malformed sse frame"
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "malformed sse frame",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": false
+      }
+    },
+    {
+      "name": "recovery_exhausted_keeps_last",
+      "descriptor": {
+        "kind": "ProviderRecoveryExhausted",
+        "module": "free_claude_code.providers.failure_policy",
+        "message": "Provider recovery retry budget was exhausted.",
+        "last_error": {
+          "kind": "RateLimitError",
+          "module": "openai",
+          "message": "limit",
+          "status_code": 429,
+          "body": {
+            "error": {
+              "message": "limit"
+            }
+          },
+          "response_status": 429,
+          "response_text": ""
+        }
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "Provider rate limit reached. Please retry shortly.",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": false
+      }
+    },
+    {
+      "name": "canonical_execution_failure",
+      "descriptor": {
+        "kind": "ExecutionFailure",
+        "module": "free_claude_code.core.failures",
+        "message": "The continuation replay exceeded the retained-data limit.",
+        "failure_kind": "upstream",
+        "retryable": false,
+        "status_code": 502
+      },
+      "read_timeout_s": null,
+      "retryable_provider": false,
+      "retryable_stream": false,
+      "transient_status": null,
+      "retryable_upstream_status": null,
+      "transient_overload": false,
+      "authentication_status": null,
+      "provider_error_message": "The continuation replay exceeded the retained-data limit.",
+      "classification": {
+        "kind": "upstream",
+        "status_code": 502,
+        "retryable": false
+      }
+    },
+    {
+      "name": "canonical_retryable_failure",
+      "descriptor": {
+        "kind": "ExecutionFailure",
+        "module": "free_claude_code.core.failures",
+        "message": "Provider is currently overloaded. Please retry.",
+        "failure_kind": "overloaded",
+        "retryable": true,
+        "status_code": 529
+      },
+      "read_timeout_s": null,
+      "retryable_provider": true,
+      "retryable_stream": true,
+      "transient_status": 529,
+      "retryable_upstream_status": 529,
+      "transient_overload": true,
+      "authentication_status": null,
+      "provider_error_message": "Provider is currently overloaded. Please retry.",
+      "classification": {
+        "kind": "overloaded",
+        "status_code": 529,
+        "retryable": true
+      }
+    }
+  ],
+  "context_window_events": [
+    {
+      "name": "incomplete_context_window",
+      "event_type": "response.incomplete",
+      "payload": {
+        "response": {
+          "incomplete_details": {
+            "reason": "model_context_window_exceeded"
+          }
+        }
+      },
+      "expected": true,
+      "got": true
+    },
+    {
+      "name": "incomplete_other_reason",
+      "event_type": "response.incomplete",
+      "payload": {
+        "response": {
+          "incomplete_details": {
+            "reason": "max_output_tokens"
+          }
+        }
+      },
+      "expected": false,
+      "got": false
+    },
+    {
+      "name": "wrong_event_type",
+      "event_type": "response.completed",
+      "payload": {
+        "response": {
+          "incomplete_details": {
+            "reason": "model_context_window_exceeded"
+          }
+        }
+      },
+      "expected": false,
+      "got": false
+    }
+  ]
+}
