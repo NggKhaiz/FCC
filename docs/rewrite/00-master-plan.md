@@ -132,8 +132,19 @@ exception hierarchies become reconstructable data descriptors (the
 installed httpx MRO makes RemoteProtocolError a ProtocolError rather than
 a NetworkError, which the fixture locks explicitly). 66 failure cases plus
 context-window terminal events replay identically in Go; race detector
-clean. Next: diagnostics redaction/formatting (4b), then the HTTP transport
-and adapters (4c+).
+clean.
+
+Step 4b (complete): diagnostics parity — credential redaction, upstream
+body extraction/capping, and the full `format_execution_failure_message`
+envelope. RE2 lacks backreferences/lookarounds, so redaction combines a
+key-prefix regex with manual value scanning and quote pairing; an
+order-preserving JSON object type (`ordered.go`) keeps body key order
+byte-identical to Python's `json.dumps`, with compact, non-HTML-escaped
+encoding. Descriptors carry cause chains and attached streamed bodies
+through RawMessage reconstruction; `ProviderErrorMessage` now redacts like
+`safe_exception_message`. 18 redaction cases, one 20k-byte cap case, and
+11 full envelope cases replay identically; race/vet/gofmt clean and the
+phase 4a suite stays green.
 
 ### Phase 5 — Catalog, config, and storage
 
@@ -199,10 +210,10 @@ it is off the hot path.
 
 ## Immediate work
 
-Phase 4b: diagnostics — credential redaction, upstream body extraction and
-truncation, and the full `format_execution_failure_message` envelope with
-request-id lines. Then 4c moves the upstream HTTP transport (timeout,
-retry, backoff, admission) and the provider adapters in traffic order.
-Phase 4a (`providerpolicy/` decision core, 66 golden failure cases) and
-phase 3 (`continuation/` plus the responses/gemini branches of
-`delivery`) are complete.
+Phase 4c: the upstream HTTP transport — timeout budget, retry/backoff,
+admission policy and capacity, then the provider adapters in traffic order
+(OpenAI-compatible family first, then Anthropic-native and Responses-API
+mappers, Gemini and the long tail). Phases 4a (`providerpolicy/` decision
+core, 66 golden failure cases) and 4b (diagnostics: 18 redaction, cap and
+11 envelope golden cases) and phase 3 (`continuation/` plus the
+responses/gemini branches of `delivery`) are complete.

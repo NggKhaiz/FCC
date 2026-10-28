@@ -152,14 +152,12 @@ func ProviderAuthenticationStatus(e *ProviderError) (int, bool) {
 	if e.HasCode {
 		codes = append(codes, e.Code)
 	}
-	for _, item := range bodyCandidates(e.Body) {
-		if m, ok := item.(map[string]any); ok {
-			if code, ok := m["code"].(string); ok {
-				codes = append(codes, code)
-			}
-			if typ, ok := m["type"].(string); ok {
-				codes = append(codes, typ)
-			}
+	for _, m := range bodyCandidates(e.Body) {
+		if code, ok := m.Fields["code"].(string); ok {
+			codes = append(codes, code)
+		}
+		if typ, ok := m.Fields["type"].(string); ok {
+			codes = append(codes, typ)
 		}
 	}
 	for _, code := range codes {
@@ -211,12 +209,8 @@ func reportsContextWindowExceeded(e *ProviderError) bool {
 		return true
 	}
 	for _, body := range contextBodies(e) {
-		for _, item := range bodyCandidates(body) {
-			m, ok := item.(map[string]any)
-			if !ok {
-				continue
-			}
-			if IsContextWindowErrorCode(m["code"]) || IsContextWindowErrorCode(m["type"]) {
+		for _, m := range bodyCandidates(body) {
+			if IsContextWindowErrorCode(m.Fields["code"]) || IsContextWindowErrorCode(m.Fields["type"]) {
 				return true
 			}
 		}
@@ -400,10 +394,11 @@ func ProviderErrorMessage(e *ProviderError, readTimeoutS *float64) string {
 	case "BadRequestError":
 		return MessageInvalidRequest
 	}
-	if trimmed := strings.TrimSpace(e.Message); trimmed != "" {
-		// Credential redaction arrives with the diagnostics phase; golden
-		// inputs are already clean and this keeps wording byte-identical.
-		return trimmed
+	// Mirrors safe_exception_message: redact the raw exception text and
+	// fall back to the stable wording when nothing redactable remains.
+	redacted := RedactSensitiveErrorText(strings.TrimSpace(e.Message))
+	if redacted != "" {
+		return redacted
 	}
 	return MessageUnexpected
 }
@@ -474,35 +469,37 @@ func bodyToText(body any) string {
 }
 
 // bodyCandidates mirrors _body_candidates: strings are parsed as JSON,
-// mappings contribute their nested "error" object when present.
-func bodyCandidates(body any) []any {
+// mappings contribute their nested "error" object when present. Results are
+// always *JSONObject so callers never depend on concrete map types.
+func bodyCandidates(body any) []*JSONObject {
 	switch v := body.(type) {
 	case nil:
 		return nil
 	case string:
-		var parsed any
-		if err := json.Unmarshal([]byte(v), &parsed); err == nil {
+		if parsed, ok := decodeOrdered([]byte(v)).(*JSONObject); ok {
 			return bodyCandidates(parsed)
 		}
-		return []any{v}
-	case map[string]any:
-		if nested, ok := v["error"].(map[string]any); ok {
-			return []any{v, nested}
+		return nil
+	case *JSONObject:
+		if nested, ok := v.Fields["error"].(*JSONObject); ok {
+			return []*JSONObject{v, nested}
 		}
-		return []any{v}
+		return []*JSONObject{v}
+	case map[string]any:
+		obj, ok := asObject(v)
+		if !ok {
+			return nil
+		}
+		return bodyCandidates(obj)
 	default:
-		return []any{v}
+		return nil
 	}
 }
 
 func statusFromBody(body any) (int, bool) {
-	for _, item := range bodyCandidates(body) {
-		m, ok := item.(map[string]any)
-		if !ok {
-			continue
-		}
+	for _, m := range bodyCandidates(body) {
 		for _, key := range []string{"status", "status_code", "code"} {
-			if status, ok := coerceStatus(m[key]); ok {
+			if status, ok := coerceStatus(m.Fields[key]); ok {
 				return status, true
 			}
 		}
@@ -533,10 +530,10 @@ func coerceStatus(value any) (int, bool) {
 	return 0, false
 }
 
-func statusFromTypeFields(item map[string]any) (int, bool) {
+func statusFromTypeFields(item *JSONObject) (int, bool) {
 	values := []string{}
 	for _, key := range []string{"type", "code"} {
-		if value, ok := item[key].(string); ok {
+		if value, ok := item.Fields[key].(string); ok {
 			values = append(values, strings.ToLower(value))
 		}
 	}

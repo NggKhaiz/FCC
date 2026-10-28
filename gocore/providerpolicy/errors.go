@@ -28,6 +28,16 @@ type ProviderError struct {
 	// Wrapped is the retained last_error of a ProviderRecoveryExhausted.
 	Wrapped *ProviderError
 
+	// Causes models the Python __cause__/__context__ chain used by the
+	// diagnostics formatter. Only kind and message are retained.
+	Causes []*ProviderError
+
+	// AttachedBody is a bounded streamed body captured by the transport,
+	// taking precedence over Body during diagnostic extraction.
+	AttachedBody      string
+	HasAttachedBody   bool
+	AttachedTruncated bool
+
 	// Canonical is populated when the descriptor is an ExecutionFailure.
 	Canonical *CanonicalFailure
 }
@@ -36,28 +46,47 @@ func (e *ProviderError) Error() string { return e.Message }
 
 // Descriptor keys emitted by bench_local/generate_golden_phase4a.py.
 type descriptor struct {
-	Kind           string         `json:"kind"`
-	Module         string         `json:"module"`
-	Message        string         `json:"message"`
-	StatusCode     json.Number    `json:"status_code"`
-	Code           string         `json:"code"`
-	Body           any            `json:"body"`
-	ResponseStatus json.Number    `json:"response_status"`
-	ResponseText   string         `json:"response_text"`
-	LastError      map[string]any `json:"last_error"`
-	FailureKind    string         `json:"failure_kind"`
-	Retryable      bool           `json:"retryable"`
+	Kind              string          `json:"kind"`
+	Module            string          `json:"module"`
+	Message           string          `json:"message"`
+	StatusCode        json.Number     `json:"status_code"`
+	Code              string          `json:"code"`
+	Body              json.RawMessage `json:"body"`
+	ResponseStatus    json.Number     `json:"response_status"`
+	ResponseText      string          `json:"response_text"`
+	LastError         json.RawMessage `json:"last_error"`
+	FailureKind       string          `json:"failure_kind"`
+	Retryable         bool            `json:"retryable"`
+	Causes            []causeEntry    `json:"causes"`
+	AttachedBody      string          `json:"attached_body"`
+	AttachedTruncated bool            `json:"attached_truncated"`
+}
+
+type causeEntry struct {
+	Kind    string `json:"kind"`
+	Message string `json:"message"`
 }
 
 // FromDescriptor reconstructs a ProviderError from a golden descriptor.
 func FromDescriptor(raw map[string]any) *ProviderError {
-	// Round-trip through the typed descriptor so json.Number survives.
+	if raw == nil {
+		return nil
+	}
+	// Round-trip through the typed descriptor so json.Number survives and
+	// body objects keep their raw bytes for order-preserving decode.
 	buf, err := json.Marshal(raw)
 	if err != nil {
 		panic(err)
 	}
+	return fromRawDescriptor(json.RawMessage(buf))
+}
+
+func fromRawDescriptor(raw json.RawMessage) *ProviderError {
+	if len(raw) == 0 {
+		return nil
+	}
 	var d descriptor
-	dec := json.NewDecoder(bytes.NewReader(buf))
+	dec := json.NewDecoder(bytes.NewReader(raw))
 	dec.UseNumber()
 	if err := dec.Decode(&d); err != nil {
 		panic(err)
@@ -72,12 +101,14 @@ func buildError(d *descriptor) *ProviderError {
 		Message:      d.Message,
 		Code:         d.Code,
 		HasCode:      d.Code != "",
-		Body:         d.Body,
 		ResponseText: d.ResponseText,
 	}
 	if n, ok := integral(d.StatusCode); ok {
 		e.HasStatus = true
 		e.StatusCode = n
+	}
+	if len(d.Body) > 0 {
+		e.Body = decodeOrdered(d.Body)
 	}
 	if n, ok := integral(d.ResponseStatus); ok {
 		e.HasResponseStatus = true
@@ -91,8 +122,18 @@ func buildError(d *descriptor) *ProviderError {
 			Retryable:  d.Retryable,
 		}
 	}
-	if d.LastError != nil {
-		e.Wrapped = FromDescriptor(d.LastError)
+	if len(d.LastError) > 0 {
+		e.Wrapped = fromRawDescriptor(d.LastError)
+	}
+	for _, cause := range d.Causes {
+		e.Causes = append(e.Causes, &ProviderError{
+			Kind: cause.Kind, Message: cause.Message,
+		})
+	}
+	if d.AttachedBody != "" {
+		e.AttachedBody = d.AttachedBody
+		e.HasAttachedBody = true
+		e.AttachedTruncated = d.AttachedTruncated
 	}
 	return e
 }
