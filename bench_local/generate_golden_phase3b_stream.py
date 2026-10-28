@@ -5,8 +5,6 @@ state machines on every wire dialect, with uuid4 replaced by a fixed sequence
 so namespace-derived item ids are fully deterministic.
 """
 
-from __future__ import annotations
-
 import json
 import uuid
 from copy import deepcopy
@@ -128,9 +126,7 @@ def seed_gemini_delivered():
         {
             "responseId": "gem_seed",
             "modelVersion": "gem-1.5",
-            "candidates": [
-                {"index": 0, "content": {"parts": [{"text": "Hello "}]}}
-            ],
+            "candidates": [{"index": 0, "content": {"parts": [{"text": "Hello "}]}}],
         }
     ]
     for event in events:
@@ -224,9 +220,7 @@ def execute(stream, delivered, steps):
             payload = deepcopy(step["payload"])
             try:
                 events = stream.prepare(deepcopy(payload))
-                results.append(
-                    {"op": "prepare", "payload": payload, "events": events}
-                )
+                results.append({"op": "prepare", "payload": payload, "events": events})
             except Exception as exc:
                 results.append(
                     {"op": "prepare", "payload": payload, "failure": str(exc)}
@@ -235,9 +229,7 @@ def execute(stream, delivered, steps):
             payload = deepcopy(step["payload"])
             try:
                 event = stream.finalize(deepcopy(payload))
-                results.append(
-                    {"op": "finalize", "payload": payload, "event": event}
-                )
+                results.append({"op": "finalize", "payload": payload, "event": event})
             except Exception as exc:
                 results.append(
                     {"op": "finalize", "payload": payload, "failure": str(exc)}
@@ -333,8 +325,11 @@ def scenarios():
                         "id": "resp_handoff",
                         "status": "completed",
                         "output": [
-                            {"id": "msg_raw_0", "type": "message",
-                             "content": [{"type": "output_text", "text": "raw"}]}
+                            {
+                                "id": "msg_raw_0",
+                                "type": "message",
+                                "content": [{"type": "output_text", "text": "raw"}],
+                            }
                         ],
                     },
                 }
@@ -342,7 +337,9 @@ def scenarios():
         ]
         return execute(stream, delivered, steps)
 
-    out.append(run_stream("responses_handoff_passthrough", "responses", seed, build_handoff))
+    out.append(
+        run_stream("responses_handoff_passthrough", "responses", seed, build_handoff)
+    )
 
     # S3. No-progress terminal is a non-retryable 502.
     def build_no_progress(stream, delivered):
@@ -357,7 +354,11 @@ def scenarios():
         ]
         return execute(stream, delivered, steps)
 
-    out.append(run_stream("responses_no_progress_failure", "responses", seed, build_no_progress))
+    out.append(
+        run_stream(
+            "responses_no_progress_failure", "responses", seed, build_no_progress
+        )
+    )
 
     # S4. Text constraint raised while preparing a structured-output frame.
     def build_constraint(stream, delivered):
@@ -375,7 +376,11 @@ def scenarios():
         ]
         return execute(stream, delivered, steps)
 
-    out.append(run_stream("responses_text_constraint_failure", "responses", seed, build_constraint))
+    out.append(
+        run_stream(
+            "responses_text_constraint_failure", "responses", seed, build_constraint
+        )
+    )
 
     # S5. Restart swaps the namespace: identical ids map differently while the
     # expected prefix survives for overlap removal.
@@ -404,7 +409,9 @@ def scenarios():
         ]
         return execute(stream, delivered, steps)
 
-    out.append(run_stream("responses_restart_new_namespace", "responses", seed, build_restart))
+    out.append(
+        run_stream("responses_restart_new_namespace", "responses", seed, build_restart)
+    )
 
     # S6. Gemini header passthrough, usageMetadata removal and no-progress gate.
     _, gemini_seed = seed_gemini_delivered()
@@ -429,8 +436,11 @@ def scenarios():
             step_finalize(
                 {
                     "candidates": [
-                        {"index": 0, "finishReason": "STOP",
-                         "content": {"parts": [{"text": "Hello again"}]}}
+                        {
+                            "index": 0,
+                            "finishReason": "STOP",
+                            "content": {"parts": [{"text": "Hello again"}]},
+                        }
                     ],
                     "usageMetadata": {"candidatesTokenCount": 2},
                 }
@@ -446,15 +456,25 @@ def scenarios():
             step_finalize(
                 {
                     "candidates": [
-                        {"index": 0, "finishReason": "STOP",
-                         "content": {"parts": [{"text": ""}]}}
+                        {
+                            "index": 0,
+                            "finishReason": "STOP",
+                            "content": {"parts": [{"text": ""}]},
+                        }
                     ]
                 }
             ),
         ]
         return execute(stream, delivered, steps)
 
-    out.append(run_stream("gemini_no_progress_failure", "gemini", gemini_seed, build_gemini_no_progress))
+    out.append(
+        run_stream(
+            "gemini_no_progress_failure",
+            "gemini",
+            gemini_seed,
+            build_gemini_no_progress,
+        )
+    )
 
     # S7. Messages wire: block index offset and message_delta usage override.
     _, messages_seed = seed_messages_delivered()
@@ -487,7 +507,11 @@ def scenarios():
         ]
         return execute(stream, delivered, steps)
 
-    out.append(run_stream("messages_offset_and_usage", "messages", messages_seed, build_messages))
+    out.append(
+        run_stream(
+            "messages_offset_and_usage", "messages", messages_seed, build_messages
+        )
+    )
 
     # S8. Delivered progress after begin() clears the no-progress terminal gate.
     def build_progress_clears_gate(stream, delivered):
@@ -511,7 +535,14 @@ def scenarios():
         ]
         return execute(stream, delivered, steps)
 
-    out.append(run_stream("responses_progress_clears_gate", "responses", seed, build_progress_clears_gate))
+    out.append(
+        run_stream(
+            "responses_progress_clears_gate",
+            "responses",
+            seed,
+            build_progress_clears_gate,
+        )
+    )
 
     # S9. Failure frames bypass the text-constraint gate and survive the
     # overlap machinery as plain passthrough (with remapping).
@@ -531,7 +562,14 @@ def scenarios():
         ]
         return execute(stream, delivered, steps)
 
-    out.append(run_stream("responses_failure_frame_passthrough", "responses", seed, build_failure_frame))
+    out.append(
+        run_stream(
+            "responses_failure_frame_passthrough",
+            "responses",
+            seed,
+            build_failure_frame,
+        )
+    )
 
     # S10. Gemini handoff leaves frames untouched while still stamping the
     # retained header, and drops usageMetadata at finalize.
@@ -566,7 +604,11 @@ def scenarios():
         ]
         return execute(stream, delivered, steps)
 
-    out.append(run_stream("gemini_handoff_passthrough", "gemini", gemini_seed, build_gemini_handoff))
+    out.append(
+        run_stream(
+            "gemini_handoff_passthrough", "gemini", gemini_seed, build_gemini_handoff
+        )
+    )
 
     # S11. Messages handoff keeps raw frames and overrides usage on the
     # terminal message_delta.
@@ -593,7 +635,14 @@ def scenarios():
         ]
         return execute(stream, delivered, steps)
 
-    out.append(run_stream("messages_handoff_passthrough", "messages", messages_seed, build_messages_handoff))
+    out.append(
+        run_stream(
+            "messages_handoff_passthrough",
+            "messages",
+            messages_seed,
+            build_messages_handoff,
+        )
+    )
 
     return out
 

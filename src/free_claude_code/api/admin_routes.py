@@ -123,9 +123,7 @@ async def admin_asset(version: str, filename: str):
 
 
 @router.get("/admin/api/config")
-async def get_admin_config(
-    services: ApiServices = Depends(get_services)
-):
+async def get_admin_config(services: ApiServices = Depends(get_services)):
     return await services.admin.admin_config()
 
 
@@ -336,86 +334,62 @@ async def disconnect_claude_vscode(
 
 
 @router.get("/admin/api/integrations/dsh-desktop")
-async def dsh_desktop_status(
-    services: ApiServices = Depends(get_services)
-):
+async def dsh_desktop_status(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.dsh_desktop_status)
 
 
 @router.post("/admin/api/integrations/dsh-desktop/connect")
-async def connect_dsh_desktop(
-    services: ApiServices = Depends(get_services)
-):
+async def connect_dsh_desktop(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.connect_dsh_desktop)
 
 
 @router.post("/admin/api/integrations/dsh-desktop/disconnect")
-async def disconnect_dsh_desktop(
-    services: ApiServices = Depends(get_services)
-):
+async def disconnect_dsh_desktop(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.disconnect_dsh_desktop)
 
 
 @router.post("/admin/api/integrations/dsh-desktop/refresh")
-async def refresh_dsh_desktop(
-    services: ApiServices = Depends(get_services)
-):
+async def refresh_dsh_desktop(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.refresh_dsh_desktop)
 
 
 @router.get("/admin/api/integrations/claude-desktop")
-async def claude_desktop_status(
-    services: ApiServices = Depends(get_services)
-):
+async def claude_desktop_status(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.claude_desktop_status)
 
 
 @router.post("/admin/api/integrations/claude-desktop/connect")
-async def connect_claude_desktop(
-    services: ApiServices = Depends(get_services)
-):
+async def connect_claude_desktop(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.connect_claude_desktop)
 
 
 @router.post("/admin/api/integrations/claude-desktop/disconnect")
-async def disconnect_claude_desktop(
-    services: ApiServices = Depends(get_services)
-):
+async def disconnect_claude_desktop(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.disconnect_claude_desktop)
 
 
 @router.post("/admin/api/integrations/claude-desktop/refresh")
-async def refresh_claude_desktop(
-    services: ApiServices = Depends(get_services)
-):
+async def refresh_claude_desktop(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.refresh_claude_desktop)
 
 
 @router.get("/admin/api/integrations/jetbrains-acp")
-async def jetbrains_acp_status(
-    services: ApiServices = Depends(get_services)
-):
+async def jetbrains_acp_status(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.jetbrains_acp_status)
 
 
 @router.post("/admin/api/integrations/jetbrains-acp/connect")
-async def connect_jetbrains_acp(
-    services: ApiServices = Depends(get_services)
-):
+async def connect_jetbrains_acp(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.connect_jetbrains_acp)
 
 
 @router.post("/admin/api/integrations/jetbrains-acp/disconnect")
-async def disconnect_jetbrains_acp(
-    services: ApiServices = Depends(get_services)
-):
+async def disconnect_jetbrains_acp(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.disconnect_jetbrains_acp)
 
 
 @router.post("/admin/api/integrations/jetbrains-acp/refresh")
-async def refresh_jetbrains_acp(
-    services: ApiServices = Depends(get_services)
-):
+async def refresh_jetbrains_acp(services: ApiServices = Depends(get_services)):
     return await _integration_response(services.admin.refresh_jetbrains_acp)
 
 

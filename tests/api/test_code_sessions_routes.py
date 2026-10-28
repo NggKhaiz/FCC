@@ -286,9 +286,7 @@ async def test_folder_picker_errors_use_admin_detail(code_api, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_folder_picker_only_opens_on_an_explicit_post(
-    code_api, monkeypatch
-):
+async def test_folder_picker_only_opens_on_an_explicit_post(code_api, monkeypatch):
     client, _, _, _, app = code_api
 
     async def unexpected(_initial_path):

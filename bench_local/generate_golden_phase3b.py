@@ -8,8 +8,6 @@ usage blocks without a tiktoken dependency. Usage-bearing payloads stay ASCII
 and avoid the HTML characters Go's encoding/json escapes differently.
 """
 
-from __future__ import annotations
-
 import json
 from copy import deepcopy
 from pathlib import Path
@@ -49,8 +47,7 @@ def observe(wire, events, *, limit=DEFAULT_LIMIT):
                 }
             )
         items = {
-            str(index): delivered.items[index]
-            for index in sorted(delivered.items)
+            str(index): delivered.items[index] for index in sorted(delivered.items)
         }
         return {
             "wire": wire,
@@ -98,8 +95,7 @@ def message_item_events(index, item_id, parts_text, *, done=True, start=True):
     """Full responses lifecycle for one message item with output_text."""
     events = []
     content = [
-        {"type": "output_text", "text": "", "annotations": []}
-        for _ in parts_text
+        {"type": "output_text", "text": "", "annotations": []} for _ in parts_text
     ]
     if start:
         events.append(
@@ -381,29 +377,58 @@ def delivery_scenarios():
     # A8. Gemini: header capture, text accumulation, thoughts, calls and the
     # opaque/unsupported unsafe reasons.
     gemini_events = [
-        {"responseId": "gem-1", "modelVersion": "gem-1.5",
-         "candidates": [{"index": 0, "content": {"parts": [
-             {"text": "Hel"}, {"text": "lo"}, {"text": "secret", "thought": True},
-             {"functionCall": {"name": "shell", "args": {}}},
-             {"text": "opaque", "thoughtSignature": "sig"},
-             {"text": "weird", "exoticKey": 1},
-         ]}}]},
-        {"responseId": "gem-1", "modelVersion": "gem-1.5",
-         "candidates": [{"index": 0, "finishReason": "STOP",
-                         "content": {"parts": [{"text": ""}]}}]},
+        {
+            "responseId": "gem-1",
+            "modelVersion": "gem-1.5",
+            "candidates": [
+                {
+                    "index": 0,
+                    "content": {
+                        "parts": [
+                            {"text": "Hel"},
+                            {"text": "lo"},
+                            {"text": "secret", "thought": True},
+                            {"functionCall": {"name": "shell", "args": {}}},
+                            {"text": "opaque", "thoughtSignature": "sig"},
+                            {"text": "weird", "exoticKey": 1},
+                        ]
+                    },
+                }
+            ],
+        },
+        {
+            "responseId": "gem-1",
+            "modelVersion": "gem-1.5",
+            "candidates": [
+                {
+                    "index": 0,
+                    "finishReason": "STOP",
+                    "content": {"parts": [{"text": ""}]},
+                }
+            ],
+        },
     ]
     scenarios.append(("gemini_mixed_parts", observe("gemini", gemini_events)))
 
     # A9. Messages smoke test for the shared Observe entry point.
     messages_events = [
         {"type": "message_start", "message": {"id": "msg_start", "usage": {}}},
-        {"type": "content_block_start", "index": 0,
-         "content_block": {"type": "text", "text": ""}},
-        {"type": "content_block_delta", "index": 0,
-         "delta": {"type": "text_delta", "text": "hi"}},
+        {
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {"type": "text", "text": ""},
+        },
+        {
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {"type": "text_delta", "text": "hi"},
+        },
         {"type": "content_block_stop", "index": 0},
-        {"type": "message_delta", "delta": {"stop_reason": "end_turn"},
-         "usage": {"output_tokens": 1}},
+        {
+            "type": "message_delta",
+            "delta": {"stop_reason": "end_turn"},
+            "usage": {"output_tokens": 1},
+        },
         {"type": "message_stop"},
     ]
     scenarios.append(("messages_smoke", observe("messages", messages_events)))

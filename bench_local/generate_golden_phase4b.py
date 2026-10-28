@@ -5,8 +5,6 @@ format_execution_failure_message envelope against the real Python
 implementation, including cause chains and the request-id trailer.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
 
@@ -106,7 +104,9 @@ def describe(exc, *, causes=None, attached_body=None, attached_truncated=False):
     return descriptor
 
 
-def format_case(name, exc, upstream_name, request_id=None, read_timeout_s=None, **describe_kwargs):
+def format_case(
+    name, exc, upstream_name, request_id=None, read_timeout_s=None, **describe_kwargs
+):
     failure = classify_provider_failure(
         exc,
         provider_name=upstream_name,
@@ -143,7 +143,11 @@ def format_cases():
     cases.append(
         format_case(
             "http_400_redacted_body",
-            http_error(400, "unsupported model format authorization: Bearer AUTH_SECRET", secret_body),
+            http_error(
+                400,
+                "unsupported model format authorization: Bearer AUTH_SECRET",
+                secret_body,
+            ),
             "LOCAL",
             request_id="req_body",
         )
@@ -291,8 +295,10 @@ def main():
     }
     path = OUT / "golden_diagnostics4b.json"
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"wrote {path}: {len(payload['redaction_cases'])} redaction, "
-          f"{len(payload['format_cases'])} format cases")
+    print(
+        f"wrote {path}: {len(payload['redaction_cases'])} redaction, "
+        f"{len(payload['format_cases'])} format cases"
+    )
 
 
 if __name__ == "__main__":

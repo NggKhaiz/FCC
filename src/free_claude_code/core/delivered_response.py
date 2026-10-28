@@ -40,18 +40,16 @@ def _json_byte_size(value: object) -> int:
     if isinstance(value, Mapping):
         if not value:
             return 2
-        return (
-            2
-            + sum(
-                len(str(key).encode("utf-8")) + 4 + _json_byte_size(item)
-                for key, item in value.items()
-            )
+        return 2 + sum(
+            len(str(key).encode("utf-8")) + 4 + _json_byte_size(item)
+            for key, item in value.items()
         )
     if isinstance(value, (list, tuple)):
         if not value:
             return 2
         return 2 + sum(_json_byte_size(item) + 1 for item in value)
     return len(str(value).encode("utf-8"))
+
 
 CLIENT_CALL_TYPES = frozenset(
     {
@@ -64,9 +62,7 @@ CLIENT_CALL_TYPES = frozenset(
 )
 
 _HEADER_KINDS = frozenset({"message_start", "response.created"})
-_GEMINI_PART_KEYS = frozenset(
-    {"text", "thought", "thoughtSignature", "functionCall"}
-)
+_GEMINI_PART_KEYS = frozenset({"text", "thought", "thoughtSignature", "functionCall"})
 _SNAPSHOT_ITEM_KINDS = frozenset(
     {"response.output_item.added", "response.output_item.done"}
 )
@@ -76,9 +72,7 @@ _SNAPSHOT_PART_KINDS = frozenset(
 _MESSAGES_NON_INDEX_KINDS = frozenset(
     {"message_start", "message_delta", "message_stop", "ping", "error"}
 )
-_MESSAGES_BLOCK_TYPES = frozenset(
-    {"text", "thinking", "redacted_thinking", "tool_use"}
-)
+_MESSAGES_BLOCK_TYPES = frozenset({"text", "thinking", "redacted_thinking", "tool_use"})
 _DELTA_FIELDS = {
     "text_delta": "text",
     "thinking_delta": "thinking",
@@ -105,9 +99,7 @@ _RESPONSES_PART_KINDS = frozenset(
         "response.reasoning_summary_part.done",
     }
 )
-_RESPONSES_PART_TYPES = frozenset(
-    {"output_text", "summary_text", "reasoning_text"}
-)
+_RESPONSES_PART_TYPES = frozenset({"output_text", "summary_text", "reasoning_text"})
 _RESPONSES_TEXT_KINDS = frozenset(
     {
         "response.output_text.delta",
@@ -134,12 +126,8 @@ _RESPONSES_UNKNOWN_EXCLUSIONS = frozenset(
         "response.custom_tool_call_input.done",
     }
 )
-_HANDOFF_SAFE_REASONS = frozenset(
-    {None, "opaque_reasoning", "opaque_delta"}
-)
-_REASONING_ITEM_TYPES = frozenset(
-    {"thinking", "redacted_thinking", "reasoning"}
-)
+_HANDOFF_SAFE_REASONS = frozenset({None, "opaque_reasoning", "opaque_delta"})
+_REASONING_ITEM_TYPES = frozenset({"thinking", "redacted_thinking", "reasoning"})
 
 
 def client_call(item: dict[str, Any]) -> bool:
@@ -390,9 +378,7 @@ class DeliveredResponse:
             if not self._retain(item):
                 return
             self.items[index] = deepcopy(item)
-            if item.get("type") not in _RESPONSES_ITEM_TYPES and not client_call(
-                item
-            ):
+            if item.get("type") not in _RESPONSES_ITEM_TYPES and not client_call(item):
                 self.unsafe_reason = "native_content"
             if (
                 item.get("encrypted_content")

@@ -162,9 +162,7 @@ def test_remote_admin_can_trigger_a_local_provider_probe(monkeypatch):
             requests.append(request)
             return httpx.Response(200)
 
-        return async_client(
-            *args, transport=httpx.MockTransport(reply), **kwargs
-        )
+        return async_client(*args, transport=httpx.MockTransport(reply), **kwargs)
 
     with patch.object(admin_routes.httpx, "AsyncClient", client):
         response = TestClient(

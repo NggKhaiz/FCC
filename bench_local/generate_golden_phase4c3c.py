@@ -8,8 +8,6 @@ Failures use the same httpx/openai exception builders as phase 4a,
 serialized as reconstructable descriptors.
 """
 
-from __future__ import annotations
-
 import asyncio
 import json
 import sys
@@ -53,8 +51,12 @@ class VirtualClock:
 
 
 class Recorder:
-    def __init__(self, controller: ProviderAdmissionController,
-                 clock: VirtualClock, prefix: str = "") -> None:
+    def __init__(
+        self,
+        controller: ProviderAdmissionController,
+        clock: VirtualClock,
+        prefix: str = "",
+    ) -> None:
         self.controller = controller
         self.clock = clock
         self.prefix = prefix
@@ -78,8 +80,7 @@ class Recorder:
         return [
             {
                 "label": self._exec_labels[key],
-                "model": (
-                    execution.model if execution.model is not None else ""),
+                "model": (execution.model if execution.model is not None else ""),
                 "request_id": execution.request_id,
                 "max_attempts": execution.max_attempts,
             }
@@ -92,27 +93,34 @@ class Recorder:
             result[model if model is not None else ""] = {
                 "generation": episode.generation,
                 "leader": (
-                    self.label(episode.leader)
-                    if episode.leader is not None else None
+                    self.label(episode.leader) if episode.leader is not None else None
                 ),
                 "ready_at": round(episode.ready_at - ORIGIN, 6),
                 "probe_active": episode.probe_active,
                 "terminal_until": (
                     round(episode.terminal_until - ORIGIN, 6)
-                    if episode.terminal_until is not None else None
+                    if episode.terminal_until is not None
+                    else None
                 ),
                 "waiters": sorted(self.label(w) for w in episode.waiters),
                 "last_error": describe(episode.last_error)
-                if episode.last_error is not None else None,
+                if episode.last_error is not None
+                else None,
             }
         return result
 
-    def snapshot(self, label: str, op: str, execution=None, *,
-                 raised: str | None = None,
-                 raised_type: str | None = None,
-                 decision: dict[str, object] | None = None,
-                 correction: str | None = None,
-                 result: object | None = None) -> None:
+    def snapshot(
+        self,
+        label: str,
+        op: str,
+        execution=None,
+        *,
+        raised: str | None = None,
+        raised_type: str | None = None,
+        decision: dict[str, object] | None = None,
+        correction: str | None = None,
+        result: object | None = None,
+    ) -> None:
         capacity = self.controller._capacity
         entry: dict[str, object] = {
             "label": label,
@@ -141,10 +149,12 @@ class Recorder:
                 "attempts_remaining": execution.attempts_remaining,
                 "active_claim": (
                     execution._active_claim.ordinal
-                    if execution._active_claim is not None else None
+                    if execution._active_claim is not None
+                    else None
                 ),
                 "last_failure": describe(execution.last_failure)
-                if execution.last_failure is not None else None,
+                if execution.last_failure is not None
+                else None,
             }
         self.steps.append(entry)
 
@@ -155,8 +165,9 @@ def start(recorder, controller, **kwargs):
     return execution
 
 
-def build_controller(clock: VirtualClock, *,
-                     max_attempts: int = 3) -> ProviderAdmissionController:
+def build_controller(
+    clock: VirtualClock, *, max_attempts: int = 3
+) -> ProviderAdmissionController:
     admission.random.uniform = lambda low, high: 0.0
     admission.time.monotonic = clock.now
     return ProviderAdmissionController(
@@ -217,31 +228,50 @@ async def scenario_attempt_decisions() -> Recorder:
     # Retryable failure opens an episode and keeps the budget alive.
     clock.advance()
     attempt = await controller._open_attempt(
-        execution, ProviderOperationKind.GENERATION)
-    recorder.snapshot("first_attempt_opened", "open_attempt", execution,
-                      decision={"permit": {
-                          "generation": attempt._permit.generation,
-                          "probe": attempt._permit.probe}})
+        execution, ProviderOperationKind.GENERATION
+    )
+    recorder.snapshot(
+        "first_attempt_opened",
+        "open_attempt",
+        execution,
+        decision={
+            "permit": {
+                "generation": attempt._permit.generation,
+                "probe": attempt._permit.probe,
+            }
+        },
+    )
     error = retryable_503()
     clock.advance()
     decision = await attempt.fail(error)
     recorder.snapshot(
-        "retryable_failure", "attempt_fail", execution,
-        decision={"retryable": decision.retryable,
-                  "retry_allowed": decision.retry_allowed,
-                  "error_descriptor": describe(error)})
+        "retryable_failure",
+        "attempt_fail",
+        execution,
+        decision={
+            "retryable": decision.retryable,
+            "retry_allowed": decision.retry_allowed,
+            "error_descriptor": describe(error),
+        },
+    )
     clock.advance()
     await attempt.aclose()
     recorder.snapshot("close_after_retryable", "attempt_close", execution)
 
     # Gate returns a probe permit on the next visit; accept closes episode.
     clock.advance()
-    probe = await controller._open_attempt(
-        execution, ProviderOperationKind.GENERATION)
-    recorder.snapshot("probe_attempt_opened", "open_attempt", execution,
-                      decision={"permit": {
-                          "generation": probe._permit.generation,
-                          "probe": probe._permit.probe}})
+    probe = await controller._open_attempt(execution, ProviderOperationKind.GENERATION)
+    recorder.snapshot(
+        "probe_attempt_opened",
+        "open_attempt",
+        execution,
+        decision={
+            "permit": {
+                "generation": probe._permit.generation,
+                "probe": probe._permit.probe,
+            }
+        },
+    )
     clock.advance()
     await probe.accept()
     recorder.snapshot("probe_accepted", "attempt_accept", execution)
@@ -263,19 +293,32 @@ async def scenario_non_retryable() -> Recorder:
     execution = start(recorder, controller, request_id="req-2", model="model-b")
     clock.advance()
     attempt = await controller._open_attempt(
-        execution, ProviderOperationKind.GENERATION)
-    recorder.snapshot("fatal_attempt_opened", "open_attempt", execution,
-                      decision={"permit": {
-                          "generation": attempt._permit.generation,
-                          "probe": attempt._permit.probe}})
+        execution, ProviderOperationKind.GENERATION
+    )
+    recorder.snapshot(
+        "fatal_attempt_opened",
+        "open_attempt",
+        execution,
+        decision={
+            "permit": {
+                "generation": attempt._permit.generation,
+                "probe": attempt._permit.probe,
+            }
+        },
+    )
     error = fatal_400()
     clock.advance()
     decision = await attempt.fail(error)
     recorder.snapshot(
-        "non_retryable_failure", "attempt_fail", execution,
-        decision={"retryable": decision.retryable,
-                  "retry_allowed": decision.retry_allowed,
-                  "error_descriptor": describe(error)})
+        "non_retryable_failure",
+        "attempt_fail",
+        execution,
+        decision={
+            "retryable": decision.retryable,
+            "retry_allowed": decision.retry_allowed,
+            "error_descriptor": describe(error),
+        },
+    )
     clock.advance()
     await attempt.aclose()
     recorder.snapshot("close_after_fatal", "attempt_close", execution)
@@ -284,13 +327,17 @@ async def scenario_non_retryable() -> Recorder:
     raised_type = None
     clock.advance()
     try:
-        await controller._open_attempt(
-            execution, ProviderOperationKind.GENERATION)
+        await controller._open_attempt(execution, ProviderOperationKind.GENERATION)
     except ProviderRecoveryExhausted as exc:
         raised = str(exc)
         raised_type = type(exc).__name__
-    recorder.snapshot("terminal_execution_gate", "open_attempt", execution,
-                      raised=raised, raised_type=raised_type)
+    recorder.snapshot(
+        "terminal_execution_gate",
+        "open_attempt",
+        execution,
+        raised=raised,
+        raised_type=raised_type,
+    )
     return recorder
 
 
@@ -302,37 +349,59 @@ async def scenario_correction() -> Recorder:
 
     clock.advance()
     attempt = await controller._open_attempt(
-        execution, ProviderOperationKind.TOOL_REPAIR)
-    recorder.snapshot("repair_attempt_opened", "open_attempt", execution,
-                      decision={"permit": {
-                          "generation": attempt._permit.generation,
-                          "probe": attempt._permit.probe}})
+        execution, ProviderOperationKind.TOOL_REPAIR
+    )
+    recorder.snapshot(
+        "repair_attempt_opened",
+        "open_attempt",
+        execution,
+        decision={
+            "permit": {
+                "generation": attempt._permit.generation,
+                "probe": attempt._permit.probe,
+            }
+        },
+    )
     first_error = retryable_503()
     clock.advance()
     decision = await attempt.fail(first_error)
     recorder.snapshot(
-        "repair_failure", "attempt_fail", execution,
-        decision={"retryable": decision.retryable,
-                  "retry_allowed": decision.retry_allowed,
-                  "error_descriptor": describe(first_error)})
+        "repair_failure",
+        "attempt_fail",
+        execution,
+        decision={
+            "retryable": decision.retryable,
+            "retry_allowed": decision.retry_allowed,
+            "error_descriptor": describe(first_error),
+        },
+    )
     clock.advance()
     await attempt.aclose()
     recorder.snapshot("close_after_repair_failure", "attempt_close", execution)
 
     clock.advance()
-    probe = await controller._open_attempt(
-        execution, ProviderOperationKind.TOOL_REPAIR)
-    recorder.snapshot("repair_probe_opened", "open_attempt", execution,
-                      decision={"permit": {
-                          "generation": probe._permit.generation,
-                          "probe": probe._permit.probe}})
+    probe = await controller._open_attempt(execution, ProviderOperationKind.TOOL_REPAIR)
+    recorder.snapshot(
+        "repair_probe_opened",
+        "open_attempt",
+        execution,
+        decision={
+            "permit": {
+                "generation": probe._permit.generation,
+                "probe": probe._permit.probe,
+            }
+        },
+    )
     correction_error = http_500()
     clock.advance()
     action = await probe.correct(correction_error)
     recorder.snapshot(
-        "correction_with_budget", "attempt_correct", execution,
+        "correction_with_budget",
+        "attempt_correct",
+        execution,
         correction=action.value,
-        decision={"error_descriptor": describe(correction_error)})
+        decision={"error_descriptor": describe(correction_error)},
+    )
     clock.advance()
     await probe.aclose()
     recorder.snapshot("close_after_correction", "attempt_close", execution)
@@ -341,45 +410,62 @@ async def scenario_correction() -> Recorder:
     # final attempt turns FINAL and fails the execution.
     tight = build_controller(clock, max_attempts=2)
     tight_recorder = Recorder(tight, clock, prefix="tight_")
-    exhausted = start(
-        tight_recorder, tight, request_id="req-4", model="model-d")
+    exhausted = start(tight_recorder, tight, request_id="req-4", model="model-d")
     clock.advance()
-    first = await tight._open_attempt(
-        exhausted, ProviderOperationKind.GENERATION)
-    tight_recorder.snapshot("tight_first_opened", "open_attempt", exhausted,
-                            decision={"permit": {
-                                "generation": first._permit.generation,
-                                "probe": first._permit.probe}})
+    first = await tight._open_attempt(exhausted, ProviderOperationKind.GENERATION)
+    tight_recorder.snapshot(
+        "tight_first_opened",
+        "open_attempt",
+        exhausted,
+        decision={
+            "permit": {
+                "generation": first._permit.generation,
+                "probe": first._permit.probe,
+            }
+        },
+    )
     rate_error = retryable_429()
     clock.advance()
     tight_decision = await first.fail(rate_error)
     tight_recorder.snapshot(
-        "tight_failure", "attempt_fail", exhausted,
-        decision={"retryable": tight_decision.retryable,
-                  "retry_allowed": tight_decision.retry_allowed,
-                  "error_descriptor": describe(rate_error)})
+        "tight_failure",
+        "attempt_fail",
+        exhausted,
+        decision={
+            "retryable": tight_decision.retryable,
+            "retry_allowed": tight_decision.retry_allowed,
+            "error_descriptor": describe(rate_error),
+        },
+    )
     clock.advance()
     await first.aclose()
-    tight_recorder.snapshot(
-        "tight_close_after_failure", "attempt_close", exhausted)
+    tight_recorder.snapshot("tight_close_after_failure", "attempt_close", exhausted)
     clock.advance()
-    terminal = await tight._open_attempt(
-        exhausted, ProviderOperationKind.GENERATION)
-    tight_recorder.snapshot("tight_probe_opened", "open_attempt", exhausted,
-                            decision={"permit": {
-                                "generation": terminal._permit.generation,
-                                "probe": terminal._permit.probe}})
+    terminal = await tight._open_attempt(exhausted, ProviderOperationKind.GENERATION)
+    tight_recorder.snapshot(
+        "tight_probe_opened",
+        "open_attempt",
+        exhausted,
+        decision={
+            "permit": {
+                "generation": terminal._permit.generation,
+                "probe": terminal._permit.probe,
+            }
+        },
+    )
     final_error = retryable_503()
     clock.advance()
     action = await terminal.correct(final_error)
     tight_recorder.snapshot(
-        "correction_when_exhausted", "attempt_correct", exhausted,
+        "correction_when_exhausted",
+        "attempt_correct",
+        exhausted,
         correction=action.value,
-        decision={"error_descriptor": describe(final_error)})
+        decision={"error_descriptor": describe(final_error)},
+    )
     clock.advance()
     await terminal.aclose()
-    tight_recorder.snapshot(
-        "close_after_final_correction", "attempt_close", exhausted)
+    tight_recorder.snapshot("close_after_final_correction", "attempt_close", exhausted)
     return [recorder, tight_recorder]
 
 
@@ -390,33 +476,53 @@ async def scenario_abandoned() -> Recorder:
     execution = start(recorder, controller, request_id="req-5", model="model-e")
     clock.advance()
     attempt = await controller._open_attempt(
-        execution, ProviderOperationKind.GENERATION)
+        execution, ProviderOperationKind.GENERATION
+    )
     recorder.snapshot(
-        "open_for_abandon", "open_attempt", execution,
-        decision={"permit": {
-            "generation": attempt._permit.generation,
-            "probe": attempt._permit.probe}})
+        "open_for_abandon",
+        "open_attempt",
+        execution,
+        decision={
+            "permit": {
+                "generation": attempt._permit.generation,
+                "probe": attempt._permit.probe,
+            }
+        },
+    )
     first_error = retryable_503()
     clock.advance()
     await controller._attempt_failed(
-        execution, attempt._permit, error=first_error, status=503)
+        execution, attempt._permit, error=first_error, status=503
+    )
     recorder.snapshot(
-        "controller_marks_failure", "controller_attempt_failed", execution,
-        decision={"error_descriptor": describe(first_error)})
+        "controller_marks_failure",
+        "controller_attempt_failed",
+        execution,
+        decision={"error_descriptor": describe(first_error)},
+    )
     clock.advance()
     await attempt.aclose()
     recorder.snapshot(
-        "unresolved_close_abandons", "attempt_close", execution,
-        decision={"error_descriptor": describe(first_error)})
+        "unresolved_close_abandons",
+        "attempt_close",
+        execution,
+        decision={"error_descriptor": describe(first_error)},
+    )
 
     # Resolved attempts closing again must not touch recovery or capacity.
     clock.advance()
-    second = await controller._open_attempt(
-        execution, ProviderOperationKind.GENERATION)
-    recorder.snapshot("second_attempt_opened", "open_attempt", execution,
-                      decision={"permit": {
-                          "generation": second._permit.generation,
-                          "probe": second._permit.probe}})
+    second = await controller._open_attempt(execution, ProviderOperationKind.GENERATION)
+    recorder.snapshot(
+        "second_attempt_opened",
+        "open_attempt",
+        execution,
+        decision={
+            "permit": {
+                "generation": second._permit.generation,
+                "probe": second._permit.probe,
+            }
+        },
+    )
     clock.advance()
     await second.accept()
     recorder.snapshot("resolved_before_close", "attempt_accept", execution)
@@ -431,13 +537,18 @@ async def scenario_abandoned() -> Recorder:
     return recorder
 
 
-async def scenario_run_call(controller: ProviderAdmissionController,
-                            recorder: Recorder, clock: VirtualClock,
-                            label: str, model: str,
-                            script: list, *, max_attempts: int = 3,
-                            request_id: str = "req-run") -> Recorder:
-    execution = start(recorder, controller,
-        request_id=request_id, model=model)
+async def scenario_run_call(
+    controller: ProviderAdmissionController,
+    recorder: Recorder,
+    clock: VirtualClock,
+    label: str,
+    model: str,
+    script: list,
+    *,
+    max_attempts: int = 3,
+    request_id: str = "req-run",
+) -> Recorder:
+    execution = start(recorder, controller, request_id=request_id, model=model)
     recorder.label(execution)
     calls = {"n": 0}
 
@@ -455,20 +566,30 @@ async def scenario_run_call(controller: ProviderAdmissionController,
     clock.advance()
     try:
         result = await execution.run_call(
-            fn, operation_kind=ProviderOperationKind.GENERATION)
+            fn, operation_kind=ProviderOperationKind.GENERATION
+        )
     except Exception as exc:
         raised = str(exc)
         raised_type = type(exc).__name__
     script_view = [
-        {"descriptor": describe(item)} if isinstance(item, Exception)
+        {"descriptor": describe(item)}
+        if isinstance(item, Exception)
         else {"result": item}
         for item in script
     ]
     recorder.snapshot(
-        label, "run_call", execution,
-        raised=raised, raised_type=raised_type, result=result,
-        decision={"calls": calls["n"], "max_attempts": max_attempts,
-                  "script": script_view})
+        label,
+        "run_call",
+        execution,
+        raised=raised,
+        raised_type=raised_type,
+        result=result,
+        decision={
+            "calls": calls["n"],
+            "max_attempts": max_attempts,
+            "script": script_view,
+        },
+    )
     return recorder
 
 
@@ -477,11 +598,21 @@ async def scenario_run_call_sequences() -> Recorder:
     controller = build_controller(clock)
     recorder = Recorder(controller, clock)
     await scenario_run_call(
-        controller, recorder, clock, "retry_then_succeed", "model-r",
-        [retryable_503(), retryable_429(), "ok"])
+        controller,
+        recorder,
+        clock,
+        "retry_then_succeed",
+        "model-r",
+        [retryable_503(), retryable_429(), "ok"],
+    )
     await scenario_run_call(
-        controller, recorder, clock, "non_retryable_propagates", "model-f",
-        [fatal_401()])
+        controller,
+        recorder,
+        clock,
+        "non_retryable_propagates",
+        "model-f",
+        [fatal_401()],
+    )
     return recorder
 
 
@@ -490,8 +621,14 @@ async def scenario_run_call_exhausted() -> Recorder:
     controller = build_controller(clock, max_attempts=2)
     recorder = Recorder(controller, clock)
     await scenario_run_call(
-        controller, recorder, clock, "retries_exhausted", "model-x",
-        [retryable_503(), retryable_503()], max_attempts=2)
+        controller,
+        recorder,
+        clock,
+        "retries_exhausted",
+        "model-x",
+        [retryable_503(), retryable_503()],
+        max_attempts=2,
+    )
     return recorder
 
 
@@ -503,21 +640,31 @@ async def scenario_guards() -> Recorder:
 
     # An active claim blocks a second open.
     clock.advance()
-    first = await controller._open_attempt(
-        execution, ProviderOperationKind.GENERATION)
-    recorder.snapshot("guard_first_opened", "open_attempt", execution,
-                      decision={"permit": {
-                          "generation": first._permit.generation,
-                          "probe": first._permit.probe}})
+    first = await controller._open_attempt(execution, ProviderOperationKind.GENERATION)
+    recorder.snapshot(
+        "guard_first_opened",
+        "open_attempt",
+        execution,
+        decision={
+            "permit": {
+                "generation": first._permit.generation,
+                "probe": first._permit.probe,
+            }
+        },
+    )
     raised = None
     clock.advance()
     try:
-        await controller._open_attempt(
-            execution, ProviderOperationKind.GENERATION)
+        await controller._open_attempt(execution, ProviderOperationKind.GENERATION)
     except RuntimeError as exc:
         raised = str(exc)
-    recorder.snapshot("double_open_rejected", "open_attempt", execution,
-                      raised=raised, raised_type="RuntimeError")
+    recorder.snapshot(
+        "double_open_rejected",
+        "open_attempt",
+        execution,
+        raised=raised,
+        raised_type="RuntimeError",
+    )
     clock.advance()
     await first.aclose()
     recorder.snapshot("guard_close_releases_slot", "attempt_close", execution)
@@ -530,13 +677,17 @@ async def scenario_guards() -> Recorder:
     raised_type = None
     clock.advance()
     try:
-        await controller._open_attempt(
-            execution, ProviderOperationKind.GENERATION)
+        await controller._open_attempt(execution, ProviderOperationKind.GENERATION)
     except RuntimeError as exc:
         raised = str(exc)
         raised_type = type(exc).__name__
-    recorder.snapshot("closed_controller_rejects", "open_attempt", execution,
-                      raised=raised, raised_type=raised_type)
+    recorder.snapshot(
+        "closed_controller_rejects",
+        "open_attempt",
+        execution,
+        raised=raised,
+        raised_type=raised_type,
+    )
     return recorder
 
 

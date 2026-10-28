@@ -6,8 +6,6 @@ Every state-changing call is recorded as an op plus a full snapshot so the
 Go port can replay step by step without any async machinery.
 """
 
-from __future__ import annotations
-
 import json
 import re
 import uuid
@@ -47,8 +45,13 @@ def error_view(error: Exception | None) -> dict[str, str] | None:
 
 
 class Harness:
-    def __init__(self, max_attempts: int, *, request_id: str | None = None,
-                 model: str | None = None) -> None:
+    def __init__(
+        self,
+        max_attempts: int,
+        *,
+        request_id: str | None = None,
+        model: str | None = None,
+    ) -> None:
         self.controller = RecordingController()
         self.execution = ProviderExecution(
             self.controller,
@@ -59,28 +62,36 @@ class Harness:
         self.claims: dict[int, object] = {}
         self.steps: list[dict[str, object]] = []
 
-    def snapshot(self, label: str, op: str, *, error: str | None = None,
-                 ordinal: int | None = None,
-                 error_input: dict[str, str] | None = None,
-                 stale_ordinal: int | None = None) -> None:
+    def snapshot(
+        self,
+        label: str,
+        op: str,
+        *,
+        error: str | None = None,
+        ordinal: int | None = None,
+        error_input: dict[str, str] | None = None,
+        stale_ordinal: int | None = None,
+    ) -> None:
         execution = self.execution
         active = execution._active_claim
-        self.steps.append({
-            "label": label,
-            "op": op,
-            "error": error,
-            "returned_ordinal": ordinal,
-            "error_input": error_input,
-            "stale_ordinal": stale_ordinal,
-            "state": execution.state.value,
-            "attempts_started": execution.attempts_started,
-            "can_attempt": execution.can_attempt,
-            "attempts_remaining": execution.attempts_remaining,
-            "active_claim": None if active is None else active.ordinal,
-            "last_failure": error_view(execution.last_failure),
-            "terminal_failure": error_view(execution._terminal_failure()),
-            "termination_calls": list(self.controller.termination_calls),
-        })
+        self.steps.append(
+            {
+                "label": label,
+                "op": op,
+                "error": error,
+                "returned_ordinal": ordinal,
+                "error_input": error_input,
+                "stale_ordinal": stale_ordinal,
+                "state": execution.state.value,
+                "attempts_started": execution.attempts_started,
+                "can_attempt": execution.can_attempt,
+                "attempts_remaining": execution.attempts_remaining,
+                "active_claim": None if active is None else active.ordinal,
+                "last_failure": error_view(execution.last_failure),
+                "terminal_failure": error_view(execution._terminal_failure()),
+                "termination_calls": list(self.controller.termination_calls),
+            }
+        )
 
     def claim(self, label: str, kind: ProviderOperationKind) -> None:
         try:
@@ -107,8 +118,7 @@ class Harness:
 
     def fail(self, label: str, error: Exception) -> None:
         self.execution.fail(error)
-        self.snapshot(label, "fail",
-                      error_input=error_view(error))
+        self.snapshot(label, "fail", error_input=error_view(error))
 
     def abandon(self, label: str) -> None:
         self.execution.abandon()
@@ -116,8 +126,7 @@ class Harness:
 
     def record_failure(self, label: str, error: Exception) -> None:
         self.execution._record_failure(error)
-        self.snapshot(label, "record_failure",
-                      error_input=error_view(error))
+        self.snapshot(label, "record_failure", error_input=error_view(error))
 
 
 def scenario_happy_success() -> list[dict[str, object]]:
@@ -237,8 +246,7 @@ def main() -> None:
         "exhaustion": (2, scenario_exhaustion()),
         "double_claim": (2, scenario_double_claim()),
         "abandon_open": (2, scenario_abandon_open()),
-        "record_failure_after_terminal": (
-            2, scenario_record_failure_after_terminal()),
+        "record_failure_after_terminal": (2, scenario_record_failure_after_terminal()),
         "claim_without_attempts": (1, scenario_claim_without_attempts()),
         "ordinal_progress": (4, scenario_ordinal_progress()),
         "stale_claim_close": (3, scenario_stale_claim_close()),
@@ -257,10 +265,8 @@ def main() -> None:
     }
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(fixture, indent=2) + "\n")
-    total = sum(
-        len(entry["steps"]) for entry in fixture["scenarios"].values())
-    print(f"wrote {OUTPUT} with {len(fixture['scenarios'])} scenarios, "
-          f"{total} steps")
+    total = sum(len(entry["steps"]) for entry in fixture["scenarios"].values())
+    print(f"wrote {OUTPUT} with {len(fixture['scenarios'])} scenarios, {total} steps")
 
 
 if __name__ == "__main__":

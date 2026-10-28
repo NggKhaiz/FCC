@@ -7,8 +7,6 @@ diagnostics message formatting (redaction, truncation, request ids) is a
 separate phase; this fixture locks the decision core and stable wording.
 """
 
-from __future__ import annotations
-
 import json
 import ssl
 from dataclasses import dataclass
@@ -107,9 +105,7 @@ def describe(exc, **extra):
 
 
 def classify_tuple(exc, read_timeout_s):
-    failure = fp._classify_provider_failure(
-        exc, read_timeout_s=read_timeout_s
-    )
+    failure = fp._classify_provider_failure(exc, read_timeout_s=read_timeout_s)
     return {
         "kind": failure.kind.value,
         "status_code": failure.status_code,
@@ -143,36 +139,67 @@ def build_cases():
     def add(name, exc, *, read_timeout_s=None, **extra):
         descriptor = describe(exc, **extra)
         descriptor["_exc"] = exc
-        cases.append(Case(name=name, descriptor=descriptor, read_timeout_s=read_timeout_s))
+        cases.append(
+            Case(name=name, descriptor=descriptor, read_timeout_s=read_timeout_s)
+        )
 
     # 1. httpx HTTP status errors across the meaningful status surface.
-    for status in (400, 401, 402, 403, 404, 405, 408, 409, 413, 422, 429, 500, 502, 503, 504, 529):
+    for status in (
+        400,
+        401,
+        402,
+        403,
+        404,
+        405,
+        408,
+        409,
+        413,
+        422,
+        429,
+        500,
+        502,
+        503,
+        504,
+        529,
+    ):
         add(f"http_status_{status}", http_status_error(status, f"status {status} body"))
 
     # 2. OpenAI typed status errors.
     add(
         "openai_rate_limit",
-        openai_status_error(openai.RateLimitError, status_code=429, message="Rate limit reached"),
+        openai_status_error(
+            openai.RateLimitError, status_code=429, message="Rate limit reached"
+        ),
     )
     add(
         "openai_authentication",
-        openai_status_error(openai.AuthenticationError, status_code=401, message="Bad key"),
+        openai_status_error(
+            openai.AuthenticationError, status_code=401, message="Bad key"
+        ),
     )
     add(
         "openai_permission_denied",
-        openai_status_error(openai.PermissionDeniedError, status_code=403, message="Forbidden"),
+        openai_status_error(
+            openai.PermissionDeniedError, status_code=403, message="Forbidden"
+        ),
     )
     add(
         "openai_bad_request",
-        openai_status_error(openai.BadRequestError, status_code=400, message="Bad input"),
+        openai_status_error(
+            openai.BadRequestError, status_code=400, message="Bad input"
+        ),
     )
     add(
         "openai_billing_402",
-        openai_status_error(openai.APIStatusError, status_code=402, message="Payment required"),
+        openai_status_error(
+            openai.APIStatusError, status_code=402, message="Payment required"
+        ),
     )
     add(
         "openai_internal_500",
-        openai_status_error(openai.InternalServerError, status_code=500, message="boom"),
+        openai_status_error(
+            openai.InternalServerError, status_code=500, message="boom"
+        ),
     )
     add(
         "openai_internal_overloaded_503",
@@ -195,7 +222,11 @@ def build_cases():
 
     # 4. httpx timeout / network family, both httpx and the vendored httpx2.
     for sdk, module in ((httpx, "httpx"), (httpx2, "httpx2")):
-        add(f"{module}_read_timeout", sdk.ReadTimeout("read timed out"), read_timeout_s=45.0)
+        add(
+            f"{module}_read_timeout",
+            sdk.ReadTimeout("read timed out"),
+            read_timeout_s=45.0,
+        )
         add(f"{module}_read_timeout_no_hint", sdk.ReadTimeout("read timed out"))
         add(f"{module}_connect_timeout", sdk.ConnectTimeout("connect timed out"))
         add(f"{module}_connect_error", sdk.ConnectError("connection refused"))
@@ -263,7 +294,9 @@ def build_cases():
         "type_marker_internal",
         BodyError("upstream", body={"error": {"type": "internal_server_error"}}),
     )
-    add("prose_rate_limit", BodyError("Provider returned: too many requests, slow down"))
+    add(
+        "prose_rate_limit", BodyError("Provider returned: too many requests, slow down")
+    )
     add("prose_resource_exhausted", BodyError("grpc ResourceExhausted backing off"))
     add("prose_internal_server", BodyError("internal server error in edge"))
     add(

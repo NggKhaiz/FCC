@@ -53,13 +53,15 @@ def responses_events(parts, *, separate_items=False, representation="deltas"):
         items.append(item)
         added_item = {
             **item,
-            "content": item["content"]
-            if representation == "item_added"
-            else [],
+            "content": item["content"] if representation == "item_added" else [],
             "status": "in_progress",
         }
         events.append(
-            {"type": "response.output_item.added", "output_index": index, "item": added_item}
+            {
+                "type": "response.output_item.added",
+                "output_index": index,
+                "item": added_item,
+            }
         )
         for position, part in enumerate(item["content"]):
             identity = {
@@ -93,7 +95,11 @@ def responses_events(parts, *, separate_items=False, representation="deltas"):
                 )
             if representation not in {"item_done", "part_done", "terminal"}:
                 events.append(
-                    {"type": "response.output_text.done", **identity, "text": part["text"]}
+                    {
+                        "type": "response.output_text.done",
+                        **identity,
+                        "text": part["text"],
+                    }
                 )
             if representation not in {"item_done", "terminal"}:
                 events.append(
@@ -140,9 +146,9 @@ def messages_events(text):
 
 
 def gemini_events(parts, *, thought_parts=()):
-    candidates_parts = [
-        {"text": text, "thought": True} for text in thought_parts
-    ] + [{"text": text} for text in parts]
+    candidates_parts = [{"text": text, "thought": True} for text in thought_parts] + [
+        {"text": text} for text in parts
+    ]
     return [
         {
             "responseId": "gem_golden",
@@ -454,7 +460,9 @@ def edge_scenarios():
             "wire": "gemini",
             "prefix": "Hello ",
             "limit": DEFAULT_LIMIT,
-            **run_feeds("Hello ", gemini_events(["Hello world."], thought_parts=["inner"])),
+            **run_feeds(
+                "Hello ", gemini_events(["Hello world."], thought_parts=["inner"])
+            ),
         }
     )
 
@@ -496,9 +504,9 @@ def size_probes():
         {
             "value": value,
             "size": len(
-                simplejson.dumps(
-                    value, use_decimal=True, ensure_ascii=False
-                ).encode("utf-8")
+                simplejson.dumps(value, use_decimal=True, ensure_ascii=False).encode(
+                    "utf-8"
+                )
             ),
         }
         for value in values

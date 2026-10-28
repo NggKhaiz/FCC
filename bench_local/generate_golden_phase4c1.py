@@ -7,14 +7,19 @@ plus ``wake_waiters``, or ``release``), so output is deterministic and
 contains no wall-clock timing.
 """
 
-from __future__ import annotations
-
 import asyncio
 import json
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any, cast
 
 from free_claude_code.providers import admission_capacity as ac
 from free_claude_code.providers.admission_policy import ProviderAdmissionLimits
+
+# Deliberately accepts the invalid-typed values the validation matrix probes.
+limits_factory: Callable[[Any, Any, Any], ProviderAdmissionLimits] = (
+    ProviderAdmissionLimits
+)
 
 OUTPUT = Path("gocore/testdata/golden_admission4c1.json")
 
@@ -49,8 +54,8 @@ def make_limiter(
     limiter = ac.ProviderCapacityLimiter(
         ProviderAdmissionLimits(rate_limit, rate_window, max_concurrency)
     )
-    ac.time.monotonic = clock.now  # type: ignore[attr-defined]
-    ac.asyncio.timeout = FakeTimeout  # type: ignore[attr-defined]
+    cast(Any, ac.time).monotonic = clock.now
+    cast(Any, ac.asyncio).timeout = FakeTimeout
     return limiter
 
 
@@ -109,8 +114,9 @@ async def run_rate_window(clock: VirtualClock) -> list[dict[str, object]]:
     for index in range(3):
         task = asyncio.create_task(limiter.acquire(lambda: permit_valid))
         outcome = await settle(task)
-        steps.append(snapshot(
-            limiter, clock, f"initial_admit_{index}", outcome, "admit"))
+        steps.append(
+            snapshot(limiter, clock, f"initial_admit_{index}", outcome, "admit")
+        )
 
     # Fourth admission must block: rate bucket is full.
     blocked = asyncio.create_task(limiter.acquire(lambda: permit_valid))
@@ -121,13 +127,13 @@ async def run_rate_window(clock: VirtualClock) -> list[dict[str, object]]:
     clock.advance(ready_at(limiter, clock.current) - clock.current)
     limiter.wake_waiters()
     outcome = await settle(blocked)
-    steps.append(snapshot(
-        limiter, clock, "window_slide_admit", outcome, "advance_wake_admit"))
+    steps.append(
+        snapshot(limiter, clock, "window_slide_admit", outcome, "advance_wake_admit")
+    )
 
     for index in range(4):
         limiter.release()
-        steps.append(snapshot(
-            limiter, clock, f"release_{index}", None, "release"))
+        steps.append(snapshot(limiter, clock, f"release_{index}", None, "release"))
     return steps
 
 
@@ -138,19 +144,32 @@ async def run_concurrency_cap(clock: VirtualClock) -> list[dict[str, object]]:
     permit_valid = True
     for index in range(2):
         task = asyncio.create_task(limiter.acquire(lambda: permit_valid))
-        steps.append(snapshot(
-            limiter, clock, f"concurrency_admit_{index}", await settle(task),
-            "admit"))
+        steps.append(
+            snapshot(
+                limiter,
+                clock,
+                f"concurrency_admit_{index}",
+                await settle(task),
+                "admit",
+            )
+        )
 
     blocked = asyncio.create_task(limiter.acquire(lambda: permit_valid))
     assert await settle(blocked) is None
-    steps.append(snapshot(
-        limiter, clock, "concurrency_blocked", None, "expect_blocked"))
+    steps.append(
+        snapshot(limiter, clock, "concurrency_blocked", None, "expect_blocked")
+    )
 
     limiter.release()
-    steps.append(snapshot(
-        limiter, clock, "release_unblocks", await settle(blocked),
-        "release_then_admit"))
+    steps.append(
+        snapshot(
+            limiter,
+            clock,
+            "release_unblocks",
+            await settle(blocked),
+            "release_then_admit",
+        )
+    )
     limiter.release()
     steps.append(snapshot(limiter, clock, "final_release", None, "release"))
     return steps
@@ -162,24 +181,32 @@ async def run_reconfigure(clock: VirtualClock) -> list[dict[str, object]]:
     steps: list[dict[str, object]] = []
     permit_valid = True
     task = asyncio.create_task(limiter.acquire(lambda: permit_valid))
-    steps.append(snapshot(
-        limiter, clock, "admit_under_old_limits", await settle(task), "admit"))
+    steps.append(
+        snapshot(limiter, clock, "admit_under_old_limits", await settle(task), "admit")
+    )
 
     blocked = asyncio.create_task(limiter.acquire(lambda: permit_valid))
     assert await settle(blocked) is None
-    steps.append(snapshot(
-        limiter, clock, "blocked_under_old_limits", None, "expect_blocked"))
+    steps.append(
+        snapshot(limiter, clock, "blocked_under_old_limits", None, "expect_blocked")
+    )
 
     new_limits = ProviderAdmissionLimits(5, 20.0, 3)
     limiter.reconfigure(new_limits)
-    steps.append(snapshot(
-        limiter, clock, "reconfigured", await settle(blocked), "reconfigure_admit",
-        limits={
-            "rate_limit": new_limits.rate_limit,
-            "rate_window": new_limits.rate_window,
-            "max_concurrency": new_limits.max_concurrency,
-        },
-    ))
+    steps.append(
+        snapshot(
+            limiter,
+            clock,
+            "reconfigured",
+            await settle(blocked),
+            "reconfigure_admit",
+            limits={
+                "rate_limit": new_limits.rate_limit,
+                "rate_window": new_limits.rate_window,
+                "max_concurrency": new_limits.max_concurrency,
+            },
+        )
+    )
     limiter.release()
     steps.append(snapshot(limiter, clock, "release_after_reconfigure", None, "release"))
     return steps
@@ -191,18 +218,24 @@ async def run_permit_invalidation(clock: VirtualClock) -> list[dict[str, object]
     steps: list[dict[str, object]] = []
     permit_valid = True
     holder = asyncio.create_task(limiter.acquire(lambda: permit_valid))
-    steps.append(snapshot(
-        limiter, clock, "holder_admit", await settle(holder), "admit"))
+    steps.append(
+        snapshot(limiter, clock, "holder_admit", await settle(holder), "admit")
+    )
 
     waiter = asyncio.create_task(limiter.acquire(lambda: permit_valid))
     assert await settle(waiter) is None
-    steps.append(snapshot(
-        limiter, clock, "waiter_blocked", None, "expect_blocked"))
+    steps.append(snapshot(limiter, clock, "waiter_blocked", None, "expect_blocked"))
     permit_valid = False
     limiter.wake_waiters()
-    steps.append(snapshot(
-        limiter, clock, "permit_invalidated", await settle(waiter),
-        "permit_invalidated"))
+    steps.append(
+        snapshot(
+            limiter,
+            clock,
+            "permit_invalidated",
+            await settle(waiter),
+            "permit_invalidated",
+        )
+    )
     limiter.release()
     steps.append(snapshot(limiter, clock, "holder_releases", None, "release"))
     return steps
@@ -222,11 +255,11 @@ async def run_window_eviction(clock: VirtualClock) -> list[dict[str, object]]:
         else:
             outcome = "admitted"
         op = "admit" if outcome == "admitted" else "advance_wake_admit"
-        steps.append(snapshot(
-            limiter, clock, f"cycled_admit_{index}", outcome, op))
+        steps.append(snapshot(limiter, clock, f"cycled_admit_{index}", outcome, op))
         limiter.release()
-        steps.append(snapshot(
-            limiter, clock, f"cycled_release_{index}", None, "release"))
+        steps.append(
+            snapshot(limiter, clock, f"cycled_release_{index}", None, "release")
+        )
     return steps
 
 
@@ -248,18 +281,20 @@ def validation_cases() -> list[dict[str, object]]:
     ]
     for label, rate_limit, rate_window, max_concurrency in invalid:
         try:
-            ProviderAdmissionLimits(rate_limit, rate_window, max_concurrency)  # type: ignore[arg-type]
+            limits_factory(rate_limit, rate_window, max_concurrency)
         except (ValueError, TypeError) as exc:
             cases.append({"label": label, "error": str(exc)})
         else:  # pragma: no cover - defensive, generator must see every failure
             raise AssertionError(f"{label} should have been rejected")
     good = ProviderAdmissionLimits(4, 2.5, 7)
-    cases.append({
-        "label": "valid_limits",
-        "rate_limit": good.rate_limit,
-        "rate_window": good.rate_window,
-        "max_concurrency": good.max_concurrency,
-    })
+    cases.append(
+        {
+            "label": "valid_limits",
+            "rate_limit": good.rate_limit,
+            "rate_window": good.rate_window,
+            "max_concurrency": good.max_concurrency,
+        }
+    )
     return cases
 
 
@@ -270,36 +305,33 @@ async def main() -> None:
         "validation_cases": validation_cases(),
         "scenarios": {
             "rate_window": {
-                "limits": {"rate_limit": 3, "rate_window": 10.0,
-                           "max_concurrency": 5},
+                "limits": {"rate_limit": 3, "rate_window": 10.0, "max_concurrency": 5},
                 "steps": await run_rate_window(clock),
             },
             "concurrency_cap": {
-                "limits": {"rate_limit": 10, "rate_window": 30.0,
-                           "max_concurrency": 2},
+                "limits": {"rate_limit": 10, "rate_window": 30.0, "max_concurrency": 2},
                 "steps": await run_concurrency_cap(clock),
             },
             "reconfigure": {
-                "limits": {"rate_limit": 2, "rate_window": 10.0,
-                           "max_concurrency": 1},
+                "limits": {"rate_limit": 2, "rate_window": 10.0, "max_concurrency": 1},
                 "steps": await run_reconfigure(clock),
             },
             "permit_invalidation": {
-                "limits": {"rate_limit": 10, "rate_window": 30.0,
-                           "max_concurrency": 1},
+                "limits": {"rate_limit": 10, "rate_window": 30.0, "max_concurrency": 1},
                 "steps": await run_permit_invalidation(clock),
             },
             "window_eviction": {
-                "limits": {"rate_limit": 2, "rate_window": 5.0,
-                           "max_concurrency": 4},
+                "limits": {"rate_limit": 2, "rate_window": 5.0, "max_concurrency": 4},
                 "steps": await run_window_eviction(clock),
             },
         },
     }
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(fixture, indent=2) + "\n")
-    print(f"wrote {OUTPUT} with {len(fixture['validation_cases'])} validation "
-          f"cases and {len(fixture['scenarios'])} scenarios")
+    print(
+        f"wrote {OUTPUT} with {len(fixture['validation_cases'])} validation "
+        f"cases and {len(fixture['scenarios'])} scenarios"
+    )
 
 
 if __name__ == "__main__":
