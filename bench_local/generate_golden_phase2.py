@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, "src")
 
-from free_claude_code.api.stream_frames import frame_data
+from free_claude_code.api.stream_frames import FramePayloadCache, frame_data
 from free_claude_code.api.tool_call_buffer import ToolCallBuffer
 from free_claude_code.core import delivered_response as dr_module
 from free_claude_code.core.delivered_response import DeliveredResponse
@@ -520,6 +520,46 @@ def toolbuf_responses() -> dict:
     }
 
 
+def pipeline_expectation() -> dict:
+    """End-to-end state of the composed phase-1+2 pipeline on stream.txt."""
+    from free_claude_code.core.anthropic.streaming.decoder import (
+        AnthropicSSEDecoder,
+    )
+
+    stream = Path("gocore/testdata/stream.txt").read_text(encoding="utf-8")
+    decoder = AnthropicSSEDecoder()
+    frames = list(decoder.feed_frames(stream))
+    frames.extend(decoder.finish_frames())
+    cache = FramePayloadCache()
+    delivered = DeliveredResponse("messages")
+    tools = ToolCallBuffer("messages", payload_cache=cache)
+    released = 0
+    for fr in frames:
+        released += len(tools.feed(fr))
+        payload = cache.get(fr)
+        if payload is not None:
+            delivered.observe(payload)
+    prefix = delivered.snapshot()
+    return {
+        "frame_count": len(frames),
+        "released_frame_count": released,
+        "progress": delivered.progress,
+        "unsafe_reason": delivered.unsafe_reason,
+        "retention_exhausted": delivered.retention_exhausted,
+        "retained_bytes": prefix.retained_bytes,
+        "snapshot": {
+            "text": prefix.text,
+            "thinking": prefix.thinking,
+            "has_calls": prefix.has_calls,
+            "eligible": prefix.eligible,
+            "can_handoff": prefix.can_handoff,
+            "unsafe_reason": prefix.unsafe_reason,
+        },
+        "closing_event_count": len(delivered.closing_events()),
+        "handoff_event_count": len(delivered.handoff_events()),
+    }
+
+
 def main() -> None:
     golden = {
         "recovery": recovery_cases(),
@@ -529,6 +569,7 @@ def main() -> None:
             delivery_retention_limit(),
         ],
         "toolbuf": [toolbuf_messages(), toolbuf_responses()],
+        "pipeline": pipeline_expectation(),
     }
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(golden, ensure_ascii=False, indent=2))
