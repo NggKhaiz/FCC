@@ -146,6 +146,21 @@ through RawMessage reconstruction; `ProviderErrorMessage` now redacts like
 11 full envelope cases replay identically; race/vet/gofmt clean and the
 phase 4a suite stays green.
 
+Step 4c-1 (complete): admission limits and capacity. A new `admission/`
+package ports `ProviderAdmissionLimits` validation (exact error wording)
+and the decision core of `ProviderCapacityLimiter`: sliding-window
+eviction, last-discarded readiness floor, rate-bucket timer and occupancy
+verdict exposed as Evaluate/Commit/Release/Reconfigure under an injectable
+clock. A virtual-clock harness drives the real asyncio limiter in the
+golden generator; 13 validation cases and five scenarios replay in Go.
+
+Step 4c-2 (complete): retry timing. `RetryConfig` validation/defaults,
+capped exponential Delay with scripted jitter draws, Retry-After parsing
+(numeric delta plus HTTP date, including the Python "-0000" naive-UTC
+branch via an RFC1123Z fallback), exception status precedence and the
+failure-label wording matrix, all golden-driven against the live
+controller with a frozen clock.
+
 ### Phase 5 — Catalog, config, and storage
 
 Provider catalog and settings move as data-driven tables. SQLite schemas
@@ -210,10 +225,12 @@ it is off the hot path.
 
 ## Immediate work
 
-Phase 4c: the upstream HTTP transport — timeout budget, retry/backoff,
-admission policy and capacity, then the provider adapters in traffic order
-(OpenAI-compatible family first, then Anthropic-native and Responses-API
-mappers, Gemini and the long tail). Phases 4a (`providerpolicy/` decision
-core, 66 golden failure cases) and 4b (diagnostics: 18 redaction, cap and
-11 envelope golden cases) and phase 3 (`continuation/` plus the
-responses/gemini branches of `delivery`) are complete.
+Phase 4c-3: the `ProviderAdmissionController` state machine — executions,
+attempt claims, recovery episodes, probe permits and idle expiry — ported
+behind golden scripts generated from the live asyncio controller with a
+virtual clock. Then the blocking transport loop (timeouts, wake/event
+wiring over the 4c-1/4c-2 primitives) and the provider adapters in traffic
+order (OpenAI-compatible family first, then Anthropic-native and
+Responses-API mappers, Gemini and the long tail). Phases 4a, 4b, 4c-1 and
+4c-2 and phase 3 (`continuation/` plus the responses/gemini branches of
+`delivery`) are complete.
