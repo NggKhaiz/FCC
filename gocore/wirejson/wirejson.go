@@ -9,12 +9,49 @@ package wirejson
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 )
 
 // hexChars is the lowercase hex table for control-character escapes.
 var hexChars = "0123456789abcdef"
+
+// Object is a JSON object with explicit key order, mirroring Python dict
+// insertion order under json.loads/dumps. Go maps randomize iteration, so
+// byte-for-byte wire parity must route ordered payloads through this type.
+// Plain maps remain supported but render with sorted keys: their byte
+// length is order-independent, which keeps retention/token accounting
+// deterministic even when callers only need the size.
+type Object struct {
+	Keys   []string
+	Fields map[string]any
+}
+
+// NewObject returns an ordered object with the given initial capacity.
+func NewObject(capacity int) *Object {
+	return &Object{
+		Keys:   make([]string, 0, capacity),
+		Fields: make(map[string]any, capacity),
+	}
+}
+
+// Set inserts or replaces one field, appending the key on first insertion.
+func (o *Object) Set(key string, value any) {
+	if _, exists := o.Fields[key]; !exists {
+		o.Keys = append(o.Keys, key)
+	}
+	o.Fields[key] = value
+}
+
+// Len reports the number of fields.
+func (o *Object) Len() int { return len(o.Keys) }
+
+// Get returns the field and whether the key exists.
+func (o *Object) Get(key string) (any, bool) {
+	value, ok := o.Fields[key]
+	return value, ok
+}
 
 // Bytes returns the wire size (UTF-8 byte count) of value.
 func Bytes(value any) int {
@@ -52,32 +89,43 @@ func WriteJSON(builder *strings.Builder, value any) {
 		builder.WriteString(strconv.FormatInt(v, 10))
 	case float64:
 		builder.WriteString(strconv.FormatFloat(v, 'g', -1, 64))
+	case *Object:
+		writeObject(builder, v)
+	case Object:
+		object := v
+		writeObject(builder, &object)
 	case map[string]any:
+		keys := make([]string, 0, len(v))
+		for key := range v {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
 		builder.WriteByte('{')
-		first := true
-		for key, item := range v {
-			if !first {
+		for i, key := range keys {
+			if i > 0 {
 				builder.WriteString(", ")
 			}
-			first = false
 			WriteJSONString(builder, key)
 			builder.WriteString(": ")
-			WriteJSON(builder, item)
+			WriteJSON(builder, v[key])
 		}
 		builder.WriteByte('}')
 	case map[int64]string:
 		// Python JSON coerces integer dict keys to strings; the overlap id
 		// table relies on this key convention.
+		keys := make([]int64, 0, len(v))
+		for key := range v {
+			keys = append(keys, key)
+		}
+		sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 		builder.WriteByte('{')
-		first := true
-		for key, item := range v {
-			if !first {
+		for i, key := range keys {
+			if i > 0 {
 				builder.WriteString(", ")
 			}
-			first = false
 			WriteJSONString(builder, strconv.FormatInt(key, 10))
 			builder.WriteString(": ")
-			WriteJSONString(builder, item)
+			WriteJSON(builder, v[key])
 		}
 		builder.WriteByte('}')
 	case []any:
@@ -92,6 +140,20 @@ func WriteJSON(builder *strings.Builder, value any) {
 	default:
 		WriteJSONString(builder, fmt.Sprint(v))
 	}
+}
+
+// writeObject emits an ordered object, honoring its explicit key sequence.
+func writeObject(builder *strings.Builder, object *Object) {
+	builder.WriteByte('{')
+	for i, key := range object.Keys {
+		if i > 0 {
+			builder.WriteString(", ")
+		}
+		WriteJSONString(builder, key)
+		builder.WriteString(": ")
+		WriteJSON(builder, object.Fields[key])
+	}
+	builder.WriteByte('}')
 }
 
 // WriteJSONString writes a JSON string. Printable ASCII runs are emitted in
