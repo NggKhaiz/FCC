@@ -14,6 +14,7 @@ import tracemalloc
 sys.path.insert(0, "src")
 
 from free_claude_code.api.stream_frames import FramePayloadCache
+from free_claude_code.api.tool_call_buffer import ToolCallBuffer
 from free_claude_code.core.anthropic.stream_contracts import (
     failure_reason_from_frame,
     sse_event_name,
@@ -21,7 +22,10 @@ from free_claude_code.core.anthropic.stream_contracts import (
 from free_claude_code.core.anthropic.streaming.decoder import (
     AnthropicSSEDecoder,
 )
-from free_claude_code.core.delivered_response import _json_byte_size
+from free_claude_code.core.delivered_response import (
+    DeliveredResponse,
+    _json_byte_size,
+)
 
 FAILURE_EVENTS = frozenset({"error", "response.error", "response.failed"})
 ITERATIONS = 100
@@ -33,12 +37,18 @@ def run_pipeline(stream: str) -> int:
     frames.extend(decoder.finish_frames())
     cache = FramePayloadCache()
     retained = 0
+    delivered = DeliveredResponse("messages")
+    tools = ToolCallBuffer("messages", payload_cache=cache)
     for frame in frames:
         sse_event_name(frame)
         payload = cache.get(frame)
         if payload is not None:
             retained += _json_byte_size(payload)
+            delivered.observe(payload)
         failure_reason_from_frame(frame, FAILURE_EVENTS)
+        tools.feed(frame)
+    delivered.snapshot()
+    delivered.handoff_events()
     return len(frames)
 
 

@@ -8,9 +8,19 @@ required to build or test it.
 
 | Package | Python reference | Responsibility |
 | --- | --- | --- |
-| `sse` | `core/anthropic/streaming/decoder.py`, `core/anthropic/stream_contracts.py`, `api/stream_frames.py` | Incremental SSE framing, event naming, failure scanning, payload cache |
+| `sse` | `core/anthropic/streaming/decoder.py`, `core/anthropic/stream_contracts.py`, `api/stream_frames.py` | Incremental SSE framing, event naming, failure scanning, payload cache, frame rewriting |
 | `retention` | `core/delivered_response.py` (`_json_byte_size`, `_retain`) | Monotonic JSON byte estimation and the retention budget |
+| `recovery` | `core/stream_recovery.py` (`assess_recovery`) | Stop/restart/continue/handoff decision table |
+| `delivery` | `core/delivered_response.py` | Per-request evidence state machine (messages wire), snapshots, handoff and closing events |
+| `toolbuf` | `api/tool_call_buffer.py` | Withholding and atomic release of client tool-call groups, responses snapshot filtering |
 | `cmd/bench` | `bench_local/bench_golden.py` | Hot-path benchmark on the shared fixture |
+
+Phase 1 (`sse`, `retention`) is covered by `testdata/golden.json`; phase 2
+(`recovery`, `delivery`, `toolbuf`) by `testdata/golden_phase2.json`,
+generated with `bench_local/generate_golden_phase2.py`. The phase-2
+fixture pins event-by-event delivery state (progress, retention limit
+behavior, unsafe reasons, snapshots, closing and handoff events) and the
+exact frame release timing of the tool-call buffer.
 
 ## Parity workflow
 
@@ -50,11 +60,15 @@ go run ./cmd/bench
 go test -bench=HotPath -benchmem ./sse/
 ```
 
-Measured on a two-core Xeon at 2.60 GHz: Go processes the fixture in about
-5.4 ms per request (roughly 186 req/s) against 83 ms (12 req/s) for the
-optimized Python reference, with a 348 KiB live heap after GC. See
-`docs/rewrite/01-language-verdict.md` for the full language decision and
-`docs/rewrite/02-architecture-and-migration.md` for the migration plan.
+Measured on a two-core Xeon at 2.60 GHz. Phase-1 pipeline (framing, event
+naming, failure scan, retention): Go about 5.4 ms per request (~186 req/s)
+against 83 ms (~12 req/s) in optimized Python, 348 KiB live heap after GC.
+The phase-2 pipeline adds the full delivery state machine and tool-call
+buffer: Go about 6.5-7.2 ms (~140-155 req/s) against 95-100 ms (~10 req/s),
+roughly a 15x end-to-end component speedup with a ~350 KiB live heap versus
+a 1.7 MiB Python peak. See `docs/rewrite/01-language-verdict.md` for the
+full language decision and `docs/rewrite/00-master-plan.md` for the
+migration plan.
 
 ## Porting invariants
 

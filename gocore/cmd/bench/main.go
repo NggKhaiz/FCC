@@ -10,8 +10,10 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/NggKhaiz/FCC/gocore/delivery"
 	"github.com/NggKhaiz/FCC/gocore/retention"
 	"github.com/NggKhaiz/FCC/gocore/sse"
+	"github.com/NggKhaiz/FCC/gocore/toolbuf"
 )
 
 const iterations = 100
@@ -70,13 +72,19 @@ func runPipeline(stream string, failureEvents map[string]struct{}) int {
 
 	cache := sse.NewPayloadCache()
 	budget := &retention.Budget{}
+	delivered := delivery.New(delivery.WireMessages)
+	tools := toolbuf.New(toolbuf.WireMessages, cache)
 	for _, frame := range frames {
 		_ = sse.EventName(frame)
 		if payload, ok := cache.Get(frame); ok {
 			budget.Retain(payload)
+			delivered.Observe(payload)
 		}
 		_ = sse.FailureReason(frame, failureEvents)
+		_ = tools.Feed(frame)
 	}
+	_ = delivered.Snapshot()
+	_ = delivered.HandoffEvents()
 	return len(frames)
 }
 

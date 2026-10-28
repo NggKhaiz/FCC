@@ -1,0 +1,1500 @@
+{
+  "recovery": [
+    {
+      "name": "normal stop",
+      "content_released": false,
+      "prefix": null,
+      "source": {
+        "normal_stop_seen": true,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "normal_stop",
+        "seed": null
+      }
+    },
+    {
+      "name": "restart when nothing released",
+      "content_released": false,
+      "prefix": null,
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "restart",
+        "reason": "no_delivered_content",
+        "seed": null
+      }
+    },
+    {
+      "name": "stop on unsafe source before release",
+      "content_released": false,
+      "prefix": null,
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": "opaque_delta",
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "opaque_delta",
+        "seed": null
+      }
+    },
+    {
+      "name": "missing prefix after release",
+      "content_released": true,
+      "prefix": null,
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "missing_prefix",
+        "seed": null
+      }
+    },
+    {
+      "name": "handoff completed calls",
+      "content_released": true,
+      "prefix": {
+        "text": "",
+        "thinking": "",
+        "has_calls": true,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "handoff",
+        "reason": "completed_tool_calls",
+        "seed": null
+      }
+    },
+    {
+      "name": "calls but not retryable",
+      "content_released": true,
+      "prefix": {
+        "text": "",
+        "thinking": "",
+        "has_calls": true,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": false,
+      "expect": {
+        "action": "stop",
+        "reason": "released_tool_calls",
+        "seed": null
+      }
+    },
+    {
+      "name": "calls but structured output",
+      "content_released": true,
+      "prefix": {
+        "text": "",
+        "thinking": "",
+        "has_calls": true,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": true,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "released_tool_calls",
+        "seed": null
+      }
+    },
+    {
+      "name": "calls but source forbids handoff",
+      "content_released": true,
+      "prefix": {
+        "text": "",
+        "thinking": "",
+        "has_calls": true,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": false
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "released_tool_calls",
+        "seed": null
+      }
+    },
+    {
+      "name": "calls but prefix forbids handoff",
+      "content_released": true,
+      "prefix": {
+        "text": "",
+        "thinking": "",
+        "has_calls": true,
+        "eligible": true,
+        "can_handoff": false,
+        "unsafe_reason": null
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "released_tool_calls",
+        "seed": null
+      }
+    },
+    {
+      "name": "structured output stops",
+      "content_released": true,
+      "prefix": {
+        "text": "hello",
+        "thinking": "reasoning",
+        "has_calls": false,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": true,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "structured_output",
+        "seed": null
+      }
+    },
+    {
+      "name": "source unsafe reason wins",
+      "content_released": true,
+      "prefix": {
+        "text": "hello",
+        "thinking": "reasoning",
+        "has_calls": false,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": "opaque_delta",
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "opaque_delta",
+        "seed": null
+      }
+    },
+    {
+      "name": "prefix unsafe reason stops",
+      "content_released": true,
+      "prefix": {
+        "text": "x",
+        "thinking": "",
+        "has_calls": false,
+        "eligible": false,
+        "can_handoff": false,
+        "unsafe_reason": "native_content"
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "native_content",
+        "seed": null
+      }
+    },
+    {
+      "name": "ineligible prefix stops",
+      "content_released": true,
+      "prefix": {
+        "text": "x",
+        "thinking": "",
+        "has_calls": false,
+        "eligible": false,
+        "can_handoff": false,
+        "unsafe_reason": "native_content"
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "native_content",
+        "seed": null
+      }
+    },
+    {
+      "name": "empty prefix stops",
+      "content_released": true,
+      "prefix": {
+        "text": "",
+        "thinking": "",
+        "has_calls": false,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "stop",
+        "reason": "empty_prefix",
+        "seed": null
+      }
+    },
+    {
+      "name": "portable prefix continues",
+      "content_released": true,
+      "prefix": {
+        "text": "hello",
+        "thinking": "reasoning",
+        "has_calls": false,
+        "eligible": true,
+        "can_handoff": true,
+        "unsafe_reason": null
+      },
+      "source": {
+        "normal_stop_seen": false,
+        "structured_output": false,
+        "unsafe_reason": null,
+        "can_handoff": true
+      },
+      "retryable": true,
+      "expect": {
+        "action": "continue",
+        "reason": "portable_prefix",
+        "seed": {
+          "text": "hello",
+          "thinking": "reasoning"
+        }
+      }
+    }
+  ],
+  "delivery": [
+    {
+      "name": "healthy_mixed_stream",
+      "wire_api": "messages",
+      "limit": 1048576,
+      "events": [
+        {
+          "payload": {
+            "type": "message_start",
+            "message": {
+              "id": "msg_golden",
+              "type": "message",
+              "role": "assistant",
+              "model": "claude-sonnet-4",
+              "content": [],
+              "usage": {
+                "input_tokens": 11,
+                "output_tokens": 1
+              }
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 0,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": true,
+              "unsafe_reason": null,
+              "retained_bytes": 0
+            },
+            "items_size": 0
+          },
+          "closing_events": []
+        },
+        {
+          "payload": {
+            "type": "ping"
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 0,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": true,
+              "unsafe_reason": null,
+              "retained_bytes": 0
+            },
+            "items_size": 0
+          },
+          "closing_events": []
+        },
+        {
+          "payload": {
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {
+              "type": "text",
+              "text": "go"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 1,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "go",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": true,
+              "unsafe_reason": null,
+              "retained_bytes": 28
+            },
+            "items_size": 1
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 0
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "text_delta",
+              "text": "alpha "
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 2,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "goalpha ",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": true,
+              "unsafe_reason": null,
+              "retained_bytes": 66
+            },
+            "items_size": 1
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 0
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "text_delta",
+              "text": "beta 中文"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 3,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "goalpha beta 中文",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": true,
+              "unsafe_reason": null,
+              "retained_bytes": 109
+            },
+            "items_size": 1
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 0
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "text_delta",
+              "text": " gamma"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 4,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": true,
+              "unsafe_reason": null,
+              "retained_bytes": 147
+            },
+            "items_size": 1
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 0
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_stop",
+            "index": 0
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 4,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": true,
+              "unsafe_reason": null,
+              "retained_bytes": 147
+            },
+            "items_size": 1
+          },
+          "closing_events": []
+        },
+        {
+          "payload": {
+            "type": "content_block_start",
+            "index": 1,
+            "content_block": {
+              "type": "thinking",
+              "thinking": ""
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 4,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": false,
+              "unsafe_reason": null,
+              "retained_bytes": 181
+            },
+            "items_size": 2
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 1
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": "reasoning"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 5,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "reasoning",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": false,
+              "unsafe_reason": null,
+              "retained_bytes": 230
+            },
+            "items_size": 2
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 1
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "signature_delta",
+              "signature": "sig_abc"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 5,
+            "retention_exhausted": false,
+            "unsafe_reason": "opaque_delta",
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "reasoning",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": false,
+              "unsafe_reason": "opaque_delta",
+              "retained_bytes": 279
+            },
+            "items_size": 2
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 1
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_stop",
+            "index": 1
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 5,
+            "retention_exhausted": false,
+            "unsafe_reason": "opaque_delta",
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "reasoning",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": true,
+              "unsafe_reason": "opaque_delta",
+              "retained_bytes": 279
+            },
+            "items_size": 2
+          },
+          "closing_events": []
+        },
+        {
+          "payload": {
+            "type": "content_block_start",
+            "index": 2,
+            "content_block": {
+              "type": "tool_use",
+              "id": "toolu_1",
+              "name": "Bash",
+              "input": {}
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 6,
+            "retention_exhausted": false,
+            "unsafe_reason": "opaque_delta",
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "reasoning",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": true,
+              "unsafe_reason": "opaque_delta",
+              "retained_bytes": 339
+            },
+            "items_size": 3
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 2
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_delta",
+            "index": 2,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "{\"command\":"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 7,
+            "retention_exhausted": false,
+            "unsafe_reason": "opaque_delta",
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "reasoning",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": true,
+              "unsafe_reason": "opaque_delta",
+              "retained_bytes": 396
+            },
+            "items_size": 3
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 2
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_delta",
+            "index": 2,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "\"ls\"}"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 8,
+            "retention_exhausted": false,
+            "unsafe_reason": "opaque_delta",
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "reasoning",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": true,
+              "unsafe_reason": "opaque_delta",
+              "retained_bytes": 447
+            },
+            "items_size": 3
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 2
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_stop",
+            "index": 2
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 8,
+            "retention_exhausted": false,
+            "unsafe_reason": "opaque_delta",
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "reasoning",
+              "has_calls": true,
+              "eligible": false,
+              "can_handoff": true,
+              "unsafe_reason": "opaque_delta",
+              "retained_bytes": 447
+            },
+            "items_size": 3
+          },
+          "closing_events": []
+        },
+        {
+          "payload": {
+            "type": "message_delta",
+            "delta": {
+              "stop_reason": "tool_use"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 8,
+            "retention_exhausted": false,
+            "unsafe_reason": "opaque_delta",
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "reasoning",
+              "has_calls": true,
+              "eligible": false,
+              "can_handoff": true,
+              "unsafe_reason": "opaque_delta",
+              "retained_bytes": 447
+            },
+            "items_size": 3
+          },
+          "closing_events": []
+        },
+        {
+          "payload": {
+            "type": "message_stop"
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 8,
+            "retention_exhausted": false,
+            "unsafe_reason": "opaque_delta",
+            "snapshot": {
+              "text": "goalpha beta 中文 gamma",
+              "thinking": "reasoning",
+              "has_calls": true,
+              "eligible": false,
+              "can_handoff": true,
+              "unsafe_reason": "opaque_delta",
+              "retained_bytes": 447
+            },
+            "items_size": 3
+          },
+          "closing_events": []
+        }
+      ],
+      "mid_closing_events": [
+        {
+          "type": "content_block_stop",
+          "index": 1
+        }
+      ],
+      "final_closing_events": [],
+      "handoff_events": [
+        {
+          "type": "message_delta",
+          "delta": {
+            "stop_reason": "tool_use",
+            "stop_sequence": null
+          },
+          "usage": {}
+        },
+        {
+          "type": "message_stop"
+        }
+      ],
+      "final": {
+        "progress": 8,
+        "retention_exhausted": false,
+        "unsafe_reason": "opaque_delta",
+        "snapshot": {
+          "text": "goalpha beta 中文 gamma",
+          "thinking": "reasoning",
+          "has_calls": true,
+          "eligible": false,
+          "can_handoff": true,
+          "unsafe_reason": "opaque_delta",
+          "retained_bytes": 447
+        },
+        "items_size": 3
+      }
+    },
+    {
+      "name": "unsafe_classifications",
+      "wire_api": "messages",
+      "events": [
+        {
+          "payload": {
+            "type": "message_start",
+            "message": {
+              "id": "msg_golden",
+              "type": "message",
+              "role": "assistant",
+              "model": "claude-sonnet-4",
+              "content": [],
+              "usage": {
+                "input_tokens": 11,
+                "output_tokens": 1
+              }
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 0,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": true,
+              "unsafe_reason": null,
+              "retained_bytes": 0
+            },
+            "items_size": 0
+          },
+          "closing_events": []
+        },
+        {
+          "payload": {
+            "type": "mystery_event",
+            "index": 0
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 0,
+            "retention_exhausted": false,
+            "unsafe_reason": null,
+            "snapshot": {
+              "text": "",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": true,
+              "can_handoff": true,
+              "unsafe_reason": null,
+              "retained_bytes": 0
+            },
+            "items_size": 0
+          },
+          "closing_events": []
+        },
+        {
+          "payload": {
+            "type": "content_block_start",
+            "index": 1,
+            "content_block": {
+              "type": "server_tool_xyz"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 0,
+            "retention_exhausted": false,
+            "unsafe_reason": "native_content",
+            "snapshot": {
+              "text": "",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": false,
+              "unsafe_reason": "native_content",
+              "retained_bytes": 27
+            },
+            "items_size": 1
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 1
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_delta",
+            "index": 9,
+            "delta": {
+              "type": "text_delta",
+              "text": "orphan"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 1,
+            "retention_exhausted": false,
+            "unsafe_reason": "missing_block",
+            "snapshot": {
+              "text": "",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": false,
+              "unsafe_reason": "missing_block",
+              "retained_bytes": 65
+            },
+            "items_size": 1
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 1
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_start",
+            "index": 2,
+            "content_block": {
+              "type": "thinking"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 1,
+            "retention_exhausted": false,
+            "unsafe_reason": "missing_block",
+            "snapshot": {
+              "text": "",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": false,
+              "unsafe_reason": "missing_block",
+              "retained_bytes": 85
+            },
+            "items_size": 2
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 1
+            },
+            {
+              "type": "content_block_stop",
+              "index": 2
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_delta",
+            "index": 2,
+            "delta": {
+              "type": "signature_delta",
+              "signature": "opaque_sig"
+            }
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 1,
+            "retention_exhausted": false,
+            "unsafe_reason": "opaque_delta",
+            "snapshot": {
+              "text": "",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": false,
+              "unsafe_reason": "opaque_delta",
+              "retained_bytes": 137
+            },
+            "items_size": 2
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 1
+            },
+            {
+              "type": "content_block_stop",
+              "index": 2
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": "content_block_stop",
+            "index": 2
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 1,
+            "retention_exhausted": false,
+            "unsafe_reason": "opaque_delta",
+            "snapshot": {
+              "text": "",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": true,
+              "unsafe_reason": "opaque_delta",
+              "retained_bytes": 137
+            },
+            "items_size": 2
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 1
+            }
+          ]
+        },
+        {
+          "payload": {
+            "type": 123
+          },
+          "count_progress": true,
+          "state": {
+            "progress": 1,
+            "retention_exhausted": false,
+            "unsafe_reason": "unknown_event",
+            "snapshot": {
+              "text": "",
+              "thinking": "",
+              "has_calls": false,
+              "eligible": false,
+              "can_handoff": false,
+              "unsafe_reason": "unknown_event",
+              "retained_bytes": 137
+            },
+            "items_size": 2
+          },
+          "closing_events": [
+            {
+              "type": "content_block_stop",
+              "index": 1
+            }
+          ]
+        }
+      ],
+      "final_closing_events": [
+        {
+          "type": "content_block_stop",
+          "index": 1
+        }
+      ],
+      "handoff_events": [
+        {
+          "type": "message_delta",
+          "delta": {
+            "stop_reason": "tool_use",
+            "stop_sequence": null
+          },
+          "usage": {}
+        },
+        {
+          "type": "message_stop"
+        }
+      ],
+      "final": {
+        "progress": 1,
+        "retention_exhausted": false,
+        "unsafe_reason": "unknown_event",
+        "snapshot": {
+          "text": "",
+          "thinking": "",
+          "has_calls": false,
+          "eligible": false,
+          "can_handoff": false,
+          "unsafe_reason": "unknown_event",
+          "retained_bytes": 137
+        },
+        "items_size": 2
+      }
+    },
+    {
+      "name": "retention_limit_clears_evidence",
+      "wire_api": "messages",
+      "limit": 100,
+      "states": [
+        {
+          "progress": 1,
+          "retention_exhausted": false,
+          "unsafe_reason": "missing_block",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "missing_block",
+            "retained_bytes": 72
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 2,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 3,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 4,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 5,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 6,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 7,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 8,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 9,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 10,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 11,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        },
+        {
+          "progress": 12,
+          "retention_exhausted": true,
+          "unsafe_reason": "retention_limit",
+          "snapshot": {
+            "text": "",
+            "thinking": "",
+            "has_calls": false,
+            "eligible": false,
+            "can_handoff": false,
+            "unsafe_reason": "retention_limit",
+            "retained_bytes": 144
+          },
+          "items_size": 0
+        }
+      ],
+      "final": {
+        "progress": 12,
+        "retention_exhausted": true,
+        "unsafe_reason": "retention_limit",
+        "snapshot": {
+          "text": "",
+          "thinking": "",
+          "has_calls": false,
+          "eligible": false,
+          "can_handoff": false,
+          "unsafe_reason": "retention_limit",
+          "retained_bytes": 144
+        },
+        "items_size": 0
+      }
+    }
+  ],
+  "toolbuf": [
+    {
+      "name": "messages_holdback",
+      "wire_api": "messages",
+      "calls": [
+        {
+          "frame": "event: content_block_start\ndata: {\"type\": \"content_block_start\", \"index\": 0, \"content_block\": {\"type\": \"text\"}}\n\n",
+          "released": [
+            "event: content_block_start\ndata: {\"type\": \"content_block_start\", \"index\": 0, \"content_block\": {\"type\": \"text\"}}\n\n"
+          ]
+        },
+        {
+          "frame": "event: content_block_start\ndata: {\"type\": \"content_block_start\", \"index\": 1, \"content_block\": {\"type\": \"tool_use\", \"id\": \"toolu_9\"}}\n\n",
+          "released": []
+        },
+        {
+          "frame": "event: content_block_delta\ndata: {\"type\": \"content_block_delta\", \"index\": 1, \"delta\": {\"type\": \"input_json_delta\", \"partial_json\": \"{}\"}}\n\n",
+          "released": []
+        },
+        {
+          "frame": "event: ping\ndata: {\"type\": \"ping\"}\n\n",
+          "released": []
+        },
+        {
+          "frame": "event: content_block_stop\ndata: {\"type\": \"content_block_stop\", \"index\": 1}\n\n",
+          "released": [
+            "event: content_block_start\ndata: {\"type\": \"content_block_start\", \"index\": 1, \"content_block\": {\"type\": \"tool_use\", \"id\": \"toolu_9\"}}\n\n",
+            "event: content_block_delta\ndata: {\"type\": \"content_block_delta\", \"index\": 1, \"delta\": {\"type\": \"input_json_delta\", \"partial_json\": \"{}\"}}\n\n",
+            "event: ping\ndata: {\"type\": \"ping\"}\n\n",
+            "event: content_block_stop\ndata: {\"type\": \"content_block_stop\", \"index\": 1}\n\n"
+          ]
+        },
+        {
+          "frame": "event: message_stop\ndata: {\"type\": \"message_stop\"}\n\n",
+          "released": [
+            "event: message_stop\ndata: {\"type\": \"message_stop\"}\n\n"
+          ]
+        },
+        {
+          "frame": "event: content_block_start\ndata: {\"type\": \"content_block_start\", \"index\": 2, \"content_block\": {\"type\": \"tool_use\", \"id\": \"toolu_10\"}}\n\n",
+          "released": []
+        },
+        {
+          "frame": "event: content_block_delta\ndata: {\"type\": \"content_block_delta\", \"index\": 2, \"delta\": {\"type\": \"input_json_delta\", \"partial_json\": \"{\"}}\n\n",
+          "released": []
+        },
+        {
+          "frame": "event: message_stop\ndata: {\"type\": \"message_stop\"}\n\n",
+          "released": [
+            "event: message_stop\ndata: {\"type\": \"message_stop\"}\n\n"
+          ]
+        },
+        {
+          "frame": "event: ping\ndata: {\"type\": \"ping\"}\n\n",
+          "released": [
+            "event: ping\ndata: {\"type\": \"ping\"}\n\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "responses_snapshot_filter",
+      "wire_api": "responses",
+      "calls": [
+        {
+          "frame": "event: response.output_item.done\ndata: {\"type\": \"response.output_item.done\", \"output_index\": 0, \"item\": {\"id\": \"fc_1\", \"type\": \"function_call\", \"status\": \"completed\", \"name\": \"go\", \"arguments\": \"{}\"}}\n\n",
+          "released": [
+            {
+              "frame": "event: response.output_item.done\ndata: {\"type\": \"response.output_item.done\", \"output_index\": 0, \"item\": {\"id\": \"fc_1\", \"type\": \"function_call\", \"status\": \"completed\", \"name\": \"go\", \"arguments\": \"{}\"}}\n\n",
+              "payload": {
+                "type": "response.output_item.done",
+                "output_index": 0,
+                "item": {
+                  "id": "fc_1",
+                  "type": "function_call",
+                  "status": "completed",
+                  "name": "go",
+                  "arguments": "{}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "frame": "event: response.function_call_arguments.delta\ndata: {\"type\": \"response.function_call_arguments.delta\", \"item_id\": \"fc_2\", \"output_index\": 1, \"delta\": \"{}\"}\n\n",
+          "released": []
+        },
+        {
+          "frame": "event: response.output_item.done\ndata: {\"type\": \"response.output_item.done\", \"output_index\": 1, \"item\": {\"id\": \"fc_2\", \"type\": \"function_call\", \"status\": \"in_progress\", \"name\": \"go\", \"arguments\": \"\"}}\n\n",
+          "released": []
+        },
+        {
+          "frame": "event: response.completed\ndata: {\"type\": \"response.completed\", \"response\": {\"id\": \"resp_1\", \"status\": \"completed\", \"output\": [{\"id\": \"fc_1\", \"type\": \"function_call\", \"status\": \"completed\", \"name\": \"go\", \"arguments\": \"{}\"}, {\"id\": \"fc_2\", \"type\": \"function_call\", \"status\": \"in_progress\", \"name\": \"go\", \"arguments\": \"\"}]}}\n\n",
+          "released": [
+            {
+              "frame": "event: response.completed\ndata: {\"type\": \"response.completed\", \"response\": {\"id\": \"resp_1\", \"status\": \"completed\", \"output\": [{\"id\": \"fc_1\", \"type\": \"function_call\", \"status\": \"completed\", \"name\": \"go\", \"arguments\": \"{}\"}]}}\n\n",
+              "payload": {
+                "type": "response.completed",
+                "response": {
+                  "id": "resp_1",
+                  "status": "completed",
+                  "output": [
+                    {
+                      "id": "fc_1",
+                      "type": "function_call",
+                      "status": "completed",
+                      "name": "go",
+                      "arguments": "{}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "frame": "event: response.failed\ndata: {\"type\": \"response.failed\", \"response\": {\"id\": \"resp_2\", \"output\": [{\"id\": \"fc_2\", \"type\": \"function_call\", \"status\": \"in_progress\", \"name\": \"go\", \"arguments\": \"\"}], \"status\": \"failed\", \"error\": {\"code\": \"rate_limit\"}}}\n\n",
+          "released": [
+            {
+              "frame": "event: response.failed\ndata: {\"type\": \"response.failed\", \"response\": {\"id\": \"resp_2\", \"output\": [], \"status\": \"failed\", \"error\": {\"code\": \"rate_limit\"}}}\n\n",
+              "payload": {
+                "type": "response.failed",
+                "response": {
+                  "id": "resp_2",
+                  "output": [],
+                  "status": "failed",
+                  "error": {
+                    "code": "rate_limit"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

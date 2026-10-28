@@ -67,6 +67,12 @@ func JSONByteSize(value any) int {
 type Budget struct {
 	bytes   int
 	limited bool
+	limit   int
+}
+
+// NewBudget creates a budget with an explicit byte limit.
+func NewBudget(limit int) *Budget {
+	return &Budget{limit: limit}
 }
 
 // Retain adds value's estimated size and reports whether the budget still
@@ -76,7 +82,11 @@ func (b *Budget) Retain(value any) bool {
 		return false
 	}
 	b.bytes += JSONByteSize(value)
-	if b.bytes > LimitBytes {
+	limit := b.limit
+	if limit == 0 {
+		limit = LimitBytes
+	}
+	if b.bytes > limit {
 		b.limited = true
 		return false
 	}
