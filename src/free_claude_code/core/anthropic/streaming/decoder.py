@@ -6,6 +6,10 @@ from ..stream_contracts import SSEEvent, parse_sse_text
 
 _EVENT_BOUNDARY = re.compile(r"(?>\r\n|\r|\n){2}")
 
+# Toggle for tests: when disabled, feed_frames always uses the regex path so
+# the fast path can be checked against it byte for byte.
+_FAST_PATH = True
+
 
 class AnthropicSSEDecoder:
     """Decode split SSE text, optionally filtering named events before JSON parsing."""
@@ -26,6 +30,29 @@ class AnthropicSSEDecoder:
 
     def feed_frames(self, chunk: str) -> tuple[str, ...]:
         """Retain original framing, including comments and unknown SSE fields."""
+
+        # Fast path: fresh buffer, LF-only stream, and no blank comment events
+        # (three or more consecutive newlines). This covers every healthy
+        # upstream response; everything unusual falls through to the regex.
+        if (
+            _FAST_PATH
+            and not self._boundary_tail
+            and not self._parts
+            and "\r" not in chunk
+            and "\n\n\n" not in chunk
+        ):
+            pieces = chunk.split("\n\n")
+            remainder = pieces[-1]
+            if len(pieces) > 1:
+                frames = tuple(f"{piece}\n\n" for piece in pieces[:-1])
+                if remainder:
+                    self._parts.append(remainder)
+                self._boundary_tail = remainder[-3:]
+                return frames
+            if remainder:
+                self._parts.append(remainder)
+            self._boundary_tail = chunk[-3:]
+            return ()
 
         frames: list[str] = []
         probe = self._boundary_tail + chunk

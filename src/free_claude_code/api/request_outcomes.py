@@ -8,7 +8,10 @@ from loguru import logger
 from starlette.datastructures import Headers
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from free_claude_code.core.anthropic.stream_contracts import SSEEvent
+from free_claude_code.core.anthropic.stream_contracts import (
+    SSEEvent,
+    failure_reason_from_frame,
+)
 from free_claude_code.core.anthropic.streaming.decoder import AnthropicSSEDecoder
 from free_claude_code.core.request_outcomes import (
     RequestOutcome,
@@ -81,22 +84,26 @@ class RequestOutcomeMiddleware:
                     .get("content-type", "")
                     .startswith("text/event-stream")
                 ):
-                    decoder = AnthropicSSEDecoder(
-                        event_names=None
-                        if generation_api(scope["path"]) == "gemini"
-                        else _FAILURE_EVENTS
-                    )
+                    # Framing only; failure detection uses the cheap text scan.
+                    decoder = AnthropicSSEDecoder()
             elif message["type"] == "http.response.body":
                 completed = not message.get("more_body", False)
                 if decoder is not None:
                     text = text_decoder.decode(
                         message.get("body", b""), final=completed
                     )
-                    for event in decoder.feed(text):
-                        _observe_event(event)
+                    # Healthy streams never carry failure events, so scan frame
+                    # names cheaply and JSON-decode only the rare error frame
+                    # instead of parsing every SSE payload a second time.
+                    for frame in decoder.feed_frames(text):
+                        reason = failure_reason_from_frame(frame, _FAILURE_EVENTS)
+                        if reason is not None:
+                            record_request_failure(reason)
                     if completed:
-                        for event in decoder.finish():
-                            _observe_event(event)
+                        for frame in decoder.finish_frames():
+                            reason = failure_reason_from_frame(frame, _FAILURE_EVENTS)
+                            if reason is not None:
+                                record_request_failure(reason)
 
         token = current_request_outcome.set(outcome)
         try:

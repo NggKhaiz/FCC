@@ -1,6 +1,8 @@
 """Bounded, request-local evidence of output released to a stream consumer."""
 
+from collections.abc import Mapping
 from copy import deepcopy
+from decimal import Decimal
 from typing import Any, Literal
 
 import simplejson
@@ -14,6 +16,43 @@ from .openai_responses import is_client_search
 from .stream_recovery import RECOVERY_RETENTION_BYTES, DeliveredPrefix
 from .token_estimation import estimate_text_tokens
 
+
+def _json_byte_size(value: object) -> int:
+    """Estimate the UTF-8 JSON size of a payload without serializing it.
+
+    Retention accounting only needs a monotonic, order-of-magnitude byte budget
+    compared against a one-megabyte threshold. Walking the object and measuring
+    the string/number contents directly avoids a full ``simplejson`` encode on
+    every observed frame. Structural delimiters are approximated by fixed
+    overhead so the estimate stays close to, and never systematically below,
+    the serialized size for the JSON shapes retained here.
+    """
+    if isinstance(value, str):
+        return len(value.encode("utf-8")) + 2
+    if value is None:
+        return 4
+    if value is True:
+        return 4
+    if value is False:
+        return 5
+    if isinstance(value, (int, float, Decimal)):
+        return len(str(value))
+    if isinstance(value, Mapping):
+        if not value:
+            return 2
+        return (
+            2
+            + sum(
+                len(str(key).encode("utf-8")) + 4 + _json_byte_size(item)
+                for key, item in value.items()
+            )
+        )
+    if isinstance(value, (list, tuple)):
+        if not value:
+            return 2
+        return 2 + sum(_json_byte_size(item) + 1 for item in value)
+    return len(str(value).encode("utf-8"))
+
 CLIENT_CALL_TYPES = frozenset(
     {
         "function_call",
@@ -22,6 +61,84 @@ CLIENT_CALL_TYPES = frozenset(
         "local_shell_call",
         "apply_patch_call",
     }
+)
+
+_HEADER_KINDS = frozenset({"message_start", "response.created"})
+_GEMINI_PART_KEYS = frozenset(
+    {"text", "thought", "thoughtSignature", "functionCall"}
+)
+_SNAPSHOT_ITEM_KINDS = frozenset(
+    {"response.output_item.added", "response.output_item.done"}
+)
+_SNAPSHOT_PART_KINDS = frozenset(
+    {"response.content_part.added", "response.content_part.done"}
+)
+_MESSAGES_NON_INDEX_KINDS = frozenset(
+    {"message_start", "message_delta", "message_stop", "ping", "error"}
+)
+_MESSAGES_BLOCK_TYPES = frozenset(
+    {"text", "thinking", "redacted_thinking", "tool_use"}
+)
+_DELTA_FIELDS = {
+    "text_delta": "text",
+    "thinking_delta": "thinking",
+    "input_json_delta": "partial_json",
+}
+_RESPONSES_NON_INDEX_KINDS = frozenset(
+    {
+        "response.created",
+        "response.in_progress",
+        "response.completed",
+        "response.incomplete",
+        "response.failed",
+        "response.error",
+        "error",
+        "ping",
+    }
+)
+_RESPONSES_ITEM_TYPES = frozenset({"message", "reasoning"})
+_RESPONSES_PART_KINDS = frozenset(
+    {
+        "response.content_part.added",
+        "response.reasoning_summary_part.added",
+        "response.content_part.done",
+        "response.reasoning_summary_part.done",
+    }
+)
+_RESPONSES_PART_TYPES = frozenset(
+    {"output_text", "summary_text", "reasoning_text"}
+)
+_RESPONSES_TEXT_KINDS = frozenset(
+    {
+        "response.output_text.delta",
+        "response.reasoning_summary_text.delta",
+        "response.reasoning_text.delta",
+        "response.refusal.delta",
+        "response.output_text.done",
+        "response.reasoning_summary_text.done",
+        "response.reasoning_text.done",
+        "response.refusal.done",
+    }
+)
+_RESPONSES_DELTA_EXCLUSIONS = frozenset(
+    {
+        "response.function_call_arguments.delta",
+        "response.custom_tool_call_input.delta",
+    }
+)
+_RESPONSES_UNKNOWN_EXCLUSIONS = frozenset(
+    {
+        "response.function_call_arguments.delta",
+        "response.function_call_arguments.done",
+        "response.custom_tool_call_input.delta",
+        "response.custom_tool_call_input.done",
+    }
+)
+_HANDOFF_SAFE_REASONS = frozenset(
+    {None, "opaque_reasoning", "opaque_delta"}
+)
+_REASONING_ITEM_TYPES = frozenset(
+    {"thinking", "redacted_thinking", "reasoning"}
 )
 
 
@@ -85,11 +202,7 @@ class DeliveredResponse:
     def _retain(self, value: object) -> bool:
         if self._limited:
             return False
-        self._bytes += len(
-            simplejson.dumps(value, use_decimal=True, ensure_ascii=False).encode(
-                "utf-8"
-            )
-        )
+        self._bytes += _json_byte_size(value)
         if self._bytes > RECOVERY_RETENTION_BYTES:
             self._limited_output_tokens = self.output_tokens()
             self._limited = True
@@ -116,14 +229,16 @@ class DeliveredResponse:
         sequence = data.get("sequence_number")
         if isinstance(sequence, int):
             self.sequence = max(self.sequence, sequence)
-        if kind in {"message_start", "response.created"} and not self.header:
+        if kind in _HEADER_KINDS and not self.header:
             self.header = deepcopy(data.get("message", data.get("response", {})))
         delta = data.get("delta", "")
         text = (
             delta
             if isinstance(delta, str)
-            else "".join(
-                delta.get(field, "") for field in ("text", "thinking", "partial_json")
+            else (
+                delta.get("text", "")
+                + delta.get("thinking", "")
+                + delta.get("partial_json", "")
             )
             if isinstance(delta, dict)
             else ""
@@ -175,10 +290,7 @@ class DeliveredResponse:
                 continue
             if part.get("thoughtSignature"):
                 self.unsafe_reason = "opaque_reasoning"
-            if any(
-                key not in {"text", "thought", "thoughtSignature", "functionCall"}
-                for key in part
-            ):
+            if any(key not in _GEMINI_PART_KEYS for key in part):
                 self.unsafe_reason = "unsupported_output"
             index = max(self.items, default=-1) + 1
             previous = self.items.get(index - 1)
@@ -200,12 +312,12 @@ class DeliveredResponse:
         kind = data.get("type")
         recorded = self.items.get(data.get("output_index"), {})
         previous = recorded.get("content") or []
-        if kind in {"response.output_item.added", "response.output_item.done"}:
+        if kind in _SNAPSHOT_ITEM_KINDS:
             item = data.get("item", {})
             if item.get("type") != "message":
                 return False
             parts = enumerate(item.get("content") or [])
-        elif kind in {"response.content_part.added", "response.content_part.done"}:
+        elif kind in _SNAPSHOT_PART_KINDS:
             parts = [(data.get("content_index", 0), data.get("part", {}))]
         elif kind == "response.output_text.done":
             parts = [
@@ -226,13 +338,7 @@ class DeliveredResponse:
     def _messages(self, kind: str, data: dict[str, Any]) -> None:
         index = data.get("index")
         if not isinstance(index, int):
-            if kind not in {
-                "message_start",
-                "message_delta",
-                "message_stop",
-                "ping",
-                "error",
-            }:
+            if kind not in _MESSAGES_NON_INDEX_KINDS:
                 self.unsafe_reason = "unknown_event"
             return
         if kind == "content_block_start":
@@ -240,12 +346,7 @@ class DeliveredResponse:
             if not self._retain(block):
                 return
             self.items[index] = deepcopy(block)
-            if block.get("type") not in {
-                "text",
-                "thinking",
-                "redacted_thinking",
-                "tool_use",
-            }:
+            if block.get("type") not in _MESSAGES_BLOCK_TYPES:
                 self.unsafe_reason = "native_content"
             if block.get("signature") or block.get("type") == "redacted_thinking":
                 value = (
@@ -263,11 +364,7 @@ class DeliveredResponse:
             if block is None:
                 self.unsafe_reason = "missing_block"
                 return
-            field = {
-                "text_delta": "text",
-                "thinking_delta": "thinking",
-                "input_json_delta": "partial_json",
-            }.get(delta.get("type"))
+            field = _DELTA_FIELDS.get(delta.get("type"))
             if field:
                 block[field] = block.get(field, "") + delta.get(field, "")
             elif delta.get("type") == "signature_delta":
@@ -285,24 +382,15 @@ class DeliveredResponse:
         self._text_constraint = self._text_constraint or responses_text_constraint(data)
         index = data.get("output_index")
         if not isinstance(index, int):
-            if kind not in {
-                "response.created",
-                "response.in_progress",
-                "response.completed",
-                "response.incomplete",
-                "response.failed",
-                "response.error",
-                "error",
-                "ping",
-            }:
+            if kind not in _RESPONSES_NON_INDEX_KINDS:
                 self.unsafe_reason = "unknown_event"
             return
-        if kind in {"response.output_item.added", "response.output_item.done"}:
+        if kind in _SNAPSHOT_ITEM_KINDS:
             item = data.get("item", {})
             if not self._retain(item):
                 return
             self.items[index] = deepcopy(item)
-            if item.get("type") not in {"message", "reasoning"} and not client_call(
+            if item.get("type") not in _RESPONSES_ITEM_TYPES and not client_call(
                 item
             ):
                 self.unsafe_reason = "native_content"
@@ -315,12 +403,7 @@ class DeliveredResponse:
                 self.unsafe_reason = "refusal"
             if kind.endswith(".done"):
                 self.closed.add(index)
-        elif kind in {
-            "response.content_part.added",
-            "response.reasoning_summary_part.added",
-            "response.content_part.done",
-            "response.reasoning_summary_part.done",
-        }:
+        elif kind in _RESPONSES_PART_KINDS:
             part = data.get("part", {})
             if not self._retain(part) or (
                 kind.endswith(".done")
@@ -349,22 +432,9 @@ class DeliveredResponse:
                 self._part_closed.add((index, field, position))
             if part.get("type") == "refusal":
                 self.unsafe_reason = "refusal"
-            elif part.get("type") not in {
-                "output_text",
-                "summary_text",
-                "reasoning_text",
-            }:
+            elif part.get("type") not in _RESPONSES_PART_TYPES:
                 self.unsafe_reason = "native_content"
-        elif kind in {
-            "response.output_text.delta",
-            "response.reasoning_summary_text.delta",
-            "response.reasoning_text.delta",
-            "response.refusal.delta",
-            "response.output_text.done",
-            "response.reasoning_summary_text.done",
-            "response.reasoning_text.done",
-            "response.refusal.done",
-        }:
+        elif kind in _RESPONSES_TEXT_KINDS:
             done = kind.endswith(".done")
             text_field = "refusal" if "refusal" in kind else "text"
             delta = data.get(text_field if done else "delta", "")
@@ -408,17 +478,9 @@ class DeliveredResponse:
                 self._text_closed.add((index, field, position))
             if text_field == "refusal":
                 self.unsafe_reason = "refusal"
-        elif kind.endswith(".delta") and kind not in {
-            "response.function_call_arguments.delta",
-            "response.custom_tool_call_input.delta",
-        }:
+        elif kind.endswith(".delta") and kind not in _RESPONSES_DELTA_EXCLUSIONS:
             self.unsafe_reason = "native_delta"
-        elif kind not in {
-            "response.function_call_arguments.delta",
-            "response.function_call_arguments.done",
-            "response.custom_tool_call_input.delta",
-            "response.custom_tool_call_input.done",
-        }:
+        elif kind not in _RESPONSES_UNKNOWN_EXCLUSIONS:
             self.unsafe_reason = "unknown_event"
 
     def snapshot(self) -> DeliveredPrefix:
@@ -482,16 +544,12 @@ class DeliveredResponse:
 
     @property
     def can_handoff(self) -> bool:
-        if self._text_constraint or self.unsafe_reason not in {
-            None,
-            "opaque_reasoning",
-            "opaque_delta",
-        }:
+        if self._text_constraint or self.unsafe_reason not in _HANDOFF_SAFE_REASONS:
             return False
         return all(
             index in self.closed
             for index, item in self.items.items()
-            if item.get("type") in {"thinking", "redacted_thinking", "reasoning"}
+            if item.get("type") in _REASONING_ITEM_TYPES
         )
 
     def closing_events(self) -> list[dict[str, Any]]:

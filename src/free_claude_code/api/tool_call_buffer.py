@@ -1,13 +1,17 @@
 """Withhold incomplete client tool calls at the public SSE delivery boundary."""
 
 from collections.abc import Mapping
+from copy import deepcopy
 from typing import Literal, cast
 
-from free_claude_code.core.anthropic.stream_contracts import parse_sse_text
+from free_claude_code.core.anthropic.stream_contracts import (
+    parse_sse_text,
+    sse_event_name,
+)
 from free_claude_code.core.json_types import JsonValue
 from free_claude_code.core.openai_responses import is_client_search
 
-from .stream_frames import frame_data, replace_frame_data
+from .stream_frames import FramePayloadCache, replace_frame_data
 
 type CallKey = int | str
 
@@ -47,8 +51,18 @@ def _client_call(item: Mapping[str, object]) -> bool:
 class ToolCallBuffer:
     """Select complete groups in source order, without owning public delivery."""
 
-    def __init__(self, wire_api: Literal["messages", "responses", "gemini"]) -> None:
+    def __init__(
+        self,
+        wire_api: Literal["messages", "responses", "gemini"],
+        *,
+        payload_cache: FramePayloadCache | None = None,
+    ) -> None:
         self._wire_api = wire_api
+        # Share the delivery stream's parse memo when available; a private cache
+        # keeps standalone callers correct without changing their behaviour.
+        self._payloads = (
+            payload_cache if payload_cache is not None else FramePayloadCache()
+        )
         self._frames: list[str] = []
         self._calls: set[CallKey] = set()
         self._pending: set[CallKey] = set()
@@ -57,16 +71,31 @@ class ToolCallBuffer:
         self._ids: dict[str, CallKey] = {}
         self._indices: dict[int, CallKey] = {}
 
+    def _frame_payload(self, frame: str) -> tuple[Mapping[str, object] | None, object]:
+        """Resolve one frame's payload and event kind, reusing the shared parse.
+
+        Object payloads come straight from the delivery-wide parse memo together
+        with a cheaply extracted event name; only malformed/non-object frames pay
+        for the general SSE parser so their legacy behaviour is unchanged.
+        """
+        cached = self._payloads.get(frame)
+        if cached is not None:
+            kind = sse_event_name(frame) or cached.get("type")
+            return cached, kind
+        events = parse_sse_text(frame)
+        if not events:
+            return None, None
+        return cast(Mapping[str, object], events[0].data), (
+            events[0].event or events[0].data.get("type")
+        )
+
     def feed(self, frame: str) -> list[str]:
         if self._wire_api == "gemini":
             # Gemini presenters release only complete, object-valued calls.
             return [frame]
-        events = parse_sse_text(frame)
-        if not events:
+        data, kind = self._frame_payload(frame)
+        if data is None:
             return self._publish(frame)
-        event = events[0]
-        data = cast(Mapping[str, object], event.data)
-        kind = event.event or data.get("type")
         if kind in _FAILURES:
             self._discard_group()
             return [self._filter_snapshot(frame, failed=True)]
@@ -164,7 +193,7 @@ class ToolCallBuffer:
     def _filter_snapshot(self, frame: str, *, failed: bool = False) -> str:
         # Parse only frames we may edit using decimal-aware JSON; all other
         # payloads, including argument strings and SSE framing, stay verbatim.
-        value = frame_data(frame)
+        value = self._payloads.get(frame)
         if value is None:
             return frame
         response = value.get("response")
@@ -184,7 +213,9 @@ class ToolCallBuffer:
         ]
         if len(retained) == len(output):
             return frame
-        response["output"] = retained
+        # Edit a copy so the cache's pristine parse remains reusable.
+        value = deepcopy(value)
+        value["response"]["output"] = retained
         return replace_frame_data(frame, value)
 
     def _withheld_item(

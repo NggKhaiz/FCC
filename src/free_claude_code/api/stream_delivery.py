@@ -19,7 +19,7 @@ from free_claude_code.core.stream_delivery import (
 )
 
 from .classifier_projection import ClassifierProjection
-from .stream_frames import frame_data, replace_frame_data
+from .stream_frames import FramePayloadCache, replace_frame_data
 from .tool_call_buffer import ToolCallBuffer
 
 
@@ -65,7 +65,8 @@ class PublicResponseStream(AsyncIterator[str]):
         self._hide_reasoning = hide_reasoning
         self._decoder = AnthropicSSEDecoder()
         self._projection = ClassifierProjection() if hide_reasoning else None
-        self._tools = ToolCallBuffer(wire_api)
+        self._payloads = FramePayloadCache()
+        self._tools = ToolCallBuffer(wire_api, payload_cache=self._payloads)
         self._delivered = DeliveredResponse(wire_api)
         self._continuation = ContinuationStream(self._delivered)
         state.bind_prefix(self._delivered.snapshot)
@@ -116,19 +117,23 @@ class PublicResponseStream(AsyncIterator[str]):
             )
             # Filter with the failing attempt's call identities before discarding it.
             (frame,) = self._tools.feed(frame)
-            self._tools = ToolCallBuffer(self._wire_api)
+            self._tools = ToolCallBuffer(self._wire_api, payload_cache=self._payloads)
             frame = self._finalize_frame(frame)
             return self._publish(frame, synthetic=True) or frame
 
     def _finalize_frame(self, frame: str) -> str:
-        payload = frame_data(frame)
-        if payload is None:
+        cached = self._payloads.get(frame)
+        if cached is None:
             return frame
-        kind = payload.get("type")
+        kind = cached.get("type")
         if kind == "response.failed":
-            response = payload.get("response")
+            response = cached.get("response")
             if not isinstance(response, dict):
                 return frame
+            # This branch edits the cached payload; copy so the pristine parse
+            # stays reusable for any other stage still holding this frame.
+            payload = deepcopy(cached)
+            response = payload["response"]
             # Failure snapshots may be based on the provider's empty start frame.
             # Use only retained public evidence, independently of a failed mapper.
             if self._delivered.retention_exhausted:
@@ -153,7 +158,7 @@ class PublicResponseStream(AsyncIterator[str]):
         elif not self._continuation.active or kind in {"error", "response.error"}:
             return frame
         else:
-            payload = self._continuation.finalize(payload)
+            payload = self._continuation.finalize(deepcopy(cached))
         return replace_frame_data(frame, payload)
 
     async def _iterate(self) -> AsyncGenerator[tuple[str, bool]]:
@@ -185,7 +190,8 @@ class PublicResponseStream(AsyncIterator[str]):
         self._revision = self.state.attempt_revision
         self.state.transition = None
         self._decoder = AnthropicSSEDecoder()
-        self._tools = ToolCallBuffer(self._wire_api)
+        self._payloads.clear()
+        self._tools = ToolCallBuffer(self._wire_api, payload_cache=self._payloads)
         self._projection = ClassifierProjection() if self._hide_reasoning else None
         self._seen_starts.clear()
         self._pending_starts.clear()
@@ -213,11 +219,11 @@ class PublicResponseStream(AsyncIterator[str]):
         if not self._continuation.active:
             yield frame
             return
-        payload = frame_data(frame)
+        payload = self._payloads.get(frame)
         if payload is None:
             yield frame
             return
-        for item in self._continuation.prepare(payload):
+        for item in self._continuation.prepare(deepcopy(payload)):
             yield (
                 replace_frame_data(frame, item)
                 if item.get("type") == payload.get("type")
@@ -236,8 +242,9 @@ class PublicResponseStream(AsyncIterator[str]):
         self._closed = self._done = True
         await self._events.aclose()
         self._pending_starts.clear()
+        self._payloads.clear()
         self._decoder = AnthropicSSEDecoder()
-        self._tools = ToolCallBuffer(self._wire_api)
+        self._tools = ToolCallBuffer(self._wire_api, payload_cache=self._payloads)
         self.state.bind_prefix(None)
         self._delivered = DeliveredResponse(self._wire_api)
         self._continuation = ContinuationStream(self._delivered)
@@ -260,7 +267,7 @@ class PublicResponseStream(AsyncIterator[str]):
         return prefix + frame
 
     def _record(self, frame: str, *, synthetic: bool) -> None:
-        payload = frame_data(frame)
+        payload = self._payloads.get(frame)
         if payload is not None:
             self._delivered.observe(payload, count_progress=not synthetic)
         elif any(line.startswith("data:") for line in frame.splitlines()):
@@ -268,7 +275,7 @@ class PublicResponseStream(AsyncIterator[str]):
 
     def _publish(self, frame: str, *, synthetic: bool = False) -> str | None:
         """Keep replacement and failure envelopes in the public response lifecycle."""
-        payload = frame_data(frame)
+        payload = self._payloads.get(frame)
         if payload is None:
             if any(
                 line.strip() and not line.startswith(":")
@@ -283,6 +290,8 @@ class PublicResponseStream(AsyncIterator[str]):
                 self._public_id = payload["responseId"]
                 self.start_frame = frame
             elif self._public_id is not None and "responseId" in payload:
+                # Copy before editing so the cached pristine payload is untouched.
+                payload = deepcopy(payload)
                 payload["responseId"] = self._public_id
                 frame = replace_frame_data(frame, payload)
         kind = raw_kind if isinstance(raw_kind, str) else ""
@@ -312,6 +321,9 @@ class PublicResponseStream(AsyncIterator[str]):
         changed = False
         failure = kind == "response.failed"
         if (self._replacement or failure) and self._wire_api == "responses":
+            # Recovery/replacement rewrites envelope identifiers; copy the
+            # cached parse so other stages keep observing the pristine frame.
+            payload = deepcopy(payload)
             response = payload.get("response")
             if isinstance(response, dict):
                 if (

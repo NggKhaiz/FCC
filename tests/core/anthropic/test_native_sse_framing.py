@@ -1,10 +1,12 @@
 """Only SSE line terminators split frames; Unicode text stays verbatim."""
 
 import json
+import random
 
 import pytest
 
 from free_claude_code.core.anthropic.stream_contracts import parse_sse_text
+from free_claude_code.core.anthropic.streaming import decoder as decoder_module
 from free_claude_code.core.anthropic.streaming.decoder import AnthropicSSEDecoder
 
 
@@ -40,3 +42,32 @@ def test_raw_frames_preserve_comments_fields_delimiters_and_unicode(newline, wid
         frames.extend(decoder.feed_frames(raw[start : start + width]))
     frames.extend(decoder.finish_frames())
     assert "".join(frames) == raw
+
+
+def test_fast_path_frames_match_regex_path_on_random_streams(monkeypatch):
+    """The split-based fast path must be byte-identical to the regex decoder."""
+
+    rng = random.Random(20260417)
+    alphabet = ["event: x\n", "data: {}\n", ": keep\n", "\n", "\r", "a", "中"]
+    for _ in range(400):
+        stream = "".join(rng.choice(alphabet) for _ in range(rng.randrange(1, 120)))
+
+        fast = AnthropicSSEDecoder()
+        slow = AnthropicSSEDecoder()
+
+        cursor = 0
+        while cursor < len(stream):
+            width = rng.randrange(1, 8)
+            chunk = stream[cursor : cursor + width]
+            cursor += width
+            monkeypatch.setattr(decoder_module, "_FAST_PATH", True)
+            fast_frames = fast.feed_frames(chunk)
+            monkeypatch.setattr(decoder_module, "_FAST_PATH", False)
+            slow_frames = slow.feed_frames(chunk)
+            assert fast_frames == slow_frames
+            assert fast._boundary_tail == slow._boundary_tail
+            assert fast._parts == slow._parts
+        monkeypatch.setattr(decoder_module, "_FAST_PATH", True)
+        fast_tail = fast.finish_frames()
+        monkeypatch.setattr(decoder_module, "_FAST_PATH", False)
+        assert fast_tail == slow.finish_frames()
