@@ -269,8 +269,9 @@ URL policy, `extra_body` guards, streamed-usage helpers and rejection
 classification, output-token cap parsing/clamping, per-attempt tool-call
 identity resolution) now live in `gocore/openaichat/` with golden parity
 under `gocore/testdata/golden_openaichat4c4a.json`. Phase 4c-4b
-(stream/tool-call output assembly) is in progress: its tool-name codec and
-Chat body rewriting are ported with Python golden coverage. Request-model
+(stream/tool-call output assembly) is in progress: its tool-name codec,
+Chat body rewriting, and streamed-name decoding are ported with Python golden
+coverage. Request-model
 name collection and stream/tool-call output state machines remain to be
 ported before 4c-4b is complete. Phase 4c-4c will integrate transport and
 runner behind `RunCall`/`Attempt`. Phases 4a, 4b, 4c-1, 4c-2,

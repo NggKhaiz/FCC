@@ -1,0 +1,295 @@
+{
+  "schema": "phase4c4b-streamed-names-v1",
+  "merge": [
+    {
+      "existing": "",
+      "incoming": "x",
+      "result": "x"
+    },
+    {
+      "existing": "foo",
+      "incoming": "foobar",
+      "result": "foobar"
+    },
+    {
+      "existing": "foobar",
+      "incoming": "foo",
+      "result": "foobar"
+    },
+    {
+      "existing": "foo",
+      "incoming": "bar",
+      "result": "foobar"
+    },
+    {
+      "existing": "foo",
+      "incoming": "",
+      "result": "foo"
+    },
+    {
+      "existing": "",
+      "incoming": "",
+      "result": ""
+    }
+  ],
+  "sequences": [
+    {
+      "label": "fragments",
+      "names": [
+        "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "工具名称",
+        "normal"
+      ],
+      "use_buffers": true,
+      "steps": [
+        {
+          "index": 0,
+          "fragment": "mcp_s",
+          "result": null,
+          "buffers": {
+            "0": "mcp_s"
+          }
+        },
+        {
+          "index": 0,
+          "fragment": "erver_xxxx",
+          "result": null,
+          "buffers": {
+            "0": "mcp_server_xxxx"
+          }
+        },
+        {
+          "index": 0,
+          "fragment": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_0b3eae44bef7cdc1",
+          "result": "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "buffers": {}
+        }
+      ]
+    },
+    {
+      "label": "cumulative",
+      "names": [
+        "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "工具名称",
+        "normal"
+      ],
+      "use_buffers": true,
+      "steps": [
+        {
+          "index": 1,
+          "fragment": "mcp_s",
+          "result": null,
+          "buffers": {
+            "1": "mcp_s"
+          }
+        },
+        {
+          "index": 1,
+          "fragment": "mcp_server_xxxx",
+          "result": null,
+          "buffers": {
+            "1": "mcp_server_xxxx"
+          }
+        },
+        {
+          "index": 1,
+          "fragment": "mcp_server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_0b3eae44bef7cdc1",
+          "result": "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "buffers": {}
+        }
+      ]
+    },
+    {
+      "label": "repeat_shorter",
+      "names": [
+        "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "工具名称",
+        "normal"
+      ],
+      "use_buffers": true,
+      "steps": [
+        {
+          "index": 1,
+          "fragment": "mcp_server_xxxx",
+          "result": null,
+          "buffers": {
+            "1": "mcp_server_xxxx"
+          }
+        },
+        {
+          "index": 1,
+          "fragment": "mcp_s",
+          "result": null,
+          "buffers": {
+            "1": "mcp_server_xxxx"
+          }
+        },
+        {
+          "index": 1,
+          "fragment": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_0b3eae44bef7cdc1",
+          "result": "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "buffers": {}
+        }
+      ]
+    },
+    {
+      "label": "interleaved",
+      "names": [
+        "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "工具名称",
+        "normal"
+      ],
+      "use_buffers": true,
+      "steps": [
+        {
+          "index": 0,
+          "fragment": "mcp_serv",
+          "result": null,
+          "buffers": {
+            "0": "mcp_serv"
+          }
+        },
+        {
+          "index": 1,
+          "fragment": "tool",
+          "result": null,
+          "buffers": {
+            "0": "mcp_serv",
+            "1": "tool"
+          }
+        },
+        {
+          "index": 1,
+          "fragment": "_c734a04d5704da5b",
+          "result": "工具名称",
+          "buffers": {
+            "0": "mcp_serv"
+          }
+        },
+        {
+          "index": 0,
+          "fragment": "er_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_0b3eae44bef7cdc1",
+          "result": "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "buffers": {}
+        }
+      ]
+    },
+    {
+      "label": "prefix_diverges",
+      "names": [
+        "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "工具名称",
+        "normal"
+      ],
+      "use_buffers": true,
+      "steps": [
+        {
+          "index": 0,
+          "fragment": "mcp_s",
+          "result": null,
+          "buffers": {
+            "0": "mcp_s"
+          }
+        },
+        {
+          "index": 0,
+          "fragment": "unexpected",
+          "result": "mcp_sunexpected",
+          "buffers": {}
+        }
+      ]
+    },
+    {
+      "label": "unknown_and_empty",
+      "names": [
+        "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "工具名称",
+        "normal"
+      ],
+      "use_buffers": true,
+      "steps": [
+        {
+          "index": 0,
+          "fragment": "",
+          "result": "",
+          "buffers": {}
+        },
+        {
+          "index": 1,
+          "fragment": "normal",
+          "result": "normal",
+          "buffers": {}
+        },
+        {
+          "index": 2,
+          "fragment": "unknown",
+          "result": "unknown",
+          "buffers": {}
+        }
+      ]
+    },
+    {
+      "label": "no_buffers",
+      "names": [
+        "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "工具名称",
+        "normal"
+      ],
+      "use_buffers": false,
+      "steps": [
+        {
+          "index": 0,
+          "fragment": "mcp_s",
+          "result": "mcp_s",
+          "buffers": {}
+        },
+        {
+          "index": 0,
+          "fragment": "mcp_server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_0b3eae44bef7cdc1",
+          "result": "mcp.server/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "buffers": {}
+        }
+      ]
+    },
+    {
+      "label": "no_aliases",
+      "names": [
+        "normal"
+      ],
+      "use_buffers": true,
+      "steps": [
+        {
+          "index": 0,
+          "fragment": "nor",
+          "result": "nor",
+          "buffers": {}
+        },
+        {
+          "index": 0,
+          "fragment": "mal",
+          "result": "mal",
+          "buffers": {}
+        }
+      ]
+    },
+    {
+      "label": "no_codec",
+      "names": null,
+      "use_buffers": true,
+      "steps": [
+        {
+          "index": 0,
+          "fragment": "nor",
+          "result": "nor",
+          "buffers": {}
+        },
+        {
+          "index": 0,
+          "fragment": "mal",
+          "result": "mal",
+          "buffers": {}
+        }
+      ]
+    }
+  ]
+}
