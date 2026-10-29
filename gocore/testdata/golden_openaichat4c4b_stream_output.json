@@ -1,0 +1,1046 @@
+{
+  "schema": "phase4c4b-stream-output-v1",
+  "scenarios": [
+    {
+      "name": "blocks_and_success",
+      "replay": false,
+      "steps": [
+        {
+          "input": {
+            "op": "start"
+          },
+          "events": [
+            "start"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": false,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "reasoning",
+            "index": 4
+          },
+          "events": [
+            "reasoning_start:4"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "reasoning",
+            "index": 4
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "reasoning_delta",
+            "index": 4,
+            "value": "why"
+          },
+          "events": [
+            "reasoning_delta:4:0:why"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "why",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "complete",
+            "index": 4,
+            "opaque": [
+              "signature",
+              "redacted",
+              ""
+            ]
+          },
+          "events": [
+            "attach:4:signature",
+            "reasoning_stop:4",
+            "opaque:redacted"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "why",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "text"
+          },
+          "events": [
+            "text_start"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "why",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "text_delta",
+            "value": "hello"
+          },
+          "events": [
+            "text_delta:hello"
+          ],
+          "state": {
+            "text": "hello",
+            "reasoning": "why",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "text"
+          },
+          "events": [],
+          "state": {
+            "text": "hello",
+            "reasoning": "why",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "reasoning",
+            "index": 2
+          },
+          "events": [
+            "text_stop",
+            "reasoning_start:2"
+          ],
+          "state": {
+            "text": "hello",
+            "reasoning": "why",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "reasoning_delta",
+            "index": 2,
+            "value": "sum",
+            "summary": true
+          },
+          "events": [
+            "reasoning_delta:2:1:sum"
+          ],
+          "state": {
+            "text": "hello",
+            "reasoning": "whysum",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "text"
+          },
+          "events": [
+            "reasoning_stop:2",
+            "text_start"
+          ],
+          "state": {
+            "text": "hello",
+            "reasoning": "whysum",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "success",
+            "value": "tool_use"
+          },
+          "events": [
+            "text_stop",
+            "success:tool_use"
+          ],
+          "state": {
+            "text": "hello",
+            "reasoning": "whysum",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "failure"
+          },
+          "events": [],
+          "state": {
+            "text": "hello",
+            "reasoning": "whysum",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "success",
+            "value": "end_turn"
+          },
+          "events": [],
+          "state": {
+            "text": "hello",
+            "reasoning": "whysum",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "tools_and_order",
+      "replay": false,
+      "steps": [
+        {
+          "input": {
+            "op": "extra",
+            "index": 9,
+            "extra": {}
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": false,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "name",
+            "index": 9,
+            "value": "tool"
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": false,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": [
+              {
+                "index": 9,
+                "id": "",
+                "name": "tool",
+                "extra": null,
+                "started": false,
+                "open": false,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "name",
+            "index": 9,
+            "value": "tool_read"
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": false,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": [
+              {
+                "index": 9,
+                "id": "",
+                "name": "tool_read",
+                "extra": null,
+                "started": false,
+                "open": false,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "name",
+            "index": 9,
+            "value": "tool"
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": false,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": [
+              {
+                "index": 9,
+                "id": "",
+                "name": "tool_read",
+                "extra": null,
+                "started": false,
+                "open": false,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "extra",
+            "index": 9,
+            "extra": {
+              "provider": "x"
+            }
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": false,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": [
+              {
+                "index": 9,
+                "id": "",
+                "name": "tool_read",
+                "extra": {
+                  "provider": "x"
+                },
+                "started": false,
+                "open": false,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "tool_start",
+            "index": 9,
+            "id": "a",
+            "value": "tool_read"
+          },
+          "events": [
+            "tool_start:9:a:tool_read"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 9,
+                "id": "a",
+                "name": "tool_read",
+                "extra": {
+                  "provider": "x"
+                },
+                "started": true,
+                "open": true,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "tool_delta",
+            "index": 9,
+            "value": "{\"x\":"
+          },
+          "events": [
+            "tool_delta:9:{\"x\":"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 9,
+                "id": "a",
+                "name": "tool_read",
+                "extra": {
+                  "provider": "x"
+                },
+                "started": true,
+                "open": true,
+                "content": "{\"x\":"
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "tool_delta",
+            "index": 9,
+            "value": "1}"
+          },
+          "events": [
+            "tool_delta:9:1}"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 9,
+                "id": "a",
+                "name": "tool_read",
+                "extra": {
+                  "provider": "x"
+                },
+                "started": true,
+                "open": true,
+                "content": "{\"x\":1}"
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "tool_start",
+            "index": 2,
+            "id": "b",
+            "value": "second"
+          },
+          "events": [
+            "tool_start:2:b:second"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 9,
+                "id": "a",
+                "name": "tool_read",
+                "extra": {
+                  "provider": "x"
+                },
+                "started": true,
+                "open": true,
+                "content": "{\"x\":1}"
+              },
+              {
+                "index": 2,
+                "id": "b",
+                "name": "second",
+                "extra": null,
+                "started": true,
+                "open": true,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "close_all"
+          },
+          "events": [
+            "tool_stop:9",
+            "tool_stop:2"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 9,
+                "id": "a",
+                "name": "tool_read",
+                "extra": {
+                  "provider": "x"
+                },
+                "started": true,
+                "open": false,
+                "content": "{\"x\":1}"
+              },
+              {
+                "index": 2,
+                "id": "b",
+                "name": "second",
+                "extra": null,
+                "started": true,
+                "open": false,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "tool_stop",
+            "index": 9
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 9,
+                "id": "a",
+                "name": "tool_read",
+                "extra": {
+                  "provider": "x"
+                },
+                "started": true,
+                "open": false,
+                "content": "{\"x\":1}"
+              },
+              {
+                "index": 2,
+                "id": "b",
+                "name": "second",
+                "extra": null,
+                "started": true,
+                "open": false,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "success",
+            "value": "stop"
+          },
+          "events": [
+            "success:stop"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 9,
+                "id": "a",
+                "name": "tool_read",
+                "extra": {
+                  "provider": "x"
+                },
+                "started": true,
+                "open": false,
+                "content": "{\"x\":1}"
+              },
+              {
+                "index": 2,
+                "id": "b",
+                "name": "second",
+                "extra": null,
+                "started": true,
+                "open": false,
+                "content": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "failure_cleanup",
+      "replay": false,
+      "steps": [
+        {
+          "input": {
+            "op": "begin",
+            "index": 3
+          },
+          "events": [
+            "reasoning_start:3"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "begin",
+            "index": 1
+          },
+          "events": [
+            "reasoning_start:1"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "tool_start",
+            "index": 5,
+            "id": "t",
+            "value": "work"
+          },
+          "events": [
+            "tool_start:5:t:work"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 5,
+                "id": "t",
+                "name": "work",
+                "extra": null,
+                "started": true,
+                "open": true,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "defer",
+            "value": "not_emitted"
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 5,
+                "id": "t",
+                "name": "work",
+                "extra": null,
+                "started": true,
+                "open": true,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "failure"
+          },
+          "events": [
+            "reasoning_stop:1",
+            "reasoning_stop:3",
+            "failure"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 5,
+                "id": "t",
+                "name": "work",
+                "extra": null,
+                "started": true,
+                "open": false,
+                "content": ""
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "op": "success",
+            "value": "stop"
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": true,
+            "stop_reason": "tool_use",
+            "tools": [
+              {
+                "index": 5,
+                "id": "t",
+                "name": "work",
+                "extra": null,
+                "started": true,
+                "open": false,
+                "content": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "reasoning_replay",
+      "replay": true,
+      "steps": [
+        {
+          "input": {
+            "op": "active",
+            "active": true
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": false,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "reasoning",
+            "index": 3
+          },
+          "events": [
+            "before_reasoning",
+            "reasoning_start:3"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "begin",
+            "index": 1
+          },
+          "events": [
+            "reasoning_start:1"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "text"
+          },
+          "events": [
+            "before_content",
+            "text_start"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "defer",
+            "value": "opaque_a"
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "active",
+            "active": false
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "close_content"
+          },
+          "events": [
+            "before_content",
+            "reasoning_stop:1",
+            "reasoning_stop:3",
+            "text_stop"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "flush",
+            "completed": false
+          },
+          "events": [
+            "replay_finish:0"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "defer",
+            "value": "opaque_b"
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "finish_reasoning"
+          },
+          "events": [
+            "replay_finish:1",
+            "opaque:opaque_b"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "success",
+            "value": "stop"
+          },
+          "events": [
+            "replay_finish:1",
+            "before_content",
+            "success:stop"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing_source_and_empty",
+      "replay": false,
+      "steps": [
+        {
+          "input": {
+            "op": "complete",
+            "index": 5,
+            "opaque": [
+              "one",
+              "",
+              "two"
+            ]
+          },
+          "events": [
+            "opaque:one",
+            "opaque:two"
+          ],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "opaque",
+            "value": ""
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "defer",
+            "value": ""
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "flush"
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        },
+        {
+          "input": {
+            "op": "close_unclosed"
+          },
+          "events": [],
+          "state": {
+            "text": "",
+            "reasoning": "",
+            "committed": true,
+            "has_tool": false,
+            "stop_reason": "end_turn",
+            "tools": []
+          }
+        }
+      ]
+    }
+  ]
+}
