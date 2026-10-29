@@ -268,9 +268,12 @@ the transport-free leaf utilities of the OpenAI-chat family (`/v1` base
 URL policy, `extra_body` guards, streamed-usage helpers and rejection
 classification, output-token cap parsing/clamping, per-attempt tool-call
 identity resolution) now live in `gocore/openaichat/` with golden parity
-under `gocore/testdata/golden_openaichat4c4a.json`. Next are 4c-4b
-(stream/tool-call output assembly) and 4c-4c (transport and runner
-integration behind `RunCall`/`Attempt`). Phases 4a, 4b, 4c-1, 4c-2,
+under `gocore/testdata/golden_openaichat4c4a.json`. Phase 4c-4b
+(stream/tool-call output assembly) is in progress: its tool-name codec and
+Chat body rewriting are ported with Python golden coverage. Request-model
+name collection and stream/tool-call output state machines remain to be
+ported before 4c-4b is complete. Phase 4c-4c will integrate transport and
+runner behind `RunCall`/`Attempt`. Phases 4a, 4b, 4c-1, 4c-2,
 4c-3a, 4c-3b, 4c-3c and phase 3 (`continuation/` plus the
 responses/gemini branches of `delivery`) are complete.
 

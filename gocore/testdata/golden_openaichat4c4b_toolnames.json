@@ -1,0 +1,3241 @@
+{
+  "schema": "phase4c4b-toolnames-v1",
+  "codecs": [
+    {
+      "label": "empty",
+      "names": [],
+      "has_aliases": false,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "portable_boundaries",
+      "names": [
+        "",
+        "x",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "read_file-2"
+      ],
+      "has_aliases": false,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "A",
+          "encoded": "A",
+          "decoded": "A",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "encoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "decoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "encoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "decoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "encoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "decoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "alias": false,
+          "unchanged": true,
+          "prefix": false
+        },
+        {
+          "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAx",
+          "encoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAx",
+          "decoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "r",
+          "encoded": "r",
+          "decoded": "r",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "read_",
+          "encoded": "read_",
+          "decoded": "read_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "read_file-",
+          "encoded": "read_file-",
+          "decoded": "read_file-",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "read_file-2",
+          "encoded": "read_file-2",
+          "decoded": "read_file-2",
+          "alias": false,
+          "unchanged": true,
+          "prefix": false
+        },
+        {
+          "value": "read_file-2x",
+          "encoded": "read_file-2x",
+          "decoded": "read_file-2x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "x",
+          "encoded": "x",
+          "decoded": "x",
+          "alias": false,
+          "unchanged": true,
+          "prefix": false
+        },
+        {
+          "value": "xx",
+          "encoded": "xx",
+          "decoded": "xx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "invalid_boundaries",
+      "names": [
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "-----------------------------------------------------------------",
+        "_________________________________________________________________"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "-----------------------------------------------------------------",
+          "encoded": "tool_489ff50b616f36e9",
+          "decoded": "-----------------------------------------------------------------",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "A",
+          "encoded": "A",
+          "decoded": "A",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "encoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "decoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "encoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_836203944f4c0280",
+          "decoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_836203944f4c028",
+          "encoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_836203944f4c028",
+          "decoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_836203944f4c028",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_836203944f4c0280",
+          "encoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_836203944f4c0280",
+          "decoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_836203944f4c0280x",
+          "encoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_836203944f4c0280x",
+          "decoded": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_836203944f4c0280x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_________________________________________________________________",
+          "encoded": "tool_ecc6b7a12c620f88",
+          "decoded": "_________________________________________________________________",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_489ff",
+          "encoded": "tool_489ff",
+          "decoded": "tool_489ff",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_489ff50b616f36e",
+          "encoded": "tool_489ff50b616f36e",
+          "decoded": "tool_489ff50b616f36e",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_489ff50b616f36e9",
+          "encoded": "tool_489ff50b616f36e9",
+          "decoded": "-----------------------------------------------------------------",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_489ff50b616f36e9x",
+          "encoded": "tool_489ff50b616f36e9x",
+          "decoded": "tool_489ff50b616f36e9x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_ecc6b",
+          "encoded": "tool_ecc6b",
+          "decoded": "tool_ecc6b",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_ecc6b7a12c620f8",
+          "encoded": "tool_ecc6b7a12c620f8",
+          "decoded": "tool_ecc6b7a12c620f8",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_ecc6b7a12c620f88",
+          "encoded": "tool_ecc6b7a12c620f88",
+          "decoded": "_________________________________________________________________",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_ecc6b7a12c620f88x",
+          "encoded": "tool_ecc6b7a12c620f88x",
+          "decoded": "tool_ecc6b7a12c620f88x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "unicode_punctuation",
+      "names": [
+        "工具名称",
+        "é-工具",
+        "...",
+        "  a  b !"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "  a  b !",
+          "encoded": "a_b_5f789c2fe99dda82",
+          "decoded": "  a  b !",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "...",
+          "encoded": "tool_ab5df625bc76dbd4",
+          "decoded": "...",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "a_b_5f789c",
+          "encoded": "a_b_5f789c",
+          "decoded": "a_b_5f789c",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "a_b_5f789c2fe99dda8",
+          "encoded": "a_b_5f789c2fe99dda8",
+          "decoded": "a_b_5f789c2fe99dda8",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "a_b_5f789c2fe99dda82",
+          "encoded": "a_b_5f789c2fe99dda82",
+          "decoded": "  a  b !",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a_b_5f789c2fe99dda82x",
+          "encoded": "a_b_5f789c2fe99dda82x",
+          "decoded": "a_b_5f789c2fe99dda82x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_7b51b",
+          "encoded": "tool_7b51b",
+          "decoded": "tool_7b51b",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_7b51b150841e12c",
+          "encoded": "tool_7b51b150841e12c",
+          "decoded": "tool_7b51b150841e12c",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_7b51b150841e12c3",
+          "encoded": "tool_7b51b150841e12c3",
+          "decoded": "é-工具",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_7b51b150841e12c3x",
+          "encoded": "tool_7b51b150841e12c3x",
+          "decoded": "tool_7b51b150841e12c3x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_ab5df",
+          "encoded": "tool_ab5df",
+          "decoded": "tool_ab5df",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_ab5df625bc76dbd",
+          "encoded": "tool_ab5df625bc76dbd",
+          "decoded": "tool_ab5df625bc76dbd",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_ab5df625bc76dbd4",
+          "encoded": "tool_ab5df625bc76dbd4",
+          "decoded": "...",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_ab5df625bc76dbd4x",
+          "encoded": "tool_ab5df625bc76dbd4x",
+          "decoded": "tool_ab5df625bc76dbd4x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_c734a",
+          "encoded": "tool_c734a",
+          "decoded": "tool_c734a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_c734a04d5704da5",
+          "encoded": "tool_c734a04d5704da5",
+          "decoded": "tool_c734a04d5704da5",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_c734a04d5704da5b",
+          "encoded": "tool_c734a04d5704da5b",
+          "decoded": "工具名称",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_c734a04d5704da5bx",
+          "encoded": "tool_c734a04d5704da5bx",
+          "decoded": "tool_c734a04d5704da5bx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "é-工具",
+          "encoded": "tool_7b51b150841e12c3",
+          "decoded": "é-工具",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "工具名称",
+          "encoded": "tool_c734a04d5704da5b",
+          "decoded": "工具名称",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "same_prefix",
+      "names": [
+        "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppa",
+        "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppb"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "pppppppppppppppppppppppppppppppp",
+          "encoded": "pppppppppppppppppppppppppppppppp",
+          "decoded": "pppppppppppppppppppppppppppppppp",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "ppppppppppppppppppppppppppppppppppppppppppppppp_9c31c2ae69995ce",
+          "encoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_9c31c2ae69995ce",
+          "decoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_9c31c2ae69995ce",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "ppppppppppppppppppppppppppppppppppppppppppppppp_9c31c2ae69995ce1",
+          "encoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_9c31c2ae69995ce1",
+          "decoded": "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppb",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "ppppppppppppppppppppppppppppppppppppppppppppppp_9c31c2ae69995ce1x",
+          "encoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_9c31c2ae69995ce1x",
+          "decoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_9c31c2ae69995ce1x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "ppppppppppppppppppppppppppppppppppppppppppppppp_ee44851006e0b40",
+          "encoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_ee44851006e0b40",
+          "decoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_ee44851006e0b40",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "ppppppppppppppppppppppppppppppppppppppppppppppp_ee44851006e0b402",
+          "encoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_ee44851006e0b402",
+          "decoded": "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppa",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "ppppppppppppppppppppppppppppppppppppppppppppppp_ee44851006e0b402x",
+          "encoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_ee44851006e0b402x",
+          "decoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_ee44851006e0b402x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppa",
+          "encoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_ee44851006e0b402",
+          "decoded": "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppa",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppb",
+          "encoded": "ppppppppppppppppppppppppppppppppppppppppppppppp_9c31c2ae69995ce1",
+          "decoded": "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppb",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "duplicates",
+      "names": [
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "mcp.server/tool name",
+        "工具名称",
+        "normal",
+        "",
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "mcp.server/tool name",
+        "工具名称",
+        "normal",
+        ""
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "m",
+          "encoded": "m",
+          "decoded": "m",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "mcp.server/tool name",
+          "encoded": "mcp_server_tool_name_5fd43a1bc2341284",
+          "decoded": "mcp.server/tool name",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "mcp_server_tool_na",
+          "encoded": "mcp_server_tool_na",
+          "decoded": "mcp_server_tool_na",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "mcp_server_tool_name_5fd43a1bc234128",
+          "encoded": "mcp_server_tool_name_5fd43a1bc234128",
+          "decoded": "mcp_server_tool_name_5fd43a1bc234128",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "mcp_server_tool_name_5fd43a1bc2341284",
+          "encoded": "mcp_server_tool_name_5fd43a1bc2341284",
+          "decoded": "mcp.server/tool name",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "mcp_server_tool_name_5fd43a1bc2341284x",
+          "encoded": "mcp_server_tool_name_5fd43a1bc2341284x",
+          "decoded": "mcp_server_tool_name_5fd43a1bc2341284x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "n",
+          "encoded": "n",
+          "decoded": "n",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "nor",
+          "encoded": "nor",
+          "decoded": "nor",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "norma",
+          "encoded": "norma",
+          "decoded": "norma",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "normal",
+          "encoded": "normal",
+          "decoded": "normal",
+          "alias": false,
+          "unchanged": true,
+          "prefix": false
+        },
+        {
+          "value": "normalx",
+          "encoded": "normalx",
+          "decoded": "normalx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "s",
+          "encoded": "s",
+          "decoded": "s",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxx",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxx",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95fx",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95fx",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95fx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_c734a",
+          "encoded": "tool_c734a",
+          "decoded": "tool_c734a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_c734a04d5704da5",
+          "encoded": "tool_c734a04d5704da5",
+          "decoded": "tool_c734a04d5704da5",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_c734a04d5704da5b",
+          "encoded": "tool_c734a04d5704da5b",
+          "decoded": "工具名称",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_c734a04d5704da5bx",
+          "encoded": "tool_c734a04d5704da5bx",
+          "decoded": "tool_c734a04d5704da5bx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "x",
+          "encoded": "x",
+          "decoded": "x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "工具名称",
+          "encoded": "tool_c734a04d5704da5b",
+          "decoded": "工具名称",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "permuted",
+      "names": [
+        "",
+        "normal",
+        "工具名称",
+        "mcp.server/tool name",
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "m",
+          "encoded": "m",
+          "decoded": "m",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "mcp.server/tool name",
+          "encoded": "mcp_server_tool_name_5fd43a1bc2341284",
+          "decoded": "mcp.server/tool name",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "mcp_server_tool_na",
+          "encoded": "mcp_server_tool_na",
+          "decoded": "mcp_server_tool_na",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "mcp_server_tool_name_5fd43a1bc234128",
+          "encoded": "mcp_server_tool_name_5fd43a1bc234128",
+          "decoded": "mcp_server_tool_name_5fd43a1bc234128",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "mcp_server_tool_name_5fd43a1bc2341284",
+          "encoded": "mcp_server_tool_name_5fd43a1bc2341284",
+          "decoded": "mcp.server/tool name",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "mcp_server_tool_name_5fd43a1bc2341284x",
+          "encoded": "mcp_server_tool_name_5fd43a1bc2341284x",
+          "decoded": "mcp_server_tool_name_5fd43a1bc2341284x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "n",
+          "encoded": "n",
+          "decoded": "n",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "nor",
+          "encoded": "nor",
+          "decoded": "nor",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "norma",
+          "encoded": "norma",
+          "decoded": "norma",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "normal",
+          "encoded": "normal",
+          "decoded": "normal",
+          "alias": false,
+          "unchanged": true,
+          "prefix": false
+        },
+        {
+          "value": "normalx",
+          "encoded": "normalx",
+          "decoded": "normalx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "s",
+          "encoded": "s",
+          "decoded": "s",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxx",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxx",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95fx",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95fx",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95fx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_c734a",
+          "encoded": "tool_c734a",
+          "decoded": "tool_c734a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_c734a04d5704da5",
+          "encoded": "tool_c734a04d5704da5",
+          "decoded": "tool_c734a04d5704da5",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_c734a04d5704da5b",
+          "encoded": "tool_c734a04d5704da5b",
+          "decoded": "工具名称",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_c734a04d5704da5bx",
+          "encoded": "tool_c734a04d5704da5bx",
+          "decoded": "tool_c734a04d5704da5bx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "x",
+          "encoded": "x",
+          "decoded": "x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "工具名称",
+          "encoded": "tool_c734a04d5704da5b",
+          "decoded": "工具名称",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "reserved_collisions",
+      "names": [
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_9bdc9992a9ee97e3"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "s",
+          "encoded": "s",
+          "decoded": "s",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxx",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxx",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+          "alias": false,
+          "unchanged": true,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95fx",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95fx",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95fx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_9bdc9992a9ee97e",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_9bdc9992a9ee97e",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_9bdc9992a9ee97e",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_9bdc9992a9ee97e3",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_9bdc9992a9ee97e3",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_9bdc9992a9ee97e3",
+          "alias": false,
+          "unchanged": true,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_9bdc9992a9ee97e3x",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_9bdc9992a9ee97e3x",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_9bdc9992a9ee97e3x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_bb3e9615d6e7957",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_bb3e9615d6e7957",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_bb3e9615d6e7957",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_bb3e9615d6e7957a",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_bb3e9615d6e7957a",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_bb3e9615d6e7957ax",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_bb3e9615d6e7957ax",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_bb3e9615d6e7957ax",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "encoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_bb3e9615d6e7957a",
+          "decoded": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "trimmed_readable",
+      "names": [
+        "_--x-------------------------------------------a!",
+        "_--x---!"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_--x---!",
+          "encoded": "x_2ae2a99457238787",
+          "decoded": "_--x---!",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_--x-------------------------------------------a!",
+          "encoded": "x-------------------------------------------a_db805897653088d7",
+          "decoded": "_--x-------------------------------------------a!",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "x",
+          "encoded": "x",
+          "decoded": "x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "x------------------------------",
+          "encoded": "x------------------------------",
+          "decoded": "x------------------------------",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "x-------------------------------------------a_db805897653088d",
+          "encoded": "x-------------------------------------------a_db805897653088d",
+          "decoded": "x-------------------------------------------a_db805897653088d",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "x-------------------------------------------a_db805897653088d7",
+          "encoded": "x-------------------------------------------a_db805897653088d7",
+          "decoded": "_--x-------------------------------------------a!",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "x-------------------------------------------a_db805897653088d7x",
+          "encoded": "x-------------------------------------------a_db805897653088d7x",
+          "decoded": "x-------------------------------------------a_db805897653088d7x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "x_2ae2a99",
+          "encoded": "x_2ae2a99",
+          "decoded": "x_2ae2a99",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "x_2ae2a9945723878",
+          "encoded": "x_2ae2a9945723878",
+          "decoded": "x_2ae2a9945723878",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "x_2ae2a99457238787",
+          "encoded": "x_2ae2a99457238787",
+          "decoded": "_--x---!",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "x_2ae2a99457238787x",
+          "encoded": "x_2ae2a99457238787x",
+          "decoded": "x_2ae2a99457238787x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "character_0",
+      "names": [
+        "prefix/suffix",
+        "/"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "/",
+          "encoded": "tool_8a5edab282632443",
+          "decoded": "/",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix/suffix",
+          "encoded": "prefix_suffix_0e3350cefbac5250",
+          "decoded": "prefix/suffix",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_0",
+          "encoded": "prefix_suffix_0",
+          "decoded": "prefix_suffix_0",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_0e3350cefbac525",
+          "encoded": "prefix_suffix_0e3350cefbac525",
+          "decoded": "prefix_suffix_0e3350cefbac525",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_0e3350cefbac5250",
+          "encoded": "prefix_suffix_0e3350cefbac5250",
+          "decoded": "prefix/suffix",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_0e3350cefbac5250x",
+          "encoded": "prefix_suffix_0e3350cefbac5250x",
+          "decoded": "prefix_suffix_0e3350cefbac5250x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_8a5ed",
+          "encoded": "tool_8a5ed",
+          "decoded": "tool_8a5ed",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_8a5edab28263244",
+          "encoded": "tool_8a5edab28263244",
+          "decoded": "tool_8a5edab28263244",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_8a5edab282632443",
+          "encoded": "tool_8a5edab282632443",
+          "decoded": "/",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_8a5edab282632443x",
+          "encoded": "tool_8a5edab282632443x",
+          "decoded": "tool_8a5edab282632443x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "character_1",
+      "names": [
+        "prefix suffix",
+        " "
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": " ",
+          "encoded": "tool_36a9e7f1c95b82ff",
+          "decoded": " ",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix suffix",
+          "encoded": "prefix_suffix_341eeb33c7ce3e69",
+          "decoded": "prefix suffix",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_3",
+          "encoded": "prefix_suffix_3",
+          "decoded": "prefix_suffix_3",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_341eeb33c7ce3e6",
+          "encoded": "prefix_suffix_341eeb33c7ce3e6",
+          "decoded": "prefix_suffix_341eeb33c7ce3e6",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_341eeb33c7ce3e69",
+          "encoded": "prefix_suffix_341eeb33c7ce3e69",
+          "decoded": "prefix suffix",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_341eeb33c7ce3e69x",
+          "encoded": "prefix_suffix_341eeb33c7ce3e69x",
+          "decoded": "prefix_suffix_341eeb33c7ce3e69x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_36a9e",
+          "encoded": "tool_36a9e",
+          "decoded": "tool_36a9e",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_36a9e7f1c95b82f",
+          "encoded": "tool_36a9e7f1c95b82f",
+          "decoded": "tool_36a9e7f1c95b82f",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_36a9e7f1c95b82ff",
+          "encoded": "tool_36a9e7f1c95b82ff",
+          "decoded": " ",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_36a9e7f1c95b82ffx",
+          "encoded": "tool_36a9e7f1c95b82ffx",
+          "decoded": "tool_36a9e7f1c95b82ffx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "character_2",
+      "names": [
+        "prefix.suffix",
+        "."
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": ".",
+          "encoded": "tool_cdb4ee2aea69cc6a",
+          "decoded": ".",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix.suffix",
+          "encoded": "prefix_suffix_341627689cbe7306",
+          "decoded": "prefix.suffix",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_3",
+          "encoded": "prefix_suffix_3",
+          "decoded": "prefix_suffix_3",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_341627689cbe730",
+          "encoded": "prefix_suffix_341627689cbe730",
+          "decoded": "prefix_suffix_341627689cbe730",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_341627689cbe7306",
+          "encoded": "prefix_suffix_341627689cbe7306",
+          "decoded": "prefix.suffix",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_341627689cbe7306x",
+          "encoded": "prefix_suffix_341627689cbe7306x",
+          "decoded": "prefix_suffix_341627689cbe7306x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_cdb4e",
+          "encoded": "tool_cdb4e",
+          "decoded": "tool_cdb4e",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_cdb4ee2aea69cc6",
+          "encoded": "tool_cdb4ee2aea69cc6",
+          "decoded": "tool_cdb4ee2aea69cc6",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_cdb4ee2aea69cc6a",
+          "encoded": "tool_cdb4ee2aea69cc6a",
+          "decoded": ".",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_cdb4ee2aea69cc6ax",
+          "encoded": "tool_cdb4ee2aea69cc6ax",
+          "decoded": "tool_cdb4ee2aea69cc6ax",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "character_3",
+      "names": [
+        "prefix\nsuffix",
+        "\n"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "\n",
+          "encoded": "tool_01ba4719c80b6fe9",
+          "decoded": "\n",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix\nsuffix",
+          "encoded": "prefix_suffix_ddeb3a327b8f48b8",
+          "decoded": "prefix\nsuffix",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_d",
+          "encoded": "prefix_suffix_d",
+          "decoded": "prefix_suffix_d",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_ddeb3a327b8f48b",
+          "encoded": "prefix_suffix_ddeb3a327b8f48b",
+          "decoded": "prefix_suffix_ddeb3a327b8f48b",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_ddeb3a327b8f48b8",
+          "encoded": "prefix_suffix_ddeb3a327b8f48b8",
+          "decoded": "prefix\nsuffix",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_ddeb3a327b8f48b8x",
+          "encoded": "prefix_suffix_ddeb3a327b8f48b8x",
+          "decoded": "prefix_suffix_ddeb3a327b8f48b8x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_01ba4",
+          "encoded": "tool_01ba4",
+          "decoded": "tool_01ba4",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_01ba4719c80b6fe",
+          "encoded": "tool_01ba4719c80b6fe",
+          "decoded": "tool_01ba4719c80b6fe",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_01ba4719c80b6fe9",
+          "encoded": "tool_01ba4719c80b6fe9",
+          "decoded": "\n",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_01ba4719c80b6fe9x",
+          "encoded": "tool_01ba4719c80b6fe9x",
+          "decoded": "tool_01ba4719c80b6fe9x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "character_4",
+      "names": [
+        "prefix\u0000suffix",
+        "\u0000"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "\u0000",
+          "encoded": "tool_6e340b9cffb37a98",
+          "decoded": "\u0000",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix\u0000suffix",
+          "encoded": "prefix_suffix_49929c7b026fd11a",
+          "decoded": "prefix\u0000suffix",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_4",
+          "encoded": "prefix_suffix_4",
+          "decoded": "prefix_suffix_4",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_49929c7b026fd11",
+          "encoded": "prefix_suffix_49929c7b026fd11",
+          "decoded": "prefix_suffix_49929c7b026fd11",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_49929c7b026fd11a",
+          "encoded": "prefix_suffix_49929c7b026fd11a",
+          "decoded": "prefix\u0000suffix",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_49929c7b026fd11ax",
+          "encoded": "prefix_suffix_49929c7b026fd11ax",
+          "decoded": "prefix_suffix_49929c7b026fd11ax",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_6e340",
+          "encoded": "tool_6e340",
+          "decoded": "tool_6e340",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_6e340b9cffb37a9",
+          "encoded": "tool_6e340b9cffb37a9",
+          "decoded": "tool_6e340b9cffb37a9",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_6e340b9cffb37a98",
+          "encoded": "tool_6e340b9cffb37a98",
+          "decoded": "\u0000",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_6e340b9cffb37a98x",
+          "encoded": "tool_6e340b9cffb37a98x",
+          "decoded": "tool_6e340b9cffb37a98x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "character_5",
+      "names": [
+        "prefix😀suffix",
+        "😀"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_7",
+          "encoded": "prefix_suffix_7",
+          "decoded": "prefix_suffix_7",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_7384beb73d5de95",
+          "encoded": "prefix_suffix_7384beb73d5de95",
+          "decoded": "prefix_suffix_7384beb73d5de95",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_7384beb73d5de952",
+          "encoded": "prefix_suffix_7384beb73d5de952",
+          "decoded": "prefix😀suffix",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_7384beb73d5de952x",
+          "encoded": "prefix_suffix_7384beb73d5de952x",
+          "decoded": "prefix_suffix_7384beb73d5de952x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix😀suffix",
+          "encoded": "prefix_suffix_7384beb73d5de952",
+          "decoded": "prefix😀suffix",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_f0443",
+          "encoded": "tool_f0443",
+          "decoded": "tool_f0443",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_f0443a342c5ef54",
+          "encoded": "tool_f0443a342c5ef54",
+          "decoded": "tool_f0443a342c5ef54",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_f0443a342c5ef547",
+          "encoded": "tool_f0443a342c5ef547",
+          "decoded": "😀",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_f0443a342c5ef547x",
+          "encoded": "tool_f0443a342c5ef547x",
+          "decoded": "tool_f0443a342c5ef547x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "😀",
+          "encoded": "tool_f0443a342c5ef547",
+          "decoded": "😀",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "character_6",
+      "names": [
+        "prefix漢suffix",
+        "漢"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_4",
+          "encoded": "prefix_suffix_4",
+          "decoded": "prefix_suffix_4",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_48990d6b0ad60a2",
+          "encoded": "prefix_suffix_48990d6b0ad60a2",
+          "decoded": "prefix_suffix_48990d6b0ad60a2",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_48990d6b0ad60a28",
+          "encoded": "prefix_suffix_48990d6b0ad60a28",
+          "decoded": "prefix漢suffix",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_48990d6b0ad60a28x",
+          "encoded": "prefix_suffix_48990d6b0ad60a28x",
+          "decoded": "prefix_suffix_48990d6b0ad60a28x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix漢suffix",
+          "encoded": "prefix_suffix_48990d6b0ad60a28",
+          "decoded": "prefix漢suffix",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_fc9f0",
+          "encoded": "tool_fc9f0",
+          "decoded": "tool_fc9f0",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_fc9f0d61dd80076",
+          "encoded": "tool_fc9f0d61dd80076",
+          "decoded": "tool_fc9f0d61dd80076",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_fc9f0d61dd80076a",
+          "encoded": "tool_fc9f0d61dd80076a",
+          "decoded": "漢",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_fc9f0d61dd80076ax",
+          "encoded": "tool_fc9f0d61dd80076ax",
+          "decoded": "tool_fc9f0d61dd80076ax",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "漢",
+          "encoded": "tool_fc9f0d61dd80076a",
+          "decoded": "漢",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "character_7",
+      "names": [
+        "prefixésuffix",
+        "é"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_5",
+          "encoded": "prefix_suffix_5",
+          "decoded": "prefix_suffix_5",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_5e0bc8291b08228",
+          "encoded": "prefix_suffix_5e0bc8291b08228",
+          "decoded": "prefix_suffix_5e0bc8291b08228",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_5e0bc8291b082286",
+          "encoded": "prefix_suffix_5e0bc8291b082286",
+          "decoded": "prefixésuffix",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_5e0bc8291b082286x",
+          "encoded": "prefix_suffix_5e0bc8291b082286x",
+          "decoded": "prefix_suffix_5e0bc8291b082286x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefixésuffix",
+          "encoded": "prefix_suffix_5e0bc8291b082286",
+          "decoded": "prefixésuffix",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_4a995",
+          "encoded": "tool_4a995",
+          "decoded": "tool_4a995",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_4a99557e4033c35",
+          "encoded": "tool_4a99557e4033c35",
+          "decoded": "tool_4a99557e4033c35",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_4a99557e4033c353",
+          "encoded": "tool_4a99557e4033c353",
+          "decoded": "é",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_4a99557e4033c353x",
+          "encoded": "tool_4a99557e4033c353x",
+          "decoded": "tool_4a99557e4033c353x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "é",
+          "encoded": "tool_4a99557e4033c353",
+          "decoded": "é",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "character_8",
+      "names": [
+        "prefix\\suffix",
+        "\\"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "\\",
+          "encoded": "tool_a9253dc8529dd214",
+          "decoded": "\\",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix\\suffix",
+          "encoded": "prefix_suffix_1428b52ed10140b7",
+          "decoded": "prefix\\suffix",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_1",
+          "encoded": "prefix_suffix_1",
+          "decoded": "prefix_suffix_1",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_1428b52ed10140b",
+          "encoded": "prefix_suffix_1428b52ed10140b",
+          "decoded": "prefix_suffix_1428b52ed10140b",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_1428b52ed10140b7",
+          "encoded": "prefix_suffix_1428b52ed10140b7",
+          "decoded": "prefix\\suffix",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_1428b52ed10140b7x",
+          "encoded": "prefix_suffix_1428b52ed10140b7x",
+          "decoded": "prefix_suffix_1428b52ed10140b7x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_a9253",
+          "encoded": "tool_a9253",
+          "decoded": "tool_a9253",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_a9253dc8529dd21",
+          "encoded": "tool_a9253dc8529dd21",
+          "decoded": "tool_a9253dc8529dd21",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_a9253dc8529dd214",
+          "encoded": "tool_a9253dc8529dd214",
+          "decoded": "\\",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_a9253dc8529dd214x",
+          "encoded": "tool_a9253dc8529dd214x",
+          "decoded": "tool_a9253dc8529dd214x",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    },
+    {
+      "label": "character_9",
+      "names": [
+        "prefix$suffix",
+        "$"
+      ],
+      "has_aliases": true,
+      "queries": [
+        {
+          "value": "",
+          "encoded": "",
+          "decoded": "",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "$",
+          "encoded": "tool_09fc96082d34c2df",
+          "decoded": "$",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "_",
+          "encoded": "_",
+          "decoded": "_",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "a",
+          "encoded": "a",
+          "decoded": "a",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "p",
+          "encoded": "p",
+          "decoded": "p",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix$suffix",
+          "encoded": "prefix_suffix_f318eba5e79d077f",
+          "decoded": "prefix$suffix",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_f",
+          "encoded": "prefix_suffix_f",
+          "decoded": "prefix_suffix_f",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_f318eba5e79d077",
+          "encoded": "prefix_suffix_f318eba5e79d077",
+          "decoded": "prefix_suffix_f318eba5e79d077",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "prefix_suffix_f318eba5e79d077f",
+          "encoded": "prefix_suffix_f318eba5e79d077f",
+          "decoded": "prefix$suffix",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "prefix_suffix_f318eba5e79d077fx",
+          "encoded": "prefix_suffix_f318eba5e79d077fx",
+          "decoded": "prefix_suffix_f318eba5e79d077fx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "t",
+          "encoded": "t",
+          "decoded": "t",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool",
+          "encoded": "tool",
+          "decoded": "tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_09fc9",
+          "encoded": "tool_09fc9",
+          "decoded": "tool_09fc9",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_09fc96082d34c2d",
+          "encoded": "tool_09fc96082d34c2d",
+          "decoded": "tool_09fc96082d34c2d",
+          "alias": false,
+          "unchanged": false,
+          "prefix": true
+        },
+        {
+          "value": "tool_09fc96082d34c2df",
+          "encoded": "tool_09fc96082d34c2df",
+          "decoded": "$",
+          "alias": true,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "tool_09fc96082d34c2dfx",
+          "encoded": "tool_09fc96082d34c2dfx",
+          "decoded": "tool_09fc96082d34c2dfx",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        },
+        {
+          "value": "unknown_tool",
+          "encoded": "unknown_tool",
+          "decoded": "unknown_tool",
+          "alias": false,
+          "unchanged": false,
+          "prefix": false
+        }
+      ]
+    }
+  ],
+  "bodies": [
+    {
+      "label": "all_locations",
+      "names": [
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "mcp.server/tool name",
+        "工具名称",
+        "normal",
+        ""
+      ],
+      "input": {
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+              "other": 1
+            }
+          },
+          {
+            "function": {
+              "name": "normal"
+            }
+          },
+          {
+            "function": {
+              "name": 3
+            }
+          },
+          null
+        ],
+        "messages": [
+          {
+            "role": "assistant",
+            "tool_calls": [
+              {
+                "function": {
+                  "name": "mcp.server/tool name"
+                }
+              },
+              null
+            ]
+          },
+          {
+            "tool_calls": "invalid"
+          },
+          false
+        ],
+        "tool_choice": {
+          "type": "function",
+          "function": {
+            "name": "工具名称",
+            "extra": true
+          }
+        },
+        "untouched": {
+          "name": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        }
+      },
+      "output": {
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_19da2ba8a077c95f",
+              "other": 1
+            }
+          },
+          {
+            "function": {
+              "name": "normal"
+            }
+          },
+          {
+            "function": {
+              "name": 3
+            }
+          },
+          null
+        ],
+        "messages": [
+          {
+            "role": "assistant",
+            "tool_calls": [
+              {
+                "function": {
+                  "name": "mcp_server_tool_name_5fd43a1bc2341284"
+                }
+              },
+              null
+            ]
+          },
+          {
+            "tool_calls": "invalid"
+          },
+          false
+        ],
+        "tool_choice": {
+          "type": "function",
+          "function": {
+            "name": "tool_c734a04d5704da5b",
+            "extra": true
+          }
+        },
+        "untouched": {
+          "name": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        }
+      },
+      "choice_replaced": true,
+      "function_replaced": true
+    },
+    {
+      "label": "unchanged_choice",
+      "names": [
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "mcp.server/tool name",
+        "工具名称",
+        "normal",
+        ""
+      ],
+      "input": {
+        "tool_choice": {
+          "function": {
+            "name": "normal"
+          }
+        }
+      },
+      "output": {
+        "tool_choice": {
+          "function": {
+            "name": "normal"
+          }
+        }
+      },
+      "choice_replaced": false,
+      "function_replaced": false
+    },
+    {
+      "label": "unknown_choice",
+      "names": [
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "mcp.server/tool name",
+        "工具名称",
+        "normal",
+        ""
+      ],
+      "input": {
+        "tool_choice": {
+          "function": {
+            "name": "other"
+          }
+        }
+      },
+      "output": {
+        "tool_choice": {
+          "function": {
+            "name": "other"
+          }
+        }
+      },
+      "choice_replaced": false,
+      "function_replaced": false
+    },
+    {
+      "label": "invalid_fields",
+      "names": [
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "mcp.server/tool name",
+        "工具名称",
+        "normal",
+        ""
+      ],
+      "input": {
+        "tools": {},
+        "messages": [
+          null,
+          {
+            "tool_calls": [
+              1,
+              {
+                "function": null
+              }
+            ]
+          }
+        ],
+        "tool_choice": {
+          "function": []
+        }
+      },
+      "output": {
+        "tools": {},
+        "messages": [
+          null,
+          {
+            "tool_calls": [
+              1,
+              {
+                "function": null
+              }
+            ]
+          }
+        ],
+        "tool_choice": {
+          "function": []
+        }
+      },
+      "choice_replaced": false,
+      "function_replaced": false
+    },
+    {
+      "label": "no_aliases",
+      "names": [
+        "normal"
+      ],
+      "input": {
+        "tools": [
+          {
+            "function": {
+              "name": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            }
+          }
+        ],
+        "tool_choice": {
+          "function": {
+            "name": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          }
+        }
+      },
+      "output": {
+        "tools": [
+          {
+            "function": {
+              "name": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            }
+          }
+        ],
+        "tool_choice": {
+          "function": {
+            "name": "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          }
+        }
+      },
+      "choice_replaced": false,
+      "function_replaced": false
+    },
+    {
+      "label": "missing_choice",
+      "names": [
+        "server_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "mcp.server/tool name",
+        "工具名称",
+        "normal",
+        ""
+      ],
+      "input": {
+        "messages": []
+      },
+      "output": {
+        "messages": []
+      },
+      "choice_replaced": false,
+      "function_replaced": false
+    }
+  ]
+}
